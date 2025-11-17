@@ -183,8 +183,11 @@ select:focus{
 
 /* buitenrand van de viewer */
 #comparisonWrapper::after{
-  content:""; position:absolute; inset:0;
-  border:1px solid rgba(255,255,255,.6);
+  content:"";
+  position:absolute;
+  inset:0;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 0 1px rgba(0,0,0,.8);
   pointer-events:none;
 }
 
@@ -211,8 +214,17 @@ select:focus{
 
 /* Slider-lijn */
 #slider{
-  position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%);
-  width:2px; background:#fff; cursor:ew-resize; z-index:10; touch-action:none;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:2px;
+  background:var(--ig-accent);
+  box-shadow:0 0 14px rgba(255,124,0,.6);
+  cursor:ew-resize;
+  z-index:10;
+  touch-action:none;
 }
 
 /* ==== Outlines per helft (slider-mode) ====
@@ -271,8 +283,15 @@ select:focus{
 
 /* 1px middenlijn in SxS */
 .sbs-mode #sbsWrapper::before{
-  content:""; position:absolute; top:0; bottom:0; left:50%; width:1px;
-  background:rgba(255,255,255,.35); z-index:4;
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:50%;
+  width:1px;
+  background:rgba(255,255,255,.35);
+  box-shadow:0 0 10px rgba(0,0,0,.9);
+  z-index:4;
 }
 
 
