@@ -302,13 +302,38 @@ select:focus{
    LABELS + RAW buttons
    =========================== */
 #infoContainer{
-  width:100%; max-width:1400px; margin:10px auto 16px; padding:0 40px;
-  box-sizing:border-box; display:flex; justify-content:space-between; align-items:center; gap:48px;
+  width:100%;
+  max-width:1400px;
+  margin:12px auto 10px;
+  padding:0 40px;
+  box-sizing:border-box;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:48px;
+  color:var(--ig-text-muted);
 }
-.infoCol{ flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px; }
-#leftLabel,#rightLabel{ white-space:nowrap; }
-#infoContainer a{ color:inherit; text-decoration:none; }
-#infoContainer a:hover{ text-decoration:underline; }
+.infoCol{
+  flex:1 1 0;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:10px;
+}
+#leftLabel,#rightLabel{
+  white-space:nowrap;
+  font-size:13px;
+}
+#infoContainer a{
+  color:var(--ig-text);
+  text-decoration:none;
+}
+#infoContainer a:hover{
+  color:var(--ig-accent);
+  text-decoration:underline;
+}
 
 /* ===========================
    DETAIL VIEWER
