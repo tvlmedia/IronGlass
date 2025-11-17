@@ -7,43 +7,40 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- IronGlass Header Logo -->
-<div id="igHeader">
-  <img src="IRONGASS LOGO.png" alt="IronGlass Logo">
-</div>
-  
-<div class="controls desktop-only">
- <div class="row row-1">
-  <button id="toggleButton" class="control-button">↔ Flip</button>
-  <button id="fullscreenButton" class="control-button">⛶ Fullscreen</button>
-  <button id="detailViewToggle" class="control-button">🔍 Detail View</button>
- <button id="sbsToggle" type="button" class="control-button">Side-by-Side</button>
- 
-
-  <label id="scaleCtrl" class="chip">
-    <span id="scaleVal">100%</span>
-    <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1">
-  </label>
-
-  <select id="cameraSelect"></select>
-  <select id="sensorFormatSelect" disabled></select>
-  <button id="flareToggle" class="control-button" data-mode="noflare">Flare: OFF</button>
-</div>
-
-<div class="row row-2">
-  <select id="leftLens"></select>
-  <select id="tStopLeftSelect"></select>
-  <select id="rightLens"></select>
-  <select id="tStopRightSelect"></select>
-  <!-- Goed → nu in row 2 -->
-  <select id="focalLength" title="Focal length">
-    <option value="35mm">35mm</option>
-    <option value="75mm" selected>75mm</option>
-  </select>
-</div>
+  <!-- IronGlass Header Logo -->
+  <div id="igHeader">
+    <img src="IRONGLASS LOGO.png" alt="IronGlass Logo">
   </div>
-</div>
-</div>
+
+  <div id="toolRoot">
+    <div class="controls desktop-only">
+      <div class="row row-1">
+        <button id="toggleButton" class="control-button">↔ Flip</button>
+        <button id="fullscreenButton" class="control-button">⛶ Fullscreen</button>
+        <button id="detailViewToggle" class="control-button">🔍 Detail View</button>
+        <button id="sbsToggle" type="button" class="control-button">Side-by-Side</button>
+
+        <label id="scaleCtrl" class="chip">
+          <span id="scaleVal">100%</span>
+          <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1">
+        </label>
+
+        <select id="cameraSelect"></select>
+        <select id="sensorFormatSelect" disabled></select>
+        <button id="flareToggle" class="control-button" data-mode="noflare">Flare: OFF</button>
+      </div>
+
+      <div class="row row-2">
+        <select id="leftLens"></select>
+        <select id="tStopLeftSelect"></select>
+        <select id="rightLens"></select>
+        <select id="tStopRightSelect"></select>
+        <select id="focalLength" title="Focal length">
+          <option value="35mm">35mm</option>
+          <option value="75mm" selected>75mm</option>
+        </select>
+      </div>
+    </div>
  <div id="comparisonWrapper" class="desktop-only" tabindex="0">
     <div id="beforeImage">
       <img id="beforeImgTag" alt="Right lens preview">
