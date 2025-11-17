@@ -29,7 +29,24 @@ body{
   flex-direction:column;
   align-items:center;
 }
+#igHeader {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 26px 0 10px;
+}
 
+#igHeader img {
+  height: 48px;
+  width: auto;
+  opacity: 0.92;
+  filter: drop-shadow(0 0 10px rgba(0,0,0,0.6));
+  transition: opacity .2s ease;
+}
+
+#igHeader img:hover {
+  opacity: 1;
+}
 /* ===========================
    CONTROLS (los van viewer)
    =========================== */
