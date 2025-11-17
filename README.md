@@ -1,2 +1,2 @@
-# IronGlass
-Lens Comparison IronGlass
+# lens-compare
+Lens Compare
