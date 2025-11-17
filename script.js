@@ -214,9 +214,9 @@ const lensImageMap = {
 };
 
 const lensDescriptions = {
-  "IronGlass Red P": { text:"De IronGlass RED P set is een zeldzame vondst: bestaande uit de alleroudste series Sovjet-lenzen met single coating en maximale karakterweergave. Geen tweaks, geen trucjes – puur vintage glasoptiek.", url:"https://tvlrental.nl/ironglassredp/" },
-  "IronGlass Zeiss Jena": { text:"De Zeiss Jena’s zijn een uitstekende keuze voor cinematografen die zoeken naar een zachte vintage signatuur zonder zware distortie of gekke flares. Ze voegen karakter toe, maar laten de huid spreken.", url:"https://tvlrental.nl/ironglasszeissjena/" },
-  "IronGlass MKII": { text:"De IronGlass MKII Sovjet set is na de RED P de heftigste variant: zwaar getweakte oude Sovjet-lenzen met extreem karakter, flare en vervorming. Ideaal voor een rauwe, experimentele look.", url:"https://tvlrental.nl/ironglassmkii/" },
+  "IronGlass Red P": { text:"Extremely vintage Soviet optics with single coating, heavy character, flare and distortion. Pure, raw, unpolished glass for maximum personality.", url:"https://ironglassadapters.com/rehousing/red-p-limited-edition-soviet-lens-rehousing/id/23/?campaign=REDP" },
+  "IronGlass Zeiss Jena": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss-jena-rehousing/id/23/?campaign=ZeissJena" },
+  "IronGlass MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/ironglass-mkii-soviet-rehoused-lenses/id/23/?campaign=MKII" },
  };
 
 /* === DOM refs === */
