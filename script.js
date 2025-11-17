@@ -217,11 +217,7 @@ const lensDescriptions = {
   "IronGlass Red P": { text:"De IronGlass RED P set is een zeldzame vondst: bestaande uit de alleroudste series Sovjet-lenzen met single coating en maximale karakterweergave. Geen tweaks, geen trucjes – puur vintage glasoptiek.", url:"https://tvlrental.nl/ironglassredp/" },
   "IronGlass Zeiss Jena": { text:"De Zeiss Jena’s zijn een uitstekende keuze voor cinematografen die zoeken naar een zachte vintage signatuur zonder zware distortie of gekke flares. Ze voegen karakter toe, maar laten de huid spreken.", url:"https://tvlrental.nl/ironglasszeissjena/" },
   "IronGlass MKII": { text:"De IronGlass MKII Sovjet set is na de RED P de heftigste variant: zwaar getweakte oude Sovjet-lenzen met extreem karakter, flare en vervorming. Ideaal voor een rauwe, experimentele look.", url:"https://tvlrental.nl/ironglassmkii/" },
-  "Cooke Panchro FF": { text:"Karakteristieke full frame lenzenset met een klassieke Cooke-look. Subtiele glow en zachte roll-off, perfect voor een romantische of authentieke sfeer.", url:"https://tvlrental.nl/cookepanchro/" },
-  "DZO Arles": { text:"Scherpe en cleane full-frame cine primes met zachte bokeh en moderne flarecontrole. Ideaal voor commercials en high-end narratieve projecten.", url:"https://tvlrental.nl/dzoarles/" },
-  "DZO Vespid": { text:"Betaalbare maar serieuze cine-lenzen met consistente look, lichte vintage feel en goede optische prestaties. Full frame coverage.", url:"https://tvlrental.nl/dzovespid/" },
-  "Lomo Standard Speed": { text:"Zachte vintage lenzen met unieke glow en flare. Niet voor elk project, maar heerlijk voor rauwe of experimentele looks.", url:"https://tvlrental.nl/lomostandardspeed/" }
-};
+ };
 
 /* === DOM refs === */
 const q = id => document.getElementById(id);
