@@ -232,7 +232,7 @@ const leftLabel=q("leftLabel"), rightLabel=q("rightLabel"), downloadLeftRawButto
 const flareToggle=q("flareToggle"), scaleSlider=q("scaleSlider"), scaleVal=q("scaleVal"), lensInfoDiv=q("lensInfo");
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
-const IMG_BASE="https://tvlmedia.github.io/lens-compare/images/", RAW_BASE=IMG_BASE+"raw/";
+const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
 const { jsPDF } = window.jspdf || {};
 const BASE_SENSOR = cameras["Sony Venice"]["6K 3:2"];
 let sbsActive=false, isExportingPdf=false, userScale=1;
@@ -525,7 +525,7 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
     const {w:sW}=getCurrentWH(), zoom=Math.max(1,BASE_SENSOR.w/sW);
     const leftText=leftLabel.textContent, rightText=rightLabel.textContent, leftName=leftSelect.value, rightName=rightSelect.value, focal=focalLengthSelect.value;
     const tLeft=String(tStopLeftSelect.value).replace(/\./g,"_"), tRight=String(tStopRightSelect.value).replace(/\./g,"_");
-    const logo=await loadHTMLImage("https://tvlmedia.github.io/lens-compare/LOGOVOORPDF.png"), sensorText=getSensorText();
+    const logo=await loadHTMLImage("https://tvlmedia.github.io/IronGlass/LOGOVOORPDF.png"), sensorText=getSensorText();
     const li=await loadHTMLImage(afterImgTag.src), ri=await loadHTMLImage(beforeImgTag.src);
     const leftSensor=await renderToSensorAR(li,targetAR,exportH,zoom*userScale), rightSensor=await renderToSensorAR(ri,targetAR,exportH,zoom*userScale);
     const splitData=await buildSplitFromSensor(leftSensor.dataURL,rightSensor.dataURL,leftSensor.W,leftSensor.H);
