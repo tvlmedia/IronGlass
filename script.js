@@ -194,7 +194,7 @@ const cameras = {
 };
 
 /* === Lens lijsten, alias-focals, files en teksten === */
-const lenses = ["IronGlass Red P","IronGlass MKII","IronGlass Zeiss Jena","DZO Vespid","DZO Arles","Cooke Panchro FF","Lomo Standard Speed"];
+const lenses = ["IronGlass Red P","IronGlass MKII","IronGlass Zeiss Jena"];
 
 const notes = {
   "ironglass_red_p_35mm":"37mm","ironglass_red_p_50mm":"58mm","ironglass_mkii_35mm":"37mm","ironglass_zeiss_jena_50mm":"50mm","cooke_panchro_ff_35mm":"32mm","cooke_panchro_ff_50mm":"50mm",
