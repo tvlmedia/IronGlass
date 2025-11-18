@@ -499,3 +499,31 @@ body.sbs-mode #comparisonWrapper {
   margin-right:0;
   box-sizing:border-box;
 }
+/* === FORCE EVERYTHING IN ROW-1 ON ONE LINE === */
+.controls.desktop-only .row-1 {
+  flex-wrap: nowrap;    /* niets mag afbreken */
+  gap: 6px;             /* kleiner tussenruimte */
+}
+
+/* maak knoppen en dropdowns compacter in row-1 */
+.controls.desktop-only .row-1 select,
+.controls.desktop-only .row-1 .control-button,
+.controls.desktop-only .row-1 #scaleCtrl {
+  min-width: auto;      /* override */
+  padding: 0 8px;       /* compacter */
+  font-size: 12px;      /* iets kleiner zodat alles past */
+  height: 30px;
+  line-height: 30px;
+}
+
+/* camera + sensor dropdowns iets smaller */
+.controls.desktop-only .row-1 #cameraSelect,
+.controls.desktop-only .row-1 #sensorFormatSelect {
+  min-width: 110px;
+}
+
+/* flare toggle specifiek iets smaller */
+#flareToggle {
+  min-width: 95px !important;
+  padding: 0 8px !important;
+}
