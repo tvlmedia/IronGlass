@@ -25,9 +25,7 @@ body{
   font-family:"Inter","Helvetica Neue",sans-serif;
   font-size:14px;
   line-height:1.6;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
+  /* FLEX WEG: dus NIET meer display:flex / align-items:center hier */
 }
 #igHeader {
   width: 100%;
@@ -55,10 +53,9 @@ body{
   top:0;
   z-index:50;
 
-  /* zelfde breedte als toolRoot/comparisonWrapper */
-  width:100%;
-  max-width:1200px;
-  margin:18px auto 20px;
+  width:100%;          /* laten staan */
+  max-width:none;      /* <-- deze mag je weghalen, of op none zetten */
+  margin:18px 0 20px;  /* geen auto meer nodig binnen toolRoot */
 
   padding:14px 16px;
   border-radius:12px;
@@ -197,12 +194,14 @@ select:focus{
 #toolRoot{ width:min(1200px,96vw); margin:0 auto; }
 
 #comparisonWrapper{
-  position:relative; width:100%; max-width:1200px;
+  position:relative;
+  width:100%;          /* genoeg, max-width mag weg */
   min-height:clamp(360px,56vw,900px);
-  margin:0 auto; background:#000; overflow:hidden;
+  margin:0;
+  background:#000;
+  overflow:hidden;
   --lb-top:0px; --lb-bottom:0px; --lb-left:0px; --lb-right:0px;
 }
-
 /* buitenrand van de viewer */
 #comparisonWrapper::after{
   content:"";
@@ -325,8 +324,8 @@ select:focus{
    =========================== */
 #infoContainer{
   width:100%;
-  max-width:1200px;          /* was 1400px */
-  margin:12px auto 10px;
+  max-width:none;      /* kan weg */
+  margin:12px 0 10px;
   padding:0 40px;
   box-sizing:border-box;
   display:flex;
