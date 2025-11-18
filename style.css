@@ -356,54 +356,17 @@ select:focus{
   text-decoration:underline;
 }
 
-/* ===========================
-   DETAIL VIEWER (HEXAGON)
-   =========================== */
-body.dragging,
-body.dragging * {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -ms-user-select: none !important;
-}
+/* === DETAIL VIEWER – HEXAGON MET ORANJE RAND === */
+.detail-view-square{
+  position:absolute;
+  width:260px;
+  height:260px;
+  pointer-events:none;
+  will-change:transform;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
 
-#detailOverlay {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-  display: none;
-}
-#detailOverlay.active {
-  display: block;
-}
-
-/* basis: echte hexagon + outer glow */
-.detail-view-square {
-  position: absolute;
-  width: 240px;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-
-  background: rgba(5,5,5,0.92);
-  box-shadow:
-    0 0 18px rgba(255,124,0,0.45);
-
-  pointer-events: none;
-  will-change: transform;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-
-  -webkit-clip-path: polygon(
-    50% 0%,
-    93% 25%,
-    93% 75%,
-    50% 100%,
-    7% 75%,
-    7% 25%
-  );
+  /* we clippen het hele blok tot een hexagon */
   clip-path: polygon(
     50% 0%,
     93% 25%,
@@ -413,6 +376,40 @@ body.dragging * {
     7% 25%
   );
 }
+
+/* donkere fill + oranje rand + glow, exact als je oude square */
+.detail-view-square::before,
+.detail-view-square::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  clip-path: inherit;           /* zelfde hexagon */
+}
+
+.detail-view-square::before{
+  background:rgba(5,5,5,0.92);
+}
+
+.detail-view-square::after{
+  border:2px solid rgba(255,124,0,0.75);   /* oranje rand */
+  box-shadow:
+    0 0 18px rgba(255,124,0,0.35),
+    0 0 4px  rgba(255,124,0,0.25) inset;
+}
+
+/* image zelf ook hexagon, maar iets groter voor zoom */
+.detail-view-square img{
+  position:absolute;
+  width:300%;
+  height:auto;
+  object-fit:cover;
+  transform-origin:top left;
+  clip-path: inherit;           /* zelfde hexagon */
+}
+
+/* iets dichter tegen elkaar aan */
+#leftDetail{  margin-left:-110px; }
+#rightDetail{ margin-left: 110px; }
 
 /* pseudo-element tekent de oranje border in dezelfde hex-vorm */
 .detail-view-square::before {
