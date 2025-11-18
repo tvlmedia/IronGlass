@@ -483,10 +483,10 @@ body.sbs-mode #sbsWrapper .pane img {
   object-fit: cover;
   object-position: center;
 }
-body.sbs-mode #comparisonWrapper{
-  width:100% !important;
-  max-width:1200px !important;   /* zelfde als normale mode/toolRoot */
-  margin:0 auto !important;      /* centreren */
+body.sbs-mode #comparisonWrapper {
+  width: 100%;
+  max-width: none;   /* belangrijk: NIETS limiteren */
+  margin: 0;
 }
 #toolRoot{
   width:100%;
@@ -588,3 +588,9 @@ body.sbs-mode #sbsWrapper::before {
 body.sbs-mode #toolRoot .frame-1200 {
   width: min(1600px, 96vw);   /* of 1800px als je ‘m nóg breder wilt */
 }
+
+/* SxS: maak de hele content-breedte groter */
+body.sbs-mode #toolRoot .frame-1200 {
+  width: min(1600px, 96vw);
+}
+
