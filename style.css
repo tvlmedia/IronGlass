@@ -596,3 +596,14 @@ body.sbs-mode #toolRoot .frame-1200 {
   color: var(--ig-accent);
   font-weight: 700;
 }
+/* 1) In SxS: hele toolRoot breder maken (viewer volgt mee) */
+body.sbs-mode #toolRoot {
+  width: min(1600px, 96vw);   /* maak hier gerust 1800px van als je wilt */
+}
+
+/* 2) Maar: controls-balk zelf blijft "normaal" (±1200px) en gecentreerd */
+body.sbs-mode .controls.desktop-only {
+  max-width: 1200px;          /* niet breder dan dit */
+  margin-left: auto;
+  margin-right: auto;         /* centreren binnen bredere toolRoot */
+}
