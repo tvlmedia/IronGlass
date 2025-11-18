@@ -536,3 +536,33 @@ body.sbs-mode #sbsWrapper::before{
   box-shadow:0 0 12px rgba(255,124,0,.7);
 }
 
+/* === SxS: breder, maar wel gecentreerd === */
+body.sbs-mode #toolRoot {
+  width: min(1600px, 96vw);
+  margin: 0 auto;            /* netjes centreren */
+}
+
+/* viewer gewoon 100% van toolRoot */
+body.sbs-mode #comparisonWrapper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* buitenrand uit in SxS (heb je al ergens, maar voor de zekerheid) */
+body.sbs-mode #comparisonWrapper::after {
+  display: none !important;
+}
+
+/* oranje pane-randen in SxS */
+body.sbs-mode #sbsWrapper .pane {
+  border: 1px solid rgba(226,107,0,0.38) !important;
+}
+body.sbs-mode #sbsWrapper .pane:first-child { border-right: 0 !important; }
+body.sbs-mode #sbsWrapper .pane:last-child  { border-left: 0 !important; }
+
+/* middenlijn oranje */
+body.sbs-mode #sbsWrapper::before {
+  background: var(--ig-accent) !important;
+  box-shadow: 0 0 14px rgba(255,124,0,0.55) !important;
+}
