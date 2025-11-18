@@ -369,17 +369,34 @@ body.dragging, body.dragging *{ user-select:none !important; -webkit-user-select
   overflow:hidden;
 
   /* IronGlass branding */
-  border:2px solid rgba(255,124,0,0.55);        /* oranje rand */
-  background:rgba(5,5,5,0.92);                 /* donkere matte achtergrond */
+  border:2px solid rgba(255,124,0,0.65);
+  background:rgba(5,5,5,0.92);
   box-shadow:
-    0 0 18px rgba(255,124,0,0.35),             /* glow */
-    0 0 4px rgba(255,124,0,0.25) inset;        /* subtiele inner glow */
+    0 0 18px rgba(255,124,0,0.35),
+    0 0 4px rgba(255,124,0,0.25) inset;
 
   pointer-events:none;
-  border-radius:4px;                            /* kleine radius zoals hun UI */
   will-change:transform;
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
+
+  /* 🔶 HEXAGON SHAPE (punten links/rechts, zoals logo) */
+  clip-path: polygon(
+    0%   50%,
+    25%   0%,
+    75%   0%,
+    100% 50%,
+    75% 100%,
+    25% 100%
+  );
+  -webkit-clip-path: polygon(
+    0%   50%,
+    25%   0%,
+    75%   0%,
+    100% 50%,
+    75% 100%,
+    25% 100%
+  );
 }
 .detail-view-square img{ position:absolute; width:300%; height:auto; object-fit:cover; transform-origin:top left; }
 #leftDetail{ margin-left:-130px; } #rightDetail{ margin-left:130px; }
