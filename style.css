@@ -463,8 +463,7 @@ body.sbs-mode #sbsWrapper::before{
   width:1px; background:rgba(255,255,255,.35); z-index:4;
 }
 
-/* geen dubbele buitenrand in SxS */
-body.sbs-mode #comparisonWrapper::after{ display:none !important; }
+
 
 /* mobiele embed uit op desktop */
 .lens-frame-outer, .lens-frame-outer.mobile-only { display:none !important; }
@@ -475,10 +474,10 @@ body.sbs-mode #sbsWrapper .pane img {
   object-fit: cover;
   object-position: center;
 }
-/* === SxS viewer mag breder zijn === */
-body.sbs-mode #comparisonWrapper {
-  max-width: 1600px !important;
-  width: min(1600px, 96vw) !important;
+body.sbs-mode #comparisonWrapper{
+  width:100% !important;
+  max-width:1200px !important;   /* zelfde als normale mode/toolRoot */
+  margin:0 auto !important;      /* centreren */
 }
 #toolRoot{
   width:100%;
@@ -526,4 +525,13 @@ body.sbs-mode #comparisonWrapper {
 #flareToggle {
   min-width: 95px !important;
   padding: 0 8px !important;
+}
+/* === SxS: zelfde oranje style als slider-view === */
+body.sbs-mode #sbsWrapper .pane{
+  border:1px solid rgba(226,107,0,0.38);  /* oranje i.p.v. wit */
+}
+
+body.sbs-mode #sbsWrapper::before{
+  background:var(--ig-accent);            /* oranje middenlijn */
+  box-shadow:0 0 12px rgba(255,124,0,.7);
 }
