@@ -253,7 +253,7 @@ select:focus{
 #beforeImage,
 #afterWrapper{
   box-sizing:border-box;
-  border:none;   /* geen extra rand per helft */
+  border:1px solid rgba(226,107,0,0.38);  /* zelfde als buitenrand */
 }
 #beforeImage{ border-left:none; }   /* top, right, bottom */
 #afterWrapper{ border-right:none; } /* top, left,  bottom */
