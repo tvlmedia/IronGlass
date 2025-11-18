@@ -580,13 +580,4 @@ body.sbs-mode #sbsWrapper::before {
   text-align: left;      /* tekst zelf mag gewoon links blijven */
 }
 
-/* In side-by-side modus mag het hele frame breder dan 1200px */
-body.sbs-mode #toolRoot .frame-1200 {
-  width: min(1600px, 96vw);   /* of 1800px als je ‘m nóg breder wilt */
-}
-
-/* SxS: maak de hele content-breedte groter */
-body.sbs-mode #toolRoot .frame-1200 {
-  width: min(1600px, 96vw);
-}
 
