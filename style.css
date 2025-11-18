@@ -545,11 +545,7 @@ body.sbs-mode #sbsWrapper::before{
   box-shadow:0 0 12px rgba(255,124,0,.7);
 }
 
-/* === SxS: breder, maar wel gecentreerd === */
-body.sbs-mode #toolRoot {
-  width: min(1600px, 96vw);
-  margin: 0 auto;            /* netjes centreren */
-}
+
 
 /* viewer gewoon 100% van toolRoot */
 body.sbs-mode #comparisonWrapper {
