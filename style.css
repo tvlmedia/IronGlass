@@ -356,61 +356,34 @@ select:focus{
   text-decoration:underline;
 }
 
+
 /* ===========================
-   DETAIL VIEWER (HEXAGON)
+   DETAIL VIEWER
    =========================== */
-body.dragging,
-body.dragging * {
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  -ms-user-select: none !important;
-}
+body.dragging, body.dragging *{ user-select:none !important; -webkit-user-select:none !important; -ms-user-select:none !important; }
+#detailOverlay{ position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:9999; overflow:visible; display:none; }
+#detailOverlay.active{ display:block; }
+.detail-view-square{
+  position:absolute;
+  width:260px;
+  height:260px;
+  overflow:hidden;
 
-#detailOverlay {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-  display: none;
-}
-#detailOverlay.active {
-  display: block;
-}
+  /* IronGlass branding */
+  border:2px solid rgba(255,124,0,0.55);        /* oranje rand */
+  background:rgba(5,5,5,0.92);                 /* donkere matte achtergrond */
+  box-shadow:
+    0 0 18px rgba(255,124,0,0.35),             /* glow */
+    0 0 4px rgba(255,124,0,0.25) inset;        /* subtiele inner glow */
 
-/* basis: echte hexagon + subtiele glow */
-.detail-view-square {
-  position: absolute;
-  width: 240px;
-  aspect-ratio: 1 / 1;
-  pointer-events: none;
-  will-change: transform;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-
-  /* hexagon-vorm, zelfde oriëntatie als het logo */
-  -webkit-clip-path: polygon(
-    50% 0%,
-    93% 25%,
-    93% 75%,
-    50% 100%,
-    7% 75%,
-    7% 25%
-  );
-  clip-path: polygon(
-    50% 0%,
-    93% 25%,
-    93% 75%,
-    50% 100%,
-    7% 75%,
-    7% 25%
-  );
-
-  background: rgba(5,5,5,0.92);
-  box-shadow: 0 0 18px rgba(255,124,0,0.35);
+  pointer-events:none;
+  border-radius:4px;                            /* kleine radius zoals hun UI */
+  will-change:transform;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
 }
+.detail-view-square img{ position:absolute; width:300%; height:auto; object-fit:cover; transform-origin:top left; }
+#leftDetail{ margin-left:-130px; } #rightDetail{ margin-left:130px; }
 
 /* oranje rand + inner glow over de volledige hexagon */
 .detail-view-square::before {
