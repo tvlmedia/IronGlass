@@ -380,26 +380,22 @@ body.dragging * {
   display: block;
 }
 
-/* HEXAGON, niet gesqueezed + glow/rand */
+/* basis: echte hexagon + outer glow */
 .detail-view-square {
   position: absolute;
   width: 240px;
-  aspect-ratio: 1 / 1;          /* altijd perfect vierkant basis */
+  aspect-ratio: 1 / 1;
   overflow: hidden;
 
-  /* IronGlass rand + glow */
-  border: 2px solid rgba(255,124,0,0.7);
   background: rgba(5,5,5,0.92);
   box-shadow:
-    0 0 18px rgba(255,124,0,0.45),
-    0 0 4px rgba(255,124,0,0.30) inset;
+    0 0 18px rgba(255,124,0,0.45);
 
   pointer-events: none;
   will-change: transform;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
 
-  /* echte hexagon, punt boven/onder */
   -webkit-clip-path: polygon(
     50% 0%,
     93% 25%,
@@ -418,7 +414,23 @@ body.dragging * {
   );
 }
 
-/* dichter bij elkaar rond de muis */
+/* pseudo-element tekent de oranje border in dezelfde hex-vorm */
+.detail-view-square::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  -webkit-clip-path: inherit;
+  clip-path: inherit;
+
+  border: 2px solid rgba(255,124,0,0.9);
+  box-shadow:
+    0 0 14px rgba(255,124,0,0.7),
+    0 0 4px rgba(255,124,0,0.35) inset;
+}
+
+/* dichter bij elkaar */
 #leftDetail {
   margin-left: -100px;
 }
