@@ -480,3 +480,22 @@ body.sbs-mode #comparisonWrapper {
   max-width: 1600px !important;
   width: min(1600px, 96vw) !important;
 }
+#toolRoot{
+  width:100%;
+}
+
+/* gedeeld frame voor controls + viewer + info */
+.frame-1200{
+  width:min(1200px,96vw);
+  margin:0 auto;
+}
+
+/* alles binnen dat frame exact dezelfde breedte */
+.frame-1200 .controls.desktop-only,
+.frame-1200 #comparisonWrapper,
+.frame-1200 #infoContainer{
+  width:100%;
+  margin-left:0;
+  margin-right:0;
+  box-sizing:border-box;
+}
