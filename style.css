@@ -54,18 +54,19 @@ body{
   position:sticky;
   top:0;
   z-index:50;
-  width:min(1200px,96vw);   /* zelfde breedte als #toolRoot / viewer */
+
+  /* zelfde breedte als toolRoot/comparisonWrapper */
+  width:100%;
+  max-width:1200px;
   margin:18px auto 20px;
+
   padding:14px 16px;
   border-radius:12px;
-
-  /* IronGlass styling */
   background:linear-gradient(145deg,#0a0a0a,#141414);
   border:1px solid rgba(255,124,0,0.18);
   box-shadow:
     0 0 22px rgba(255,124,0,0.15),
     0 4px 10px rgba(0,0,0,0.6);
-
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
