@@ -580,4 +580,19 @@ body.sbs-mode #sbsWrapper::before {
   text-align: left;      /* tekst zelf mag gewoon links blijven */
 }
 
+/* SxS: zelfde breedte als normaal (1200px frame) */
+body.sbs-mode #toolRoot {
+  width: min(1200px, 96vw);
+  margin: 0 auto;
+}
 
+body.sbs-mode #toolRoot .frame-1200 {
+  width: 100%;
+}
+
+/* Lensnamen in lensInfo oranje */
+#lensInfo b,
+#lensInfo strong {
+  color: var(--ig-accent);
+  font-weight: 700;
+}
