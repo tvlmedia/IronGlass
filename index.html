@@ -13,6 +13,7 @@
   </div>
 
   <div id="toolRoot">
+  <div class="frame-1200">
     <div class="controls desktop-only">
       <div class="row row-1">
         <button id="toggleButton" class="control-button">↔ Flip</button>
@@ -41,61 +42,64 @@
         </select>
       </div>
     </div>
- <div id="comparisonWrapper" class="desktop-only" tabindex="0">
-    <div id="beforeImage">
-      <img id="beforeImgTag" alt="Right lens preview">
+
+    <div id="comparisonWrapper" class="desktop-only" tabindex="0">
+      <div id="beforeImage">
+        <img id="beforeImgTag" alt="Right lens preview">
+      </div>
+
+      <!-- === DETAIL VIEW OVERLAY (ZOOM) === -->
+      <div id="detailOverlay">
+        <div id="leftDetail" class="detail-view-square"><img alt="Left zoom"></div>
+        <div id="rightDetail" class="detail-view-square"><img alt="Right zoom"></div>
+      </div>
+
+      <div id="afterWrapper">
+        <div id="afterImage">
+          <img id="afterImgTag" alt="Left lens preview">
+        </div>
+      </div>
+
+      <div id="fsBars" aria-hidden="true">
+        <div class="bar top"></div>
+        <div class="bar bottom"></div>
+        <div class="bar left"></div>
+        <div class="bar right"></div>
+      </div>
+
+      <div id="slider"></div>
     </div>
 
-    <!-- === DETAIL VIEW OVERLAY (ZOOM) === -->
-<div id="detailOverlay">
-  <div id="leftDetail" class="detail-view-square"><img alt="Left zoom"></div>
-  <div id="rightDetail" class="detail-view-square"><img alt="Right zoom"></div>
-</div>
+    <div id="infoContainer" class="desktop-only">
+      <div class="infoCol">
+        <div id="leftLabel"></div>
+        <button id="downloadLeftRawButton" class="control-button" disabled>⬇ Download Left RAW</button>
+      </div>
 
-    <div id="afterWrapper">
-      <div id="afterImage">
-        <img id="afterImgTag" alt="Left lens preview">
+      <div class="infoCol">
+        <div id="rightLabel"></div>
+        <button id="downloadRightRawButton" class="control-button" disabled>⬇ Download Right RAW</button>
       </div>
     </div>
 
-<div id="fsBars" aria-hidden="true">
-  <div class="bar top"></div>
-  <div class="bar bottom"></div>
-  <div class="bar left"></div>
-  <div class="bar right"></div>
-</div>
-    
-    <div id="slider"></div>
-  </div>
+    <div id="lensInfo" class="desktop-only"></div>
 
- <div id="infoContainer" class="desktop-only">
-  <div class="infoCol">
-    <div id="leftLabel"></div>
-    <button id="downloadLeftRawButton" class="control-button" disabled>⬇ Download Left RAW</button>
-  </div>
-
-  <div class="infoCol">
-    <div id="rightLabel"></div>
-    <button id="downloadRightRawButton" class="control-button" disabled>⬇ Download Right RAW</button>
-  </div>
-</div>
-  
-  <div id="lensInfo" class="desktop-only"></div>
-
-  <div id="explanationBox" class="desktop-only">
-    <p>⚠️ Note: Some lenses are visually matched. For example, if you select 35mm, you may see a 32mm or 37mm lens that matches the 35mm field of view. This ensures a fair and accurate comparison.</p>
-  </div>
-
-  <!-- === MOBILE VIEW ONLY: Embedded fullscreen iframe === -->
-  <div class="lens-frame-outer mobile-only">
-    <div class="lens-frame-wrapper">
-      <iframe 
-        src="https://tvlmedia.github.io/lens-compare/" 
-        allowfullscreen 
-        loading="lazy">
-      </iframe>
+    <div id="explanationBox" class="desktop-only">
+      <p>⚠️ Note: Some lenses are visually matched. For example, if you select 35mm, you may see a 32mm or 37mm lens that matches the 35mm field of view. This ensures a fair and accurate comparison.</p>
     </div>
   </div>
+</div>
+
+<!-- mobile iframe blijft gewoon zoals je ‘m had, onder toolRoot -->
+<div class="lens-frame-outer mobile-only">
+  <div class="lens-frame-wrapper">
+    <iframe 
+      src="https://tvlmedia.github.io/lens-compare/" 
+      allowfullscreen 
+      loading="lazy">
+    </iframe>
+  </div>
+</div>
 
   <!-- === Scripts === -->
    <!-- === Scripts === -->
