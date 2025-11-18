@@ -364,31 +364,47 @@ body.dragging, body.dragging *{ user-select:none !important; -webkit-user-select
 #detailOverlay.active{ display:block; }
 .detail-view-square {
   position: absolute;
-  width: 260px;
-  height: 260px;
+  width: 240px;              /* iets kleiner zodat ze dichterbij kunnen */
+  height: 240px;
   overflow: hidden;
 
-  /* IronGlass branding */
+  /* ★ IronGlass randje & glow */
   border: 2px solid rgba(255,124,0,0.55);
-  background: rgba(5,5,5,0.92);
+  background: rgba(5,5,5,0.90);
   box-shadow:
     0 0 18px rgba(255,124,0,0.35),
     0 0 4px rgba(255,124,0,0.25) inset;
 
   pointer-events: none;
   will-change: transform;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
 
-  /* 🔶 HEXAGON – punt boven & onder, flat sides links/rechts */
+  /* ★ Non-squeezed hexagon, punt boven en onder */
   clip-path: polygon(
-    50% 0%,   /* top point */
-    93% 25%,  /* right upper */
-    93% 75%,  /* right lower */
-    50% 100%, /* bottom point */
-    7% 75%,   /* left lower */
-    7% 25%    /* left upper */
+    50% 0%,
+    93% 25%,
+    93% 75%,
+    50% 100%,
+    7% 75%,
+    7% 25%
   );
+}
+
+/* Plaatsing dichter naar elkaar */
+#leftDetail {
+  margin-left: -110px;     /* dichter naar het midden */
+}
+
+#rightDetail {
+  margin-left: 110px;      /* dichter naar elkaar */
+}
+
+/* Image binnenin */
+.detail-view-square img {
+  position: absolute;
+  width: 300%;
+  height: auto;
+  object-fit: cover;
+  transform-origin: top left;
 }
 .detail-view-square img{ position:absolute; width:300%; height:auto; object-fit:cover; transform-origin:top left; }
 #leftDetail{ margin-left:-130px; } #rightDetail{ margin-left:130px; }
