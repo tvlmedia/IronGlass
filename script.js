@@ -448,24 +448,24 @@ function applyCalibrationTransforms(){
   };
 
   const apply = (img, cal) => {
-    if(!img) return;
-    img.style.transformOrigin = "center center";
+  if(!img) return;
+  img.style.transformOrigin = "center center";
 
-    if(!calibrateActive || !cal){
-      img.style.transform = "";
-      return;
-    }
+  if(!calibrateActive || !cal){
+    img.style.transform = "";
+    return;
+  }
 
-    const s = cal.scale ?? 1.0;
-    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+  const s = (cal.scale ?? 1.0) * (userScale ?? 1.0);
+  const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
 
-    const hasMove = (Math.abs(dx) > 0.0001) || (Math.abs(dy) > 0.0001);
-    const hasScale = Math.abs(s - 1.0) > 0.0001;
+  const hasMove  = (Math.abs(dx) > 0.0001) || (Math.abs(dy) > 0.0001);
+  const hasScale = Math.abs(s - 1.0) > 0.0001;
 
-    img.style.transform = (hasMove || hasScale)
-      ? `translate(${dx}px, ${dy}px) scale(${s})`
-      : "";
-  };
+  img.style.transform = (hasMove || hasScale)
+    ? `translate(${dx}px, ${dy}px) scale(${s})`
+    : "";
+};
 
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
@@ -677,7 +677,16 @@ beforeImgTag.addEventListener("load", whenImagesReadyThenReset);
 afterImgTag.addEventListener("load", whenImagesReadyThenReset);
 
 /* === Scaling (UI) === */
-function setUserScaleFromPct(pct){ userScale=clamp(pct/100,1.0,1.3); document.documentElement.style.setProperty("--viewer-scale",String(userScale)); if(scaleVal) scaleVal.textContent=Math.round(userScale*100)+"%"; updateFullscreenBars(); resetSplitToMiddle(); }
+function setUserScaleFromPct(pct){
+  userScale = clamp(pct/100, 1.0, 1.3);
+  document.documentElement.style.setProperty("--viewer-scale", String(userScale));
+  if(scaleVal) scaleVal.textContent = Math.round(userScale*100) + "%";
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  applyCalibrationTransforms(); // <-- toevoegen
+}
+
 scaleSlider?.addEventListener("input",e=>setUserScaleFromPct(e.target.value));
 if(scaleSlider) scaleSlider.value = "100";
 setUserScaleFromPct(100);
