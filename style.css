@@ -722,3 +722,23 @@ button.active{ color:#fff; }
   position: absolute;
   left: 0; top: 0;
 }
+
+/* === HARD OVERRIDE: WP/theme img constraints uitzetten in detail viewer === */
+#detailOverlay .detail-view-square,
+#detailOverlay #leftDetail,
+#detailOverlay #rightDetail{
+  width:260px !important;
+  height:260px !important;
+  aspect-ratio:1 / 1 !important;
+  box-sizing:border-box !important;
+}
+
+#detailOverlay .detail-view-square img,
+#detailOverlay #leftDetail img,
+#detailOverlay #rightDetail img{
+  max-width:none !important;
+  max-height:none !important;
+  width:auto;        /* JS zet ‘m toch */
+  height:auto;       /* JS zet ‘m toch */
+  display:block !important;
+}
