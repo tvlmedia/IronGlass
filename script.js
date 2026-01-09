@@ -838,7 +838,15 @@ function resetUserScale(){
   setUserScaleFromPct(100);
 }
 
-scaleSlider?.addEventListener("input", e => setUserScaleFromPct(e.target.value));
+// <-- HIER PLAKKEN (direct boven de input-listener)
+let calibrateUserTouchedScale = false;
+
+// <-- EN DEZE REGEL VERVANGT je bestaande input-listener
+scaleSlider?.addEventListener("input", (e) => {
+  setUserScaleFromPct(e.target.value);
+  if (calibrateActive) calibrateUserTouchedScale = true;
+});
+
 if(scaleSlider) scaleSlider.value = "100";
 setUserScaleFromPct(100);
 
