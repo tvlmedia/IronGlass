@@ -487,6 +487,7 @@ function getCurrentSplitFraction(){ const rect=comparisonWrapper.getBoundingClie
 const LENS_SCALE_TABLE={
   "35mm":{ panchro:100,"red p":116,mkii:117,jena:112,vespid:109,arles:110,"lomo standard speed":110 },
   "75mm":{ panchro:100,"red p":118,mkii:117,jena:110,vespid:100,arles:100,"lomo standard speed":100 },
+  "120mm"
 };
 function normalizeLensKey(lbl=""){ const s=lbl.toLowerCase(); if(s.includes("panchro"))return"panchro"; if(s.includes("red p"))return"red p"; if(s.includes("mk ii")||s.includes("mkii")||s.includes("mk2"))return"mkii"; if(s.includes("jena"))return"jena"; if(s.includes("vespid"))return"vespid"; if(s.includes("arles"))return"arles"; if(s.includes("lomo")&&s.includes("standard"))return"lomo standard speed"; return""; }
 function isScaleAllowedBySensor(){ const {w,h}=getCurrentWH(), EPS=0.001; return (w>30.720+EPS)&&(h>16.200+EPS); }
