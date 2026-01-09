@@ -5,14 +5,14 @@ if (window.innerWidth < 768) document.body.classList.add("mobile-mode");
 const cameras = {
   "ARRI Alexa Mini LF": {
     "Open Gate": { w: 36.696, h: 25.542, label: "Open Gate" },
-    "2.39:1": { w: 36.696, h: 15.312, label: "2.39:1" },
+    "2.39:1": { w: 36.696, h: 15.312, label: "2.39:1 LF" },
     "4.3K LF 16:9": { w: 35.640, h: 20.047, label: "4.3K LF 16:9" },
     "16:9": { w: 31.680, h: 17.820, label: "16:9" },
-    "3.4K S35": { w: 28.248, h: 18.166, label: "3:2" },
-    "3.2K S35 16:9": { w: 26.400, h: 14.850, label: "16:9" },
-    "2.8K LF 1:1": { w: 23.760, h: 23.760, label: "1:1" },
-    "2.8K S35 4:3": { w: 23.760, h: 17.820, label: "4:3" },
-    "2.8K S35 16:9": { w: 23.760, h: 13.365, label: "16:9" }
+    "3.4K S35": { w: 28.248, h: 18.166, label: "3.4K S35" },
+    "3.2K S35 16:9": { w: 26.400, h: 14.850, label: "3.2K S35 16:9" },
+    "2.8K LF 1:1": { w: 23.760, h: 23.760, label: "2.8K LF 1:1" },
+    "2.8K S35 4:3": { w: 23.760, h: 17.820, label: "2.8K S35 4:3" },
+    "2.8K S35 16:9": { w: 23.760, h: 13.365, label: "2.8K S35 16:9" }
   },
   "Arri Alexa Mini": {
     "Open Gate": { w: 28.248, h: 18.166, label: "Open Gate" },
