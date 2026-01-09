@@ -290,13 +290,19 @@ const DEFAULT_T_STOPS=["2.8","4"]; function fillTStops(sel,opts=DEFAULT_T_STOPS)
 fillTStops(tStopLeftSelect); fillTStops(tStopRightSelect); tStopLeftSelect.value="2.8"; tStopRightSelect.value="2.8";
 function syncTStopsOnContextChange(){ const t=tStopLeftSelect.value||"2.8"; tStopLeftSelect.value=t; tStopRightSelect.value=t; }
 
-/* === Scene + Flare toggles === */
+// === Bokeh toggle (zonder ON/OFF tekst) ===
 bokehToggle.dataset.mode = bokehToggle.dataset.mode || "portrait";
-bokehToggle.textContent  = bokehToggle.dataset.mode==="bokeh" ? "Bokeh: ON" : "Bokeh: OFF";
-bokehToggle.addEventListener("click", ()=>{
-  const next = (bokehToggle.dataset.mode==="bokeh") ? "portrait" : "bokeh";
+bokehToggle.textContent = "BOKEH";
+bokehToggle.classList.toggle("active", bokehToggle.dataset.mode === "bokeh");
+bokehToggle.setAttribute("aria-pressed", bokehToggle.dataset.mode === "bokeh");
+
+bokehToggle.addEventListener("click", () => {
+  const next = (bokehToggle.dataset.mode === "bokeh") ? "portrait" : "bokeh";
   bokehToggle.dataset.mode = next;
-  bokehToggle.textContent  = next==="bokeh" ? "Bokeh: ON" : "Bokeh: OFF";
+
+  bokehToggle.classList.toggle("active", next === "bokeh");
+  bokehToggle.setAttribute("aria-pressed", next === "bokeh");
+
   updateImages();
 });
 
