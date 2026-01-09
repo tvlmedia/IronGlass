@@ -1023,15 +1023,17 @@ showDetailBoxAt(
   const rxR = (e.clientX - rectR.left) / rectR.width;
   const ryR = (e.clientY - rectR.top)  / rectR.height;
 
-  const showL = showDetailBoxAt(
-    e, leftDetail, leftDetailImg, afterImgTag,
-    rectL, rxL, ryL, "left", 3.2, 260, 0
-  );
+ const cfg = getDetailConfig();
 
-  const showR = showDetailBoxAt(
-    e, rightDetail, rightDetailImg, beforeImgTag,
-    rectR, rxR, ryR, "right", 3.2, 260, 0
-  );
+const showL = showDetailBoxAt(
+  e, leftDetail, leftDetailImg, afterImgTag,
+  rectL, rxL, ryL, "left", cfg.zoom, cfg.size, 0
+);
+
+const showR = showDetailBoxAt(
+  e, rightDetail, rightDetailImg, beforeImgTag,
+  rectR, rxR, ryR, "right", cfg.zoom, cfg.size, 0
+);
 
  if(!showL) leftDetail.style.display  = "none";
 if(!showR) rightDetail.style.display = "none";
