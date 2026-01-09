@@ -729,3 +729,7 @@ body.sbs-mode .controls.desktop-only {
   margin-left: auto;
   margin-right: auto;         /* centreren binnen bredere toolRoot */
 }
+
+#bokehToggle.active{
+  outline: 1px solid rgba(255,255,255,.35);
+}
