@@ -287,6 +287,26 @@ select:focus{
 #fsBars .left{   top:var(--lb-top,0); bottom:var(--lb-bottom,0); left:0;  width:var(--lb-left,0); }
 #fsBars .right{  top:var(--lb-top,0); bottom:var(--lb-bottom,0); right:0; width:var(--lb-right,0); }
 
+/* === FULLSCREEN: oranje outline rond het beeld (binnen letter/pillarbox) === */
+#comparisonWrapper:fullscreen #fsBars::after,
+#comparisonWrapper:-webkit-full-screen #fsBars::after{
+  content:"";
+  position:absolute;
+
+  /* dit is de "usable image area" */
+  top:var(--lb-top,0);
+  bottom:var(--lb-bottom,0);
+  left:var(--lb-left,0);
+  right:var(--lb-right,0);
+
+  border:1px solid rgba(226,107,0,0.38);
+  box-shadow:0 0 16px rgba(226,107,0,0.22);
+  pointer-events:none;
+
+  /* belangrijk: boven de zwarte bars */
+  z-index:10;
+}
+
 /* ===========================
    SIDE-BY-SIDE (SxS)
    =========================== */
