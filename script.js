@@ -301,6 +301,7 @@ bokehToggle.addEventListener("click", () => {
   bokehToggle.dataset.mode = next;
 
   updateImages();
+  updateToggleHighlights();
 });
 
 /* Flare: 3 standen */
@@ -319,7 +320,12 @@ flareToggle.addEventListener("click", ()=>{
 /* === Side-by-side wrapper === */
 const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
-updateToggleHighlights();
+function setSideBySide(on,{force=false}={}) {
+  ...
+  if(!sbsActive){ updateFullscreenBars(); resetSplitToMiddle(); }
+
+  updateToggleHighlights();
+}
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
@@ -555,7 +561,13 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 
 /* === Detail (zoom) viewer === */
 let detailActive=false; const leftDetailImg=leftDetail?.querySelector("img"), rightDetailImg=rightDetail?.querySelector("img");
-detailToggleButton?.addEventListener("click",()=>{ detailActive=!detailActive; detailOverlay.classList.toggle("active",detailActive); detailToggleButton.classList.toggle("active",detailActive); if(!detailActive){ leftDetail.style.display="none"; rightDetail.style.display="none"; } });
+detailToggleButton?.addEventListener("click",()=>{
+  detailActive=!detailActive;
+  detailOverlay.classList.toggle("active",detailActive);
+  if(!detailActive){ leftDetail.style.display="none"; rightDetail.style.display="none"; }
+  updateToggleHighlights();
+});
+
 function updateZoomViewerAt(e,box,img,srcEl,{zoom=3.2,size=260}={}){
   const rect=srcEl.getBoundingClientRect?srcEl.getBoundingClientRect():srcEl, rx=(e.clientX-rect.left)/rect.width, ry=(e.clientY-rect.top)/rect.height;
   if(rx<0||rx>1||ry<0||ry>1){ box.style.display="none"; return false; }
