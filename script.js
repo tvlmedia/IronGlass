@@ -386,6 +386,13 @@ calibrateBtn?.addEventListener("click", ()=>{
   updateToggleHighlights();
 });
 
+// --- Auto-enable Calibrate (idempotent) ---
+function enableCalibrate(){
+  if(!calibrateBtn) return;
+  if(calibrateActive) return;  // al aan → niks doen
+  calibrateBtn.click();        // gebruikt jouw bestaande toggle-logica
+}
+
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
   const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
@@ -1035,9 +1042,11 @@ function forceCaptureCamera(){
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
   requestAnimationFrame(() => {
-    sensorFormatSelect.value = CAPTURE_FORMAT;
-    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
-  });
+  sensorFormatSelect.value = CAPTURE_FORMAT;
+  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+
+  enableCalibrate(); // ✅ zet Calibrate automatisch aan na capture-format
+});
 }
 
 forceCaptureCamera();
