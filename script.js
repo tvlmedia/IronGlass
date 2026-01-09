@@ -673,7 +673,8 @@ afterImgTag.addEventListener("load", whenImagesReadyThenReset);
 /* === Scaling (UI) === */
 function setUserScaleFromPct(pct){ userScale=clamp(pct/100,1.0,1.3); document.documentElement.style.setProperty("--viewer-scale",String(userScale)); if(scaleVal) scaleVal.textContent=Math.round(userScale*100)+"%"; updateFullscreenBars(); resetSplitToMiddle(); }
 scaleSlider?.addEventListener("input",e=>setUserScaleFromPct(e.target.value));
-setUserScaleFromPct(scaleSlider?.value||100);
+if(scaleSlider) scaleSlider.value = "100";
+setUserScaleFromPct(100);
 
 /* === Keyboard shortcuts === */
 function onGlobalKeydown(e){
@@ -691,8 +692,13 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 
 /* === Update triggers === */
 [lenses, [leftSelect,rightSelect]].flat().forEach(()=>{});
-[leftSelect,rightSelect].forEach(el=>el.addEventListener("change",()=>{ syncTStopsOnContextChange(); updateLensInfo(); updateImages(); autoScaleNow(); }));
-[focalLengthSelect,tStopLeftSelect,tStopRightSelect].forEach(el=>el.addEventListener("change",()=>{ if(el===focalLengthSelect) syncTStopsOnContextChange(); updateImages(); autoScaleNow(); }));
+[leftSelect,rightSelect].forEach(el =>
+  el.addEventListener("change",()=>{ syncTStopsOnContextChange(); updateLensInfo(); updateImages(); })
+);
+
+[focalLengthSelect,tStopLeftSelect,tStopRightSelect].forEach(el =>
+  el.addEventListener("change",()=>{ if(el===focalLengthSelect) syncTStopsOnContextChange(); updateImages(); })
+);
 
 /* === Detail (zoom) viewer === */
 let detailActive=false; const leftDetailImg=leftDetail?.querySelector("img"), rightDetailImg=rightDetail?.querySelector("img");
@@ -774,8 +780,7 @@ function isScaleAllowedBySensor(){ const {w,h}=getCurrentWH(), EPS=0.001; return
 function scaleForLens(lbl, focal){ const k=normalizeLensKey(lbl), fk=String(focal).includes("75")?"75mm":"35mm"; return (LENS_SCALE_TABLE[fk]||{})[k]||100; }
 function applyScalePercent(p){ const v=clamp(Math.round(p),100,130); if(scaleSlider) scaleSlider.value=String(v); setUserScaleFromPct(v); }
 function autoScaleNow(){ if(!isScaleAllowedBySensor()) return applyScalePercent(100); const l=leftSelect?.value||"", r=rightSelect?.value||"", f=focalLengthSelect?.value||"35mm"; applyScalePercent(Math.max(scaleForLens(l,f),scaleForLens(r,f))); }
-["change","input"].forEach(evt=>{ leftSelect?.addEventListener(evt,autoScaleNow); rightSelect?.addEventListener(evt,autoScaleNow); focalLengthSelect?.addEventListener(evt,autoScaleNow); sensorFormatSelect?.addEventListener(evt,autoScaleNow); cameraSelect?.addEventListener(evt,autoScaleNow); });
-autoScaleNow();
+
 
 /* === Link targets noopener/noreferrer safeguard === */
 (function enforceBlankTargets(){
