@@ -822,8 +822,6 @@ function onGlobalKeydown(e){
 }
 window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 
-/* === Update triggers === */
-[lenses, [leftSelect,rightSelect]].flat().forEach(()=>{});
 [leftSelect,rightSelect].forEach(el =>
   el.addEventListener("change",()=>{ 
     resetUserScale();                 // <-- reset scaling naar 100%
@@ -933,22 +931,30 @@ document.addEventListener("mousemove", (e) => {
     return;
   }
 
-  // ===== SLIDER MODE (before/after) =====
-  const rL = afterImgTag.getBoundingClientRect();
-  const rR = beforeImgTag.getBoundingClientRect();
+    // ===== SLIDER MODE (before/after) =====
+  // gebruik de echte "usable" area (zonder letterbox/pillarbox)
+  const host = comparisonWrapper.getBoundingClientRect();
+  const lbL = comparisonWrapper._lbLeft || 0;
+  const lbT = comparisonWrapper._lbTop  || 0;
+  const uW  = comparisonWrapper._usableW || host.width;
+  const uH  = comparisonWrapper._usableH || host.height;
 
-  const rxL = (e.clientX - rL.left) / rL.width;
-  const ryL = (e.clientY - rL.top)  / rL.height;
+  const usableRect = {
+    left: host.left + lbL,
+    top:  host.top  + lbT,
+    width:  uW,
+    height: uH
+  };
 
-  const rxR = (e.clientX - rR.left) / rR.width;
-  const ryR = (e.clientY - rR.top)  / rR.height;
+  const rx = (e.clientX - usableRect.left) / usableRect.width;
+  const ry = (e.clientY - usableRect.top)  / usableRect.height;
 
-  const showL = showDetailBoxAt(e, leftDetail,  leftDetailImg,  afterImgTag,  rL, rxL, ryL, 3.2, 260);
-  const showR = showDetailBoxAt(e, rightDetail, rightDetailImg, beforeImgTag, rR, rxR, ryR, 3.2, 260);
+  // zelfde rect voor beide, want het is dezelfde viewport
+  const showL = showDetailBoxAt(e, leftDetail,  leftDetailImg,  afterImgTag,  usableRect, rx, ry, 3.2, 260);
+  const showR = showDetailBoxAt(e, rightDetail, rightDetailImg, beforeImgTag, usableRect, rx, ry, 3.2, 260);
 
   if(!showL) leftDetail.style.display  = "none";
   if(!showR) rightDetail.style.display = "none";
-});
 
 comparisonWrapper.addEventListener("mouseleave", () => {
   leftDetail.style.display = "none";
