@@ -733,3 +733,18 @@ body.sbs-mode .controls.desktop-only {
 #bokehToggle.active{
   outline: 1px solid rgba(255,255,255,.35);
 }
+/* Toggle highlight */
+:root{
+  --tvl-accent: #ff8a00; /* pas aan naar jouw oranje */
+}
+
+button.active,
+.toggle.active,
+.controls button.active{
+  border-color: var(--tvl-accent) !important;
+  box-shadow: 0 0 0 1px var(--tvl-accent), 0 0 18px rgba(255,138,0,.25);
+}
+
+button.active{
+  color: #fff;
+}
