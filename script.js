@@ -333,6 +333,19 @@ function setFullscreenImageFit(isFs){
     img.style.objectPosition = pos;
   });
 }
+// --- Toggle Highlight ---
+function setToggleActive(el, on){
+  if(!el) return;
+  el.classList.toggle("active", !!on);
+  el.setAttribute("aria-pressed", on ? "true" : "false");
+}
+
+function updateToggleHighlights(){
+  setToggleActive(bokehToggle, (bokehToggle?.dataset.mode === "bokeh"));
+  setToggleActive(flareToggle, (flareToggle?.dataset.mode && flareToggle.dataset.mode !== "noflare"));
+  setToggleActive(sbsBtn, !!sbsActive);
+  setToggleActive(detailToggleButton, !!detailActive);
+}
 
 /* === RAW map + download === */
 const rawFileMap={
