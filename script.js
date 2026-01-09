@@ -851,7 +851,14 @@ function updateZoomViewerAt(e,box,img,srcEl,{zoom=3.2,size=260}={}){
   if(rx<0||rx>1||ry<0||ry>1){ box.style.display="none"; return false; }
   if(img.src!==srcEl.src) img.src=srcEl.src;
   const zw=rect.width*zoom, zh=rect.height*zoom, offX=-(rx*zw)+size/2, offY=-(ry*zh)+size/2;
-  Object.assign(box.style,{left:`${e.clientX-size/2}px`,top:`${e.clientY-size/2}px`,width:`${size}px`,height:`${size}px`,display:"block"});
+  box.style.right = "auto";
+box.style.bottom = "auto";
+box.style.setProperty("width",  `${s}px`, "important");
+box.style.setProperty("height", `${s}px`, "important");
+box.style.setProperty("aspect-ratio", "1 / 1", "important");
+box.style.left = `${e.clientX - s/2}px`;
+box.style.top  = `${e.clientY - s/2}px`;
+box.style.display = "block";
   Object.assign(img.style,{width:`${zw}px`,height:`${zh}px`,transform:`translate(${offX}px, ${offY}px)`});
   return true;
 }
