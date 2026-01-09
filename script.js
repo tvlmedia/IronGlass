@@ -300,9 +300,6 @@ bokehToggle.addEventListener("click", () => {
   const next = (bokehToggle.dataset.mode === "bokeh") ? "portrait" : "bokeh";
   bokehToggle.dataset.mode = next;
 
-  bokehToggle.classList.toggle("active", next === "bokeh");
-  bokehToggle.setAttribute("aria-pressed", next === "bokeh");
-
   updateImages();
 });
 
@@ -317,10 +314,12 @@ flareToggle.addEventListener("click", ()=>{
   flareToggle.dataset.mode = next;
   flareToggle.textContent = flareLabel(next);
   updateImages();
+  updateToggleHighlights();
 });
 /* === Side-by-side wrapper === */
 const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
+updateToggleHighlights();
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
@@ -341,12 +340,13 @@ function setToggleActive(el, on){
 }
 
 function updateToggleHighlights(){
+  const isDetailOn = (typeof detailActive !== "undefined") ? detailActive : false;
+
   setToggleActive(bokehToggle, (bokehToggle?.dataset.mode === "bokeh"));
   setToggleActive(flareToggle, (flareToggle?.dataset.mode && flareToggle.dataset.mode !== "noflare"));
   setToggleActive(sbsBtn, !!sbsActive);
-  setToggleActive(detailToggleButton, !!detailActive);
+  setToggleActive(detailToggleButton, !!isDetailOn);
 }
-
 /* === RAW map + download === */
 const rawFileMap={
   "ironglass_red_p_35mm_t2_8":"images/raw/RedP_37mm_T2.8_RAW.tif",
