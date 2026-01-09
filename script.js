@@ -620,3 +620,24 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 /* === Kick first layout === */
 onFsChange();
 setTimeout(updateImages,50);
+
+/* === Force capture camera/format (after everything is wired) === */
+function forceCaptureCamera(){
+  if(![...cameraSelect.options].some(o => o.value === CAPTURE_CAMERA)){
+    console.warn("CAPTURE_CAMERA not found:", CAPTURE_CAMERA);
+    return;
+  }
+
+  cameraSelect.value = CAPTURE_CAMERA;
+  cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
+
+  requestAnimationFrame(() => {
+    sensorFormatSelect.value = CAPTURE_FORMAT;
+    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+  });
+}
+
+forceCaptureCamera();
+setTimeout(forceCaptureCamera, 50);
+window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
+window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
