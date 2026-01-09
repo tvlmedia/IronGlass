@@ -854,16 +854,14 @@ detailToggleButton?.addEventListener("click", () => {
 });
 
 // Helper: force box square + force img sizing (ignore theme constraints)
-function showDetailBoxAt(e, box, img, srcEl, rect, rx, ry, zoom = 3.2, size = 260){
+function showDetailBoxAt(e, box, img, srcEl, rect, rx, ry, side, zoom = 3.2, size = 260, gap = 24){
   if(!box || !img || !srcEl || !rect) return false;
 
-  // buiten beeld → hide
   if(rx < 0 || rx > 1 || ry < 0 || ry > 1){
     box.style.display = "none";
     return false;
   }
 
-  // src sync
   if(img.src !== srcEl.src) img.src = srcEl.src;
 
   const zw = rect.width  * zoom;
@@ -872,17 +870,25 @@ function showDetailBoxAt(e, box, img, srcEl, rect, rx, ry, zoom = 3.2, size = 26
   const offX = -(rx * zw) + (size / 2);
   const offY = -(ry * zh) + (size / 2);
 
-  // box: altijd vierkant
-  box.style.right = "auto";
-  box.style.bottom = "auto";
+  // ✅ plaats links/rechts van cursor
+  let x = (side === "left")
+    ? (e.clientX - size - gap)
+    : (e.clientX + gap);
+
+  let y = e.clientY - (size/2);
+
+  // ✅ keep in viewport
+  const pad = 8;
+  x = Math.max(pad, Math.min(window.innerWidth  - size - pad, x));
+  y = Math.max(pad, Math.min(window.innerHeight - size - pad, y));
+
   box.style.setProperty("width",  `${size}px`, "important");
   box.style.setProperty("height", `${size}px`, "important");
   box.style.setProperty("aspect-ratio", "1 / 1", "important");
-  box.style.left = `${e.clientX - size/2}px`;
-  box.style.top  = `${e.clientY - size/2}px`;
+  box.style.left = `${x}px`;
+  box.style.top  = `${y}px`;
   box.style.display = "block";
 
-  // img: force dimensions + ignore any max constraints from theme
   img.style.setProperty("max-width", "none", "important");
   img.style.setProperty("max-height","none", "important");
   img.style.setProperty("width",  `${zw}px`, "important");
