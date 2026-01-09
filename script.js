@@ -339,8 +339,8 @@ const CALIBRATION = {
   
 calibrateBtn?.addEventListener("click", ()=>{
   calibrateActive = !calibrateActive;
-  setToggleActive(calibrateBtn, calibrateActive); // jij hebt deze helper al
   applyCalibrationTransforms();
+  updateToggleHighlights();
 });
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
@@ -362,13 +362,13 @@ function setToggleActive(el, on){
 }
 
 function updateToggleHighlights(){
-  const isDetailOn = (typeof detailActive !== "undefined") ? detailActive : false;
+  const isDetailOn = !!detailOverlay?.classList.contains("active");
 
   setToggleActive(bokehToggle, (bokehToggle?.dataset.mode === "bokeh"));
   setToggleActive(flareToggle, (flareToggle?.dataset.mode && flareToggle.dataset.mode !== "noflare"));
   setToggleActive(sbsBtn, !!sbsActive);
-  setToggleActive(detailToggleButton, !!isDetailOn);
-  setToggleActive(calibrateBtn, !!calibrateActive); // <-- deze erbij
+  setToggleActive(detailToggleButton, isDetailOn);
+  setToggleActive(calibrateBtn, !!calibrateActive);
 }
 
 
@@ -524,7 +524,8 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
   setImageWithFallback(sbsLeftImg,  leftCandidates);
   setImageWithFallback(sbsRightImg, rightCandidates);
 }
-  resetSplitToMiddle();
+   resetSplitToMiddle();
+  applyCalibrationTransforms(); // <-- BELANGRIJK
 }
 
 /* === Init defaults === */
@@ -571,8 +572,11 @@ function setSideBySide(on,{force=false}={}) {
   setWrapperSizeByAR(w,h);
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
-  if(!sbsActive){ updateFullscreenBars(); resetSplitToMiddle(); }
+  if(!sbsActive){ updateFullscreenBars();  resetSplitToMiddle();
+  applyCalibrationTransforms(); // <-- BELANGRIJK
+}
 
+    applyCalibrationTransforms();
   updateToggleHighlights();
 }
 sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
@@ -590,8 +594,11 @@ window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){
 /* === On image load, recalc bars/slider === */
 function whenImagesReadyThenReset(){
   const wait=im=> (im.complete && im.naturalWidth>0) ? Promise.resolve() : new Promise((res,rej)=>{ im.onload=res; im.onerror=rej; });
-  Promise.all([wait(beforeImgTag),wait(afterImgTag)]).then(()=>{ updateFullscreenBars(); resetSplitToMiddle(); });
-}
+  Promise.all([wait(beforeImgTag),wait(afterImgTag)]).then(()=>{
+  updateFullscreenBars();
+  resetSplitToMiddle();
+  applyCalibrationTransforms(); // <-- BELANGRIJK
+});
 updateImages(); whenImagesReadyThenReset();
 beforeImgTag.addEventListener("load",whenImagesReadyThenReset);
 afterImgTag.addEventListener("load",whenImagesReadyThenReset);
