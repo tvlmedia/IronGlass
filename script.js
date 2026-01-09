@@ -282,10 +282,22 @@ const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 /* === Camera/format selects === */
 cameraSelect.innerHTML=""; Object.keys(cameras).forEach(cam=>cameraSelect.add(new Option(cam,cam)));
 cameraSelect.addEventListener("change",()=>{ sensorFormatSelect.innerHTML=""; const cam=cameraSelect.value; if(!cam){ sensorFormatSelect.disabled=true; document.body.classList.remove("sensor-mode"); clearInlineHeights(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); return; } Object.entries(cameras[cam]).forEach(([k,v])=>sensorFormatSelect.add(new Option(v.label||k,k))); sensorFormatSelect.disabled=false; sensorFormatSelect.dispatchEvent(new Event("change")); });
-sensorFormatSelect.addEventListener("change",applyCurrentFormat);
-function applyCurrentFormat(){ const {w,h}=getCurrentWH(); comparisonWrapper.style.removeProperty("--sensor-scale"); setWrapperSizeByAR(w,h); document.body.classList.add("sensor-mode"); const scale=Math.abs(BASE_SENSOR.w-w)<0.1?1:(BASE_SENSOR.w/w); comparisonWrapper.style.setProperty("--sensor-scale",scale.toFixed(4)); updateFullscreenBars(); resetSplitToMiddle(); }
 
-applyCalibrationTransforms();
+sensorFormatSelect.addEventListener("change", applyCurrentFormat);
+
+function applyCurrentFormat(){
+  const { w, h } = getCurrentWH();
+  comparisonWrapper.style.removeProperty("--sensor-scale");
+  setWrapperSizeByAR(w, h);
+  document.body.classList.add("sensor-mode");
+
+  const scale = Math.abs(BASE_SENSOR.w - w) < 0.1 ? 1 : (BASE_SENSOR.w / w);
+  comparisonWrapper.style.setProperty("--sensor-scale", scale.toFixed(4));
+
+  updateFullscreenBars();
+  resetSplitToMiddle();
+  applyCalibrationTransforms(); // <-- hier
+}
 
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
