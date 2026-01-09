@@ -257,6 +257,7 @@ const leftSelect=q("leftLens"), rightSelect=q("rightLens"), tStopLeftSelect=q("t
 const focalLengthSelect=q("focalLength"), beforeImgTag=q("beforeImgTag"), afterImgTag=q("afterImgTag"), afterWrapper=q("afterWrapper"), slider=q("slider");
 const leftLabel=q("leftLabel"), rightLabel=q("rightLabel"), downloadLeftRawButton=q("downloadLeftRawButton"), downloadRightRawButton=q("downloadRightRawButton");
 const flareToggle=q("flareToggle"), scaleSlider=q("scaleSlider"), scaleVal=q("scaleVal"), lensInfoDiv=q("lensInfo");
+const bokehToggle = q("bokehToggle");
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
@@ -289,11 +290,28 @@ const DEFAULT_T_STOPS=["2.8","4"]; function fillTStops(sel,opts=DEFAULT_T_STOPS)
 fillTStops(tStopLeftSelect); fillTStops(tStopRightSelect); tStopLeftSelect.value="2.8"; tStopRightSelect.value="2.8";
 function syncTStopsOnContextChange(){ const t=tStopLeftSelect.value||"2.8"; tStopLeftSelect.value=t; tStopRightSelect.value=t; }
 
-/* === Flare toggle === */
-flareToggle.dataset.mode = flareToggle.dataset.mode || "noflare";
-flareToggle.textContent  = flareToggle.dataset.mode==="flare"?"Flare: ON":"Flare: OFF";
-flareToggle.addEventListener("click",()=>{ const cur=flareToggle.dataset.mode==="flare"?"noflare":"flare"; flareToggle.dataset.mode=cur; flareToggle.textContent=cur==="flare"?"Flare: ON":"Flare: OFF"; updateImages(); });
+/* === Scene + Flare toggles === */
+bokehToggle.dataset.mode = bokehToggle.dataset.mode || "portrait";
+bokehToggle.textContent  = bokehToggle.dataset.mode==="bokeh" ? "Bokeh: ON" : "Bokeh: OFF";
+bokehToggle.addEventListener("click", ()=>{
+  const next = (bokehToggle.dataset.mode==="bokeh") ? "portrait" : "bokeh";
+  bokehToggle.dataset.mode = next;
+  bokehToggle.textContent  = next==="bokeh" ? "Bokeh: ON" : "Bokeh: OFF";
+  updateImages();
+});
 
+/* Flare: 3 standen */
+flareToggle.dataset.mode = flareToggle.dataset.mode || "noflare";
+const flareLabel = (m)=> m==="noflare" ? "Flare: OFF" : (m==="flare" ? "Flare: ON" : "Double Flare: ON");
+flareToggle.textContent = flareLabel(flareToggle.dataset.mode);
+
+flareToggle.addEventListener("click", ()=>{
+  const cur = flareToggle.dataset.mode;
+  const next = (cur==="noflare") ? "flare" : (cur==="flare" ? "doubleflare" : "noflare");
+  flareToggle.dataset.mode = next;
+  flareToggle.textContent = flareLabel(next);
+  updateImages();
+});
 /* === Side-by-side wrapper === */
 const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
