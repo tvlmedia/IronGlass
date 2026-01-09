@@ -938,15 +938,52 @@ function showDetailBoxAt(
 }
 function getFittedImageRect(imgEl){
   const r = imgEl.getBoundingClientRect();
-  const iw = imgEl.naturalWidth  || 1;
-  const ih = imgEl.naturalHeight || 1;
 
-  const fit = getComputedStyle(imgEl).objectFit || "fill";
+  // als image nog niet loaded is: val terug op element-rect
+  const iw = imgEl.naturalWidth;
+  const ih = imgEl.naturalHeight;
+  if(!iw || !ih){
+    return { left:r.left, top:r.top, width:r.width, height:r.height, right:r.right, bottom:r.bottom };
+  }
 
-  // cover/contain => er is “padding” binnen het img-element
+  const cs = getComputedStyle(imgEl);
+  const fit = cs.objectFit || "fill";
+
+  // Geen contain/cover => er is geen “inner letterbox”
   if(fit !== "contain" && fit !== "cover"){
     return { left:r.left, top:r.top, width:r.width, height:r.height, right:r.right, bottom:r.bottom };
   }
+
+  // object-position parser → returns {x,y} in 0..1 (default 0.5)
+  const parsePos = (posStr) => {
+    const norm = (v) => {
+      if(!v) return 0.5;
+      v = v.toLowerCase();
+
+      if(v === "left" || v === "top") return 0;
+      if(v === "right" || v === "bottom") return 1;
+      if(v === "center") return 0.5;
+
+      if(v.endsWith("%")){
+        const p = parseFloat(v);
+        return isFinite(p) ? (p/100) : 0.5;
+      }
+
+      if(v.endsWith("px")){
+        const px = parseFloat(v);
+        return { px: isFinite(px) ? px : 0 };
+      }
+
+      const n = parseFloat(v);
+      if(isFinite(n)) return n;
+      return 0.5;
+    };
+
+    const parts = (posStr || "50% 50%").trim().split(/\s+/);
+    const xRaw = parts[0] || "50%";
+    const yRaw = parts[1] || "50%";
+    return { xRaw, yRaw, norm };
+  };
 
   const scale = (fit === "contain")
     ? Math.min(r.width / iw, r.height / ih)
@@ -955,16 +992,38 @@ function getFittedImageRect(imgEl){
   const drawW = iw * scale;
   const drawH = ih * scale;
 
-  const padX = (r.width  - drawW) / 2;
-  const padY = (r.height - drawH) / 2;
+  const leftoverX = r.width  - drawW;
+  const leftoverY = r.height - drawH;
+
+  const { xRaw, yRaw, norm } = parsePos(cs.objectPosition);
+
+  const pxX = norm(xRaw);
+  const pxY = norm(yRaw);
+
+  const toOffset = (val, leftover) => {
+    if(typeof val === "number"){
+      return leftover * val;
+    }
+    if(val && typeof val === "object" && typeof val.px === "number"){
+      // clamp grofweg binnen leftover-range
+      return Math.max(Math.min(val.px, Math.max(leftover, 0)), Math.min(leftover, 0));
+    }
+    return leftover * 0.5;
+  };
+
+  const offX = toOffset(pxX, leftoverX);
+  const offY = toOffset(pxY, leftoverY);
+
+  const left   = r.left + offX;
+  const top    = r.top  + offY;
 
   return {
-    left:   r.left + padX,
-    top:    r.top + padY,
+    left,
+    top,
     width:  drawW,
     height: drawH,
-    right:  r.left + padX + drawW,
-    bottom: r.top  + padY + drawH
+    right:  left + drawW,
+    bottom: top + drawH
   };
 }
 
