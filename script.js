@@ -207,12 +207,18 @@ const cameras = {
 const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
 
 const notes = {
-  // voorbeeld die je al had:
+  // 120mm UI → pak 135mm files
   "ironglass_sovjet_mkii_120mm": "135mm",
-"ironglass_sovjet_mkii_80mm": "85mm",
-   "ironglass_zeiss_jena_80mm": "85mm",
- "ironglass_sovjet_medium_format_80mm": "85mm",
-  "ironglass_sovjet_medium_format_90mm": "85mm",
+
+  // 85mm UI → pak de echte file-focal
+  "ironglass_sovjet_mkii_85mm": "80mm",
+  "ironglass_zeiss_jena_85mm": "80mm",
+
+  // Medium Format: kies welke jij als “85mm slot” wil gebruiken:
+  // optie A (meest logisch als je 90mm wil tonen bij 85mm)
+  "ironglass_sovjet_medium_format_85mm": "90mm",
+  // optie B (als je liever de 80mm pakt, gebruik dan deze i.p.v. 90mm)
+  // "ironglass_sovjet_medium_format_85mm": "80mm",
 };
 
 const lensImageMap = {
