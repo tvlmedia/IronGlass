@@ -531,36 +531,23 @@ function applyCalibrationTransforms(){
 
   const apply = (img, cal) => {
   if(!img) return;
-  img.style.transformOrigin = "center center";
 
-
-
-
-  // Calibrate UIT → niks forceren via transform (CSS kan z’n werk doen)
+  // Calibrate UIT → reset naar defaults
   if(!calibrateActive){
-    img.style.transform = "";
+    setCalVars(img, 0, 0, 1);
     return;
   }
 
-  // Calibrate AAN maar géén cal-entry → alsnog userScale toepassen
+  // Calibrate AAN maar geen cal-entry → alleen defaults (sensor/viewer blijven via CSS)
   if(!cal){
-    const sOnly = (userScale ?? 1.0);
-    img.style.transform = (Math.abs(sOnly - 1.0) > 0.0001) ? `scale(${sOnly})` : "";
+    setCalVars(img, 0, 0, 1);
     return;
   }
 
-  // Calibrate AAN + cal-entry → translate + (cal.scale * userScale)
-  const s = (cal.scale ?? 1.0) * (userScale ?? 1.0);
+  // Calibrate AAN + cal-entry → alleen "extra" translate + cal.scale
   const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
-
-  const hasMove  = (Math.abs(dx) > 0.0001) || (Math.abs(dy) > 0.0001);
-  const hasScale = Math.abs(s - 1.0) > 0.0001;
-
-  img.style.transform = (hasMove || hasScale)
-    ? `translate(${dx}px, ${dy}px) scale(${s})`
-    : "";
+  setCalVars(img, dx, dy, (cal.scale ?? 1));
 };
-
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
 
