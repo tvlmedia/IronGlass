@@ -964,7 +964,7 @@ showDetailBoxAt(
 }
 
   // ===== SLIDER MODE (before/after) =====
-  // gebruik de echte "usable" area (zonder letterbox/pillarbox)
+  // 1) eerst checken of cursor in usable window zit (geen letterbox)
   const host = comparisonWrapper.getBoundingClientRect();
   const lbL = comparisonWrapper._lbLeft || 0;
   const lbT = comparisonWrapper._lbTop  || 0;
@@ -974,23 +974,42 @@ showDetailBoxAt(
   const usableRect = {
     left: host.left + lbL,
     top:  host.top  + lbT,
-    width:  uW,
-    height: uH
+    right: host.left + lbL + uW,
+    bottom: host.top + lbT + uH
   };
 
-  const rx = (e.clientX - usableRect.left) / usableRect.width;
-  const ry = (e.clientY - usableRect.top)  / usableRect.height;
+  const inUsable =
+    e.clientX >= usableRect.left && e.clientX <= usableRect.right &&
+    e.clientY >= usableRect.top  && e.clientY <= usableRect.bottom;
 
- const showL = showDetailBoxAt(e, leftDetail,  leftDetailImg,  afterImgTag,  usableRect, rx, ry, "left",  3.2, 260, 24);
-const showR = showDetailBoxAt(e, rightDetail, rightDetailImg, beforeImgTag, usableRect, rx, ry, "right", 3.2, 260, 24);
+  if(!inUsable){
+    leftDetail.style.display = "none";
+    rightDetail.style.display = "none";
+    return;
+  }
+
+  // 2) rx/ry PER IMAGE op basis van de getransformeerde img rects
+  const rectL = afterImgTag.getBoundingClientRect();
+  const rectR = beforeImgTag.getBoundingClientRect();
+
+  const rxL = (e.clientX - rectL.left) / rectL.width;
+  const ryL = (e.clientY - rectL.top)  / rectL.height;
+
+  const rxR = (e.clientX - rectR.left) / rectR.width;
+  const ryR = (e.clientY - rectR.top)  / rectR.height;
+
+  const showL = showDetailBoxAt(
+    e, leftDetail, leftDetailImg, afterImgTag,
+    rectL, rxL, ryL, "left", 3.2, 260, 24
+  );
+
+  const showR = showDetailBoxAt(
+    e, rightDetail, rightDetailImg, beforeImgTag,
+    rectR, rxR, ryR, "right", 3.2, 260, 24
+  );
+
   if(!showL) leftDetail.style.display  = "none";
   if(!showR) rightDetail.style.display = "none";
-}); // ✅ <-- BELANGRIJK: hier afsluiten!
-
-comparisonWrapper.addEventListener("mouseleave", () => {
-  leftDetail.style.display = "none";
-  rightDetail.style.display = "none";
-});
 
 document.addEventListener("keydown", (e) => {
   if(e.key === "Escape" && detailActive){
