@@ -267,26 +267,6 @@ const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
 const BASE_SENSOR = cameras[CAPTURE_CAMERA][CAPTURE_FORMAT];
 let sbsActive=false, isExportingPdf=false, userScale=1;
 
-function forceDefaults(){
-  // lenzen
-  leftSelect.value  = "IronGlass Titan Zoom";
-  rightSelect.value = "IronGlass Sovjet Medium Format";
-  focalLengthSelect.value = "120mm";
-  tStopLeftSelect.value   = "2.8";
-  tStopRightSelect.value  = "2.8";
-
-  // camera + format (camera eerst!)
-  cameraSelect.value = CAPTURE_CAMERA;
-  cameraSelect.dispatchEvent(new Event("change"));
-
-  sensorFormatSelect.value = CAPTURE_FORMAT;
-  sensorFormatSelect.dispatchEvent(new Event("change"));
-
-  updateLensInfo();
-  updateImages();
-  autoScaleNow();
-}
-
 /* === Helpers === */
 const isWrapperFullscreen=()=> (document.fullscreenElement||document.webkitFullscreenElement)===comparisonWrapper;
 const enterWrapperFullscreen=()=> comparisonWrapper.requestFullscreen?.()||comparisonWrapper.webkitRequestFullscreen?.();
@@ -406,7 +386,30 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
 }
 
 /* === Init defaults === */
-forceDefaults();
+/* === Init defaults === */
+leftSelect.value  = "IronGlass Titan Zoom";
+rightSelect.value = "IronGlass Sovjet Medium Format";
+
+// default focal + T-stop
+focalLengthSelect.value = "120mm";
+if (!focalLengthSelect.value) focalLengthSelect.selectedIndex = 0; // fallback als 120mm niet bestaat
+
+tStopLeftSelect.value  = "2.8";
+tStopRightSelect.value = "2.8";
+syncTStopsOnContextChange();
+
+updateLensInfo();
+updateImages();
+autoScaleNow();
+
+// default camera/sensor
+cameraSelect.value = CAPTURE_CAMERA;
+cameraSelect.dispatchEvent(new Event("change"));
+
+// na de camera-change is de format dropdown opnieuw gevuld
+sensorFormatSelect.value = CAPTURE_FORMAT;
+sensorFormatSelect.dispatchEvent(new Event("change"));
+
 /* === Resizes + fullscreen === */
 function onFsChange(){
   if(isWrapperFullscreen()){ clearInlineHeights(); pulseFsBars({duration:1400}); }
@@ -450,7 +453,7 @@ function whenImagesReadyThenReset(){
   const wait=im=> (im.complete && im.naturalWidth>0) ? Promise.resolve() : new Promise((res,rej)=>{ im.onload=res; im.onerror=rej; });
   Promise.all([wait(beforeImgTag),wait(afterImgTag)]).then(()=>{ updateFullscreenBars(); resetSplitToMiddle(); });
 }
-whenImagesReadyThenReset();
+updateImages(); whenImagesReadyThenReset();
 beforeImgTag.addEventListener("load",whenImagesReadyThenReset);
 afterImgTag.addEventListener("load",whenImagesReadyThenReset);
 
@@ -661,6 +664,17 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 /* === Kick first layout === */
 onFsChange();
 
-// extra force na alles (ook na eventuele andere scripts)
-setTimeout(forceDefaults, 50);
-window.addEventListener("load", () => setTimeout(forceDefaults, 250));
+setTimeout(() => {
+  // force default camera + format (fixes unwanted overwrite)
+  cameraSelect.value = CAPTURE_CAMERA;
+  cameraSelect.dispatchEvent(new Event("change"));
+
+  requestAnimationFrame(() => {
+    sensorFormatSelect.value = CAPTURE_FORMAT;
+    sensorFormatSelect.dispatchEvent(new Event("change"));
+
+    autoScaleNow();
+    updateLensInfo();
+    updateImages();
+  });
+}, 50);
