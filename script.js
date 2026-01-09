@@ -293,12 +293,13 @@ function applyCurrentFormat(){
   comparisonWrapper.style.setProperty("--sensor-scale", scale.toFixed(4));
 
   updateFullscreenBars();
-resetSplitToMiddle();
+  resetSplitToMiddle();
 
-if(calibrateActive){
-  autoScaleForCalibration();
-} else {
-  applyCalibrationTransforms();
+  if(calibrateActive){
+    autoScaleForCalibration();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
@@ -694,12 +695,36 @@ function onFsChange(){
     ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
     slider.style.top="0px"; slider.style.height="100%"; slider.style.bottom="0";
   }
-  updateFullscreenBars(); requestAnimationFrame(()=>{ updateFullscreenBars(); resetSplitToMiddle(); });
+  updateFullscreenBars();
+requestAnimationFrame(()=>{
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if(calibrateActive){
+    autoScaleForCalibration();
+  } else {
+    applyCalibrationTransforms();
+  }
+});
   requestAnimationFrame(()=>{ if(!isWrapperFullscreen()){ const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
 }
 document.addEventListener("fullscreenchange",onFsChange);
 document.addEventListener("webkitfullscreenchange",onFsChange);
-window.addEventListener("resize",()=>{ if(isWrapperFullscreen()){ updateFullscreenBars(); resetSplitToMiddle(); } else { const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
+window.addEventListener("resize",()=>{
+  if(isWrapperFullscreen()){
+    updateFullscreenBars();
+    resetSplitToMiddle();
+
+    if(calibrateActive){
+      autoScaleForCalibration();
+    } else {
+      applyCalibrationTransforms();
+    }
+  } else {
+    const {w,h}=getCurrentWH();
+    setWrapperSizeByAR(w,h);
+  }
+});
 function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } updateFullscreenBars(); requestAnimationFrame(()=>{ updateFullscreenBars(); resetSplitToMiddle(); }); })(); }
 fullscreenBtn?.addEventListener("click",toggleFullscreen);
 
@@ -763,7 +788,11 @@ function whenImagesReadyThenReset(){
   Promise.all([wait(beforeImgTag), wait(afterImgTag)]).then(() => {
     updateFullscreenBars();
     resetSplitToMiddle();
-    applyCalibrationTransforms();
+    if(calibrateActive){
+  autoScaleForCalibration();
+} else {
+  applyCalibrationTransforms();
+}
   });
 }
 
