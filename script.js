@@ -936,14 +936,45 @@ function showDetailBoxAt(
 
   return true;
 }
+function getFittedImageRect(imgEl){
+  const r = imgEl.getBoundingClientRect();
+  const iw = imgEl.naturalWidth  || 1;
+  const ih = imgEl.naturalHeight || 1;
+
+  const fit = getComputedStyle(imgEl).objectFit || "fill";
+
+  // cover/contain => er is “padding” binnen het img-element
+  if(fit !== "contain" && fit !== "cover"){
+    return { left:r.left, top:r.top, width:r.width, height:r.height, right:r.right, bottom:r.bottom };
+  }
+
+  const scale = (fit === "contain")
+    ? Math.min(r.width / iw, r.height / ih)
+    : Math.max(r.width / iw, r.height / ih);
+
+  const drawW = iw * scale;
+  const drawH = ih * scale;
+
+  const padX = (r.width  - drawW) / 2;
+  const padY = (r.height - drawH) / 2;
+
+  return {
+    left:   r.left + padX,
+    top:    r.top + padY,
+    width:  drawW,
+    height: drawH,
+    right:  r.left + padX + drawW,
+    bottom: r.top  + padY + drawH
+  };
+}
 
 document.addEventListener("mousemove", (e) => {
   if(!detailActive) return;
 
  // ===== SBS MODE =====
 if(sbsActive){
-  const L = sbsLeftImg.getBoundingClientRect();
-  const R = sbsRightImg.getBoundingClientRect();
+  const L = getFittedImageRect(sbsLeftImg);
+const R = getFittedImageRect(sbsRightImg);
 
   const inL = (e.clientX >= L.left && e.clientX <= L.right && e.clientY >= L.top && e.clientY <= L.bottom);
   const inR = (e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom);
@@ -1014,8 +1045,8 @@ showDetailBoxAt(
   }
 
   // 2) rx/ry PER IMAGE op basis van de getransformeerde img rects
-  const rectL = afterImgTag.getBoundingClientRect();
-  const rectR = beforeImgTag.getBoundingClientRect();
+  const rectL = getFittedImageRect(afterImgTag);
+const rectR = getFittedImageRect(beforeImgTag);
 
   const rxL = (e.clientX - rectL.left) / rectL.width;
   const ryL = (e.clientY - rectL.top)  / rectL.height;
