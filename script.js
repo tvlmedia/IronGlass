@@ -335,6 +335,14 @@ const CALIBRATION = {
   // "ironglass_sovjet_medium_format": { "120mm": { scale: 0.XX } },
 };
 
+// Calibration Toggle
+  
+calibrateBtn?.addEventListener("click", ()=>{
+  calibrateActive = !calibrateActive;
+  setToggleActive(calibrateBtn, calibrateActive); // jij hebt deze helper al
+  applyCalibrationTransforms();
+});
+
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
   const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
@@ -362,6 +370,8 @@ function updateToggleHighlights(){
   setToggleActive(detailToggleButton, !!isDetailOn);
   setToggleActive(calibrateBtn, !!calibrateActive); // <-- deze erbij
 }
+
+
 /* === RAW map + download === */
 const rawFileMap={
   "ironglass_red_p_35mm_t2_8":"images/raw/RedP_37mm_T2.8_RAW.tif",
@@ -474,13 +484,7 @@ if(sceneMode === "bokeh"){
     push(`${b}.jpg`);
   });
 
-// Calibration Toggle
-  
-calibrateBtn?.addEventListener("click", ()=>{
-  calibrateActive = !calibrateActive;
-  setToggleActive(calibrateBtn, calibrateActive); // jij hebt deze helper al
-  applyCalibrationTransforms();
-});
+
   
   // maak er full urls van
   return list.map(f => IMG_BASE + f);
