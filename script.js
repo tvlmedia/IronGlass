@@ -846,20 +846,39 @@ detailToggleButton?.addEventListener("click",()=>{
   updateToggleHighlights();
 });
 
-function updateZoomViewerAt(e,box,img,srcEl,{zoom=3.2,size=260}={}){
-  const rect=srcEl.getBoundingClientRect?srcEl.getBoundingClientRect():srcEl, rx=(e.clientX-rect.left)/rect.width, ry=(e.clientY-rect.top)/rect.height;
-  if(rx<0||rx>1||ry<0||ry>1){ box.style.display="none"; return false; }
-  if(img.src!==srcEl.src) img.src=srcEl.src;
-  const zw=rect.width*zoom, zh=rect.height*zoom, offX=-(rx*zw)+size/2, offY=-(ry*zh)+size/2;
+function updateZoomViewerAt(e, box, img, srcEl, { zoom = 3.2, size = 260 } = {}){
+  const rect = srcEl.getBoundingClientRect ? srcEl.getBoundingClientRect() : srcEl;
+  const rx = (e.clientX - rect.left) / rect.width;
+  const ry = (e.clientY - rect.top) / rect.height;
+
+  if(rx < 0 || rx > 1 || ry < 0 || ry > 1){
+    box.style.display = "none";
+    return false;
+  }
+
+  if(img.src !== srcEl.src) img.src = srcEl.src;
+
+  const zw = rect.width * zoom;
+  const zh = rect.height * zoom;
+  const offX = -(rx * zw) + size / 2;
+  const offY = -(ry * zh) + size / 2;
+
+  // Force square + avoid CSS constraints
   box.style.right = "auto";
-box.style.bottom = "auto";
-box.style.setProperty("width",  `${s}px`, "important");
-box.style.setProperty("height", `${s}px`, "important");
-box.style.setProperty("aspect-ratio", "1 / 1", "important");
-box.style.left = `${e.clientX - s/2}px`;
-box.style.top  = `${e.clientY - s/2}px`;
-box.style.display = "block";
-  Object.assign(img.style,{width:`${zw}px`,height:`${zh}px`,transform:`translate(${offX}px, ${offY}px)`});
+  box.style.bottom = "auto";
+  box.style.setProperty("width",  `${size}px`, "important");
+  box.style.setProperty("height", `${size}px`, "important");
+  box.style.setProperty("aspect-ratio", "1 / 1", "important");
+  box.style.left = `${e.clientX - size/2}px`;
+  box.style.top  = `${e.clientY - size/2}px`;
+  box.style.display = "block";
+
+  Object.assign(img.style, {
+    width: `${zw}px`,
+    height:`${zh}px`,
+    transform:`translate(${offX}px, ${offY}px)`
+  });
+
   return true;
 }
 document.addEventListener("mousemove",e=>{
@@ -869,7 +888,16 @@ document.addEventListener("mousemove",e=>{
     const inL=e.clientX>=L.left&&e.clientX<=L.right&&e.clientY>=L.top&&e.clientY<=L.bottom, inR=e.clientX>=R.left&&e.clientX<=R.right&&e.clientY>=R.top&&e.clientY<=R.bottom;
     if(!inL&&!inR){ leftDetail.style.display="none"; rightDetail.style.display="none"; return; }
     const rect=inL?L:R, rx=(e.clientX-rect.left)/rect.width, ry=(e.clientY-rect.top)/rect.height;
-    const upd=(box,img,srcEl,r,rx,ry,z=3.2,s=260)=>{ if(img.src!==srcEl.src) img.src=srcEl.src; const zw=r.width*z, zh=r.height*z, ox=-(rx*zw)+s/2, oy=-(ry*zh)+s/2; Object.assign(box.style,{left:`${e.clientX-s/2}px`,top:`${e.clientY-s/2}px`,width:`${s}px`,height:`${s}px`,display:"block"}); Object.assign(img.style,{width:`${zw}px`,height:`${zh}px`,transform:`translate(${ox}px, ${oy}px)`}); };
+    const upd=(box,img,srcEl,r,rx,ry,z=3.2,s=260)=>{ if(img.src!==srcEl.src) img.src=srcEl.src; const zw=r.width*z, zh=r.height*z, ox=-(rx*zw)+s/2, oy=-(ry*zh)+s/2; 
+                                                    box.style.right = "auto";
+box.style.bottom = "auto";
+box.style.setProperty("width",  `${s}px`, "important");
+box.style.setProperty("height", `${s}px`, "important");
+box.style.setProperty("aspect-ratio", "1 / 1", "important");
+box.style.left = `${e.clientX - s/2}px`;
+box.style.top  = `${e.clientY - s/2}px`;
+box.style.display = "block";
+                                                    Object.assign(img.style,{width:`${zw}px`,height:`${zh}px`,transform:`translate(${ox}px, ${oy}px)`}); };
     upd(leftDetail,leftDetailImg,sbsLeftImg,L,rx,ry); upd(rightDetail,rightDetailImg,sbsRightImg,R,rx,ry);
     return;
   }
