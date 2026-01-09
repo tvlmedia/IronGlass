@@ -79,9 +79,9 @@ body{
 
 select,
 .control-button,
-#toggleButton,#fullscreenButton,#downloadPdfButton{
+/* SELECTS: laat native, geen flex */
+select{
   height:32px;
-  line-height:1;                 /* <-- was 30px */
   padding:0 11px;
   background:#111;
   color:var(--ig-text);
@@ -93,10 +93,32 @@ select,
   cursor:pointer;
   box-sizing:border-box;
 
-  display:inline-flex;           /* <-- nieuw */
-  align-items:center;            /* <-- nieuw */
-  justify-content:center;        /* <-- nieuw */
-  gap:8px;                       /* <-- nieuw */
+  display:inline-block;     /* <- belangrijk */
+  line-height:normal;       /* <- belangrijk */
+  vertical-align:middle;
+}
+
+/* BUTTONS: wél flex-centeren */
+.control-button,
+#toggleButton,#fullscreenButton,#downloadPdfButton{
+  height:32px;
+  padding:0 11px;
+  background:#111;
+  color:var(--ig-text);
+  border:1px solid #333;
+  border-radius:999px;
+  font-size:13px;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  cursor:pointer;
+  box-sizing:border-box;
+
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  line-height:1;
+  vertical-align:middle;
 }
 
 select:hover,
