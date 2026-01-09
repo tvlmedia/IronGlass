@@ -343,6 +343,7 @@ const CAL_H = 2880;
 const CAL_Y_INVERT = true; // zet op false als Y de verkeerde kant op gaat
 
 // per lensSlug + focal: { scale, x, y }  (x/y = Resolve Position waarden)
+// per lensSlug + focal: { scale, x, y }  (x/y = Resolve Position waarden)
 const CALIBRATION = {
   "ironglass_titan_zoom": {
     "120mm": { scale: 0.96, x: 25.823, y: -70.244 }
@@ -355,11 +356,7 @@ const CALIBRATION = {
   "ironglass_sovjet_mkii": {
     "120mm": { scale: 0.85, x: 7.394, y: 18.485 }
   }
-};
 
-  // later voeg je hier MKII / Medium Format etc toe:
-  // "ironglass_sovjet_mkii":          { "120mm": { scale: 0.XX, x: 0, y: 0 } },
-  // "ironglass_sovjet_medium_format": { "120mm": { scale: 0.XX, x: 0, y: 0 } },
 };
 
 // Calibration Toggle
