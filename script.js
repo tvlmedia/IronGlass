@@ -179,6 +179,16 @@ const cameras = {
     "3K 1:1": { w: 8.100, h: 8.100, label: "3K 1:1" },
     "2K 1:1": { w: 5.400, h: 5.400, label: "2K 1:1" }
   },
+  "Fujifilm GFX Eterna": {
+  "Open Gate 4:3 4K (3840x2880)": { w: 43.631, h: 32.712, label: "Open Gate 4:3 4K" },
+
+  "GF Cine 5.8K (5824x2436)": { w: 43.800, h: 18.319, label: "GF Cine 5.8K" },
+  "Premista 5.4K (5440x2868)": { w: 40.909, h: 21.571, label: "Premista 5.4K" },
+  "35mm 4.8K (4776x3184)": { w: 35.919, h: 23.940, label: "35mm 4.8K" },
+
+  "GF DCI 8K": { w: 30.802, h: 16.243, label: "GF DCI 8K" },
+  "Super 35 6.3K": { w: 23.996, h: 13.498, label: "Super 35 6.3K" }
+},
   "Blackmagic URSA Cine 12K LF": {
     "12K Open Gate": { w: 35.635, h: 23.316, label: "12K Open Gate" },
     "12K 16:9": { w: 35.635, h: 18.792, label: "12K 16:9" },
