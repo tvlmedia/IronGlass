@@ -600,8 +600,7 @@ body.dragging *{
   transform-origin:top left;
 }
 
-#leftDetail{ margin-left:-110px; }
-#rightDetail{ margin-left:110px; }
+
 
 /* ===========================
    MOBILE EMBED
