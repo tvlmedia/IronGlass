@@ -643,8 +643,14 @@ function setSideBySide(on,{force=false}={}) {
 }
 
 sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
-toggleBtn?.addEventListener("click",()=>{ const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; updateLensInfo(); updateImages(); });
+toggleBtn?.addEventListener("click",()=>{ 
+  resetUserScale(); // <-- ook hier
 
+  const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
+  const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
+  updateLensInfo(); 
+  updateImages(); 
+});
 /* === Slider drag (mouse/touch) === */
 let isDragging=false;
 slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
@@ -692,11 +698,15 @@ function setUserScaleFromPct(pct){
   if(scaleVal) scaleVal.textContent = Math.round(userScale*100) + "%";
   updateFullscreenBars();
   resetSplitToMiddle();
-
-  applyCalibrationTransforms(); // <-- toevoegen
+  applyCalibrationTransforms();
 }
 
-scaleSlider?.addEventListener("input",e=>setUserScaleFromPct(e.target.value));
+function resetUserScale(){
+  if(scaleSlider) scaleSlider.value = "100";
+  setUserScaleFromPct(100);
+}
+
+scaleSlider?.addEventListener("input", e => setUserScaleFromPct(e.target.value));
 if(scaleSlider) scaleSlider.value = "100";
 setUserScaleFromPct(100);
 
@@ -717,7 +727,12 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 /* === Update triggers === */
 [lenses, [leftSelect,rightSelect]].flat().forEach(()=>{});
 [leftSelect,rightSelect].forEach(el =>
-  el.addEventListener("change",()=>{ syncTStopsOnContextChange(); updateLensInfo(); updateImages(); })
+  el.addEventListener("change",()=>{ 
+    resetUserScale();                 // <-- reset scaling naar 100%
+    syncTStopsOnContextChange(); 
+    updateLensInfo(); 
+    updateImages(); 
+  })
 );
 
 [focalLengthSelect,tStopLeftSelect,tStopRightSelect].forEach(el =>
