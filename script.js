@@ -298,6 +298,18 @@ flareToggle.addEventListener("click",()=>{ const cur=flareToggle.dataset.mode===
 const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
 
+// --- Fullscreen: voorkom crop (force object-fit: contain) ---
+function setFullscreenImageFit(isFs){
+  const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
+  const pos = "center center";
+
+  [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
+    if(!img) return;
+    img.style.objectFit = fit;
+    img.style.objectPosition = pos;
+  });
+}
+
 /* === RAW map + download === */
 const rawFileMap={
   "ironglass_red_p_35mm_t2_8":"images/raw/RedP_37mm_T2.8_RAW.tif",
@@ -368,7 +380,10 @@ sensorFormatSelect.dispatchEvent(new Event("change"));
 
 /* === Resizes + fullscreen === */
 function onFsChange(){
-  if(isWrapperFullscreen()){ clearInlineHeights(); pulseFsBars({duration:1400}); }
+  const fs = isWrapperFullscreen();
+  setFullscreenImageFit(fs);
+
+  if(fs){ clearInlineHeights(); pulseFsBars({duration:1400}); }
   else { const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
     ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
     slider.style.top="0px"; slider.style.height="100%"; slider.style.bottom="0";
