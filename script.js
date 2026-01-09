@@ -285,6 +285,8 @@ cameraSelect.addEventListener("change",()=>{ sensorFormatSelect.innerHTML=""; co
 sensorFormatSelect.addEventListener("change",applyCurrentFormat);
 function applyCurrentFormat(){ const {w,h}=getCurrentWH(); comparisonWrapper.style.removeProperty("--sensor-scale"); setWrapperSizeByAR(w,h); document.body.classList.add("sensor-mode"); const scale=Math.abs(BASE_SENSOR.w-w)<0.1?1:(BASE_SENSOR.w/w); comparisonWrapper.style.setProperty("--sensor-scale",scale.toFixed(4)); updateFullscreenBars(); resetSplitToMiddle(); }
 
+applyCalibrationTransforms();
+
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
 const DEFAULT_T_STOPS=["2.8","4"]; function fillTStops(sel,opts=DEFAULT_T_STOPS){ sel.innerHTML=""; opts.forEach(t=>sel.add(new Option(`T${t}`,t))); }
@@ -572,13 +574,15 @@ function setSideBySide(on,{force=false}={}) {
   setWrapperSizeByAR(w,h);
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
-  if(!sbsActive){ updateFullscreenBars();  resetSplitToMiddle();
-  applyCalibrationTransforms(); // <-- BELANGRIJK
-}
+    if(!sbsActive){
+    updateFullscreenBars();
+    resetSplitToMiddle();
+  }
 
-    applyCalibrationTransforms();
+  applyCalibrationTransforms();
   updateToggleHighlights();
 }
+
 sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
 toggleBtn?.addEventListener("click",()=>{ const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; updateLensInfo(); updateImages(); });
 
@@ -593,15 +597,22 @@ window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){
 
 /* === On image load, recalc bars/slider === */
 function whenImagesReadyThenReset(){
-  const wait=im=> (im.complete && im.naturalWidth>0) ? Promise.resolve() : new Promise((res,rej)=>{ im.onload=res; im.onerror=rej; });
-  Promise.all([wait(beforeImgTag),wait(afterImgTag)]).then(()=>{
-  updateFullscreenBars();
-  resetSplitToMiddle();
-  applyCalibrationTransforms(); // <-- BELANGRIJK
-});
-updateImages(); whenImagesReadyThenReset();
-beforeImgTag.addEventListener("load",whenImagesReadyThenReset);
-afterImgTag.addEventListener("load",whenImagesReadyThenReset);
+  const wait = im =>
+    (im.complete && im.naturalWidth > 0)
+      ? Promise.resolve()
+      : new Promise((res, rej) => { im.onload = res; im.onerror = rej; });
+
+  Promise.all([wait(beforeImgTag), wait(afterImgTag)]).then(() => {
+    updateFullscreenBars();
+    resetSplitToMiddle();
+    applyCalibrationTransforms();
+  });
+}
+
+updateImages();
+whenImagesReadyThenReset();
+beforeImgTag.addEventListener("load", whenImagesReadyThenReset);
+afterImgTag.addEventListener("load", whenImagesReadyThenReset);
 
 /* === Scaling (UI) === */
 function setUserScaleFromPct(pct){ userScale=clamp(pct/100,1.0,1.3); document.documentElement.style.setProperty("--viewer-scale",String(userScale)); if(scaleVal) scaleVal.textContent=Math.round(userScale*100)+"%"; updateFullscreenBars(); resetSplitToMiddle(); }
