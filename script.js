@@ -348,6 +348,15 @@ const CALIBRATION = {
     "120mm": { scale: 0.96, x: 25.823, y: -70.244 }
   },
 
+  "ironglass_sovjet_medium_format": {
+    "120mm": { scale: 0.95, x: 40.668, y: -18.485 }
+  },
+
+  "ironglass_sovjet_mkii": {
+    "120mm": { scale: 0.85, x: 7.394, y: 18.485 }
+  }
+};
+
   // later voeg je hier MKII / Medium Format etc toe:
   // "ironglass_sovjet_mkii":          { "120mm": { scale: 0.XX, x: 0, y: 0 } },
   // "ironglass_sovjet_medium_format": { "120mm": { scale: 0.XX, x: 0, y: 0 } },
