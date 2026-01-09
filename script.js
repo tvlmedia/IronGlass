@@ -275,7 +275,12 @@ const enterWrapperFullscreen=()=> comparisonWrapper.requestFullscreen?.()||compa
 const exitAnyFullscreen=()=> document.exitFullscreen?.()||document.webkitExitFullscreen?.();
 function setWrapperSizeByAR(w,h){ if(isWrapperFullscreen())return; const width=comparisonWrapper.getBoundingClientRect().width, arWidth=sbsActive?(w*2):w, height=Math.round(width*(h/arWidth)); ["height","min-height","max-height"].forEach(p=>comparisonWrapper.style.setProperty(p,`${height}px`,"important")); comparisonWrapper.style.removeProperty("aspect-ratio"); }
 function clearInlineHeights(){ ["height","min-height","max-height"].forEach(p=>comparisonWrapper.style.removeProperty(p)); }
-function getCurrentWH(){ const cam=cameraSelect.value, fmt=sensorFormatSelect.value; return cam&&fmt?cameras[cam][fmt]:BASE_SENSOR; }
+function getCurrentWH(){
+  const cam = cameraSelect.value;
+  const fmt = sensorFormatSelect.value;
+  const hit = cam && fmt && cameras?.[cam]?.[fmt];
+  return hit || BASE_SENSOR;
+}
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
@@ -552,9 +557,6 @@ tStopRightSelect.value  = "2.8";
 updateLensInfo();
 updateImages();
 
-// na de camera-change is de format dropdown opnieuw gevuld
-sensorFormatSelect.value = CAPTURE_FORMAT;
-sensorFormatSelect.dispatchEvent(new Event("change"));
 
 /* === Resizes + fullscreen === */
 function onFsChange(){
@@ -609,10 +611,22 @@ window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){
 
 /* === On image load, recalc bars/slider === */
 function whenImagesReadyThenReset(){
-  const wait = im =>
-    (im.complete && im.naturalWidth > 0)
-      ? Promise.resolve()
-      : new Promise((res, rej) => { im.onload = res; im.onerror = rej; });
+  const wait = (im) => {
+    if(im.complete && im.naturalWidth > 0) return Promise.resolve();
+
+    return new Promise((res, rej) => {
+      const onLoad = () => { cleanup(); res(); };
+      const onErr  = () => { cleanup(); rej(); };
+
+      const cleanup = () => {
+        im.removeEventListener("load", onLoad);
+        im.removeEventListener("error", onErr);
+      };
+
+      im.addEventListener("load", onLoad, { once:true });
+      im.addEventListener("error", onErr, { once:true });
+    });
+  };
 
   Promise.all([wait(beforeImgTag), wait(afterImgTag)]).then(() => {
     updateFullscreenBars();
