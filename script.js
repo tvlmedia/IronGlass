@@ -355,14 +355,9 @@ const CALIBRATION = {
     "120mm": { scale: 0.96, x: 25.823, y: -70.244 }
   },
 
-  // voorbeelden:
-  // "ironglass_sovjet_medium_format": { "120mm": { scale: 1.00, x: 0, y: 0 } },
-  // "ironglass_sovjet_mkii":          { "85mm":  { scale: 0.98, x: 12.3, y: -44.1 } },
-};
-
   // later voeg je hier MKII / Medium Format etc toe:
-  // "ironglass_sovjet_mkii": { "120mm": { scale: 0.XX } },
-  // "ironglass_sovjet_medium_format": { "120mm": { scale: 0.XX } },
+  // "ironglass_sovjet_mkii":          { "120mm": { scale: 0.XX, x: 0, y: 0 } },
+  // "ironglass_sovjet_medium_format": { "120mm": { scale: 0.XX, x: 0, y: 0 } },
 };
 
 // Calibration Toggle
@@ -425,9 +420,7 @@ function lensSlugFromLabel(lbl=""){
   return String(lbl).toLowerCase().replace(/\s+/g,"_");
 }
 
-function getCalScale(lensSlug, focal){
-  return CALIBRATION?.[lensSlug]?.[focal]?.scale ?? 1.0;
-}
+
 
 function getCal(lensSlug, focal){
   return CALIBRATION?.[lensSlug]?.[focal] || null;
