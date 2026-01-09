@@ -709,3 +709,16 @@ button.active{ color:#fff; }
   background: rgba(255,255,255,0.14);
   border-color: rgba(255,255,255,0.35);
 }
+
+
+#leftDetail, #rightDetail{
+  position: fixed;
+  width: 260px;
+  height: 260px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+#leftDetail img, #rightDetail img{
+  position: absolute;
+  left: 0; top: 0;
+}
