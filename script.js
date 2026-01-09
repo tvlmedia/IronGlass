@@ -921,13 +921,13 @@ document.addEventListener("mousemove", (e) => {
     const ryR = (e.clientY - R.top)  / R.height;
 
     if(inL){
-      showDetailBoxAt(e, leftDetail, leftDetailImg, sbsLeftImg, L, rxL, ryL, 3.2, 260);
+     showDetailBoxAt(e, leftDetail,  leftDetailImg,  sbsLeftImg,  L, rxL, ryL, "left",  3.2, 260, 24);
     } else {
       leftDetail.style.display = "none";
     }
 
     if(inR){
-      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, R, rxR, ryR, 3.2, 260);
+      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, R, rxR, ryR, "right", 3.2, 260, 24);
     } else {
       rightDetail.style.display = "none";
     }
@@ -953,9 +953,8 @@ document.addEventListener("mousemove", (e) => {
   const rx = (e.clientX - usableRect.left) / usableRect.width;
   const ry = (e.clientY - usableRect.top)  / usableRect.height;
 
-  const showL = showDetailBoxAt(e, leftDetail,  leftDetailImg,  afterImgTag,  usableRect, rx, ry, 3.2, 260);
-  const showR = showDetailBoxAt(e, rightDetail, rightDetailImg, beforeImgTag, usableRect, rx, ry, 3.2, 260);
-
+ const showL = showDetailBoxAt(e, leftDetail,  leftDetailImg,  afterImgTag,  usableRect, rx, ry, "left",  3.2, 260, 24);
+const showR = showDetailBoxAt(e, rightDetail, rightDetailImg, beforeImgTag, usableRect, rx, ry, "right", 3.2, 260, 24);
   if(!showL) leftDetail.style.display  = "none";
   if(!showR) rightDetail.style.display = "none";
 }); // ✅ <-- BELANGRIJK: hier afsluiten!
