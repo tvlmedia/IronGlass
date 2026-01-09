@@ -235,6 +235,7 @@ const lensDescriptions = {
 const TSTOP_FILE_ALIAS = {
   // slug -> { uiValue: actualValue }
   "ironglass_titan_zoom": { "2.8": "2.9" },
+  "ironglass_zeiss_jena": { "2.8": "2.9" },
   "ironglass_sovjet_medium_format": { "2.8": "2.9" },
 
   // voeg hier andere sets toe die "eigenlijk" T2.9 zijn
