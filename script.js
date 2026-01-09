@@ -267,6 +267,26 @@ const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
 const BASE_SENSOR = cameras[CAPTURE_CAMERA][CAPTURE_FORMAT];
 let sbsActive=false, isExportingPdf=false, userScale=1;
 
+function forceDefaults(){
+  // lenzen
+  leftSelect.value  = "IronGlass Titan Zoom";
+  rightSelect.value = "IronGlass Sovjet Medium Format";
+  focalLengthSelect.value = "120mm";
+  tStopLeftSelect.value   = "2.8";
+  tStopRightSelect.value  = "2.8";
+
+  // camera + format (camera eerst!)
+  cameraSelect.value = CAPTURE_CAMERA;
+  cameraSelect.dispatchEvent(new Event("change"));
+
+  sensorFormatSelect.value = CAPTURE_FORMAT;
+  sensorFormatSelect.dispatchEvent(new Event("change"));
+
+  updateLensInfo();
+  updateImages();
+  autoScaleNow();
+}
+
 /* === Helpers === */
 const isWrapperFullscreen=()=> (document.fullscreenElement||document.webkitFullscreenElement)===comparisonWrapper;
 const enterWrapperFullscreen=()=> comparisonWrapper.requestFullscreen?.()||comparisonWrapper.webkitRequestFullscreen?.();
@@ -386,25 +406,7 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
 }
 
 /* === Init defaults === */
-// 1) default lenzen
-leftSelect.value  = "IronGlass Titan Zoom";
-rightSelect.value = "IronGlass Sovjet Medium Format";
-focalLengthSelect.value = "120mm";     // of "35mm" als je liever hebt
-tStopLeftSelect.value   = "2.8";
-tStopRightSelect.value  = "2.8";
-
-// 2) default camera + format (belangrijk: eerst camera change, daarna format)
-cameraSelect.value = CAPTURE_CAMERA;
-cameraSelect.dispatchEvent(new Event("change"));
-
-sensorFormatSelect.value = CAPTURE_FORMAT;
-sensorFormatSelect.dispatchEvent(new Event("change"));
-
-// 3) UI updaten
-updateLensInfo();
-updateImages();
-autoScaleNow();
-
+forceDefaults();
 /* === Resizes + fullscreen === */
 function onFsChange(){
   if(isWrapperFullscreen()){ clearInlineHeights(); pulseFsBars({duration:1400}); }
@@ -659,19 +661,6 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 /* === Kick first layout === */
 onFsChange();
 
-setTimeout(() => {
-  // Force default camera + format (anti-“springt terug naar Alexa”)
-  if (cameraSelect.value !== CAPTURE_CAMERA) {
-    cameraSelect.value = CAPTURE_CAMERA;
-    cameraSelect.dispatchEvent(new Event("change"));
-  }
-
-  if (sensorFormatSelect.value !== CAPTURE_FORMAT) {
-    sensorFormatSelect.value = CAPTURE_FORMAT;
-    sensorFormatSelect.dispatchEvent(new Event("change"));
-  }
-
-  updateLensInfo();
-  updateImages();
-  autoScaleNow();
-}, 50);
+// extra force na alles (ook na eventuele andere scripts)
+setTimeout(forceDefaults, 50);
+window.addEventListener("load", () => setTimeout(forceDefaults, 250));
