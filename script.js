@@ -293,10 +293,13 @@ function applyCurrentFormat(){
   comparisonWrapper.style.setProperty("--sensor-scale", scale.toFixed(4));
 
   updateFullscreenBars();
-  resetSplitToMiddle();
-  applyCalibrationTransforms(); // <-- hier
-}
+resetSplitToMiddle();
 
+if(calibrateActive){
+  autoScaleForCalibration();
+} else {
+  applyCalibrationTransforms();
+}
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
 const DEFAULT_T_STOPS=["2.8","4"]; function fillTStops(sel,opts=DEFAULT_T_STOPS){ sel.innerHTML=""; opts.forEach(t=>sel.add(new Option(`T${t}`,t))); }
@@ -662,8 +665,12 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
   setImageWithFallback(sbsLeftImg,  leftCandidates);
   setImageWithFallback(sbsRightImg, rightCandidates);
 }
-   resetSplitToMiddle();
-  applyCalibrationTransforms(); // <-- BELANGRIJK
+ resetSplitToMiddle();
+
+if(calibrateActive){
+  autoScaleForCalibration();   // zet userScale goed → doet zelf al applyCalibrationTransforms()
+} else {
+  applyCalibrationTransforms();
 }
 
 /* === Init defaults === */
