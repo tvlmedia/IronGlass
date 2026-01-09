@@ -529,6 +529,7 @@ function onGlobalKeydown(e){
   const k=(e.key||"").toLowerCase();
   if(k==="p"){ e.preventDefault(); toggleFullscreen(); }
   if(k==="d"){ e.preventDefault(); detailToggleButton?.click(); }
+  if(k==="b"){ e.preventDefault(); bokehToggle?.click(); }
   if(k==="s"){ e.preventDefault(); setSideBySide(!sbsActive); }
   if(k==="f"){ e.preventDefault(); flareToggle.click(); }
 }
