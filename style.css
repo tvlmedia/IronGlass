@@ -674,3 +674,8 @@ button.active,
 }
 
 button.active{ color:#fff; }
+
+#calibrateToggle.active{
+  border-color: #fff;
+  opacity: 1;
+}
