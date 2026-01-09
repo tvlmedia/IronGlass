@@ -66,7 +66,7 @@ body{
 
 /* In SxS mag de viewer breder, maar controls blijven “normaal” */
 body.sbs-mode .frame-1200{
-  width:min(1600px,96vw); /* maak gerust 1800px als je wil */
+  width:min(1600px,96vw);
 }
 
 /* ===========================
@@ -122,8 +122,6 @@ body.sbs-mode .controls.desktop-only{
 
 /* ===========================
    INPUT STYLES
-   - SELECTS native (niet flex)
-   - BUTTONS inline-flex (perfect gecentreerd)
    =========================== */
 
 /* SELECTS */
@@ -145,9 +143,10 @@ select{
   vertical-align:middle;
 }
 
-/* BUTTONS */
+/* BUTTONS (basis) */
 .control-button,
-#toggleButton,#fullscreenButton,#downloadPdfButton{
+#toggleButton,#fullscreenButton,#downloadPdfButton,
+#calibrateToggle{
   height:32px;
   padding:0 11px;
   background:#111;
@@ -164,15 +163,20 @@ select{
   align-items:center;
   justify-content:center;
   gap:8px;
+
   line-height:1;
   white-space:nowrap;
   vertical-align:middle;
-
   font-variant-emoji:text;
+
+  -webkit-appearance:none;
+  appearance:none;
 }
 
 select:hover,
-.control-button:hover{
+.control-button:hover,
+#toggleButton:hover,#fullscreenButton:hover,#downloadPdfButton:hover,
+#calibrateToggle:hover{
   background:var(--ig-accent);
   border-color:var(--ig-accent);
   color:#000;
@@ -180,19 +184,25 @@ select:hover,
 }
 
 .control-button:active,
+#toggleButton:active,#fullscreenButton:active,#downloadPdfButton:active,
+#calibrateToggle:active,
 select:active{
   transform:translateY(.5px) scale(.99);
   box-shadow:none;
 }
 
 .control-button:focus,
+#toggleButton:focus,#fullscreenButton:focus,#downloadPdfButton:focus,
+#calibrateToggle:focus,
 select:focus{
   outline:none;
   box-shadow:0 0 0 1px var(--ig-accent-soft), 0 0 0 3px rgba(0,0,0,.9);
   border-color:var(--ig-accent);
 }
 
-.control-button:disabled{
+.control-button:disabled,
+#toggleButton:disabled,#fullscreenButton:disabled,#downloadPdfButton:disabled,
+#calibrateToggle:disabled{
   opacity:.4;
   cursor:not-allowed;
   box-shadow:none;
@@ -206,7 +216,8 @@ select:focus{
 /* Row-1 compacter */
 .controls.desktop-only .row-1 select,
 .controls.desktop-only .row-1 .control-button,
-.controls.desktop-only .row-1 #scaleCtrl{
+.controls.desktop-only .row-1 #scaleCtrl,
+.controls.desktop-only .row-1 #calibrateToggle{
   min-width:auto;
   padding:0 8px;
   font-size:12px;
@@ -227,6 +238,21 @@ select:focus{
 #flareToggle{
   min-width:95px;
   padding:0 8px;
+}
+
+/* ===========================
+   TOGGLES / ACTIVE STATE
+   =========================== */
+button.active,
+.toggle.active,
+.controls button.active{
+  border-color:var(--tvl-accent) !important;
+  box-shadow:0 0 0 1px var(--tvl-accent), 0 0 18px rgba(255,138,0,.25);
+  color:#fff !important;
+}
+
+#bokehToggle.active{
+  outline:1px solid rgba(255,255,255,.35);
 }
 
 /* ===========================
@@ -309,6 +335,7 @@ select:focus{
   --lb-bottom:0px;
   --lb-left:0px;
   --lb-right:0px;
+
   box-sizing:border-box;
 }
 
@@ -324,6 +351,7 @@ select:focus{
 
 /* layers */
 #beforeImage{ position:absolute; inset:0; }
+
 #beforeImgTag,
 #afterImgTag{
   position:absolute;
@@ -331,14 +359,17 @@ select:focus{
   width:100%;
   height:100%;
   object-fit:cover;
-  display:block;/* defaults voor calibrate */
---cal-tx: 0px;
---cal-ty: 0px;
---cal-scale: 1;
+  display:block;
 
-transform:
-  translate(var(--cal-tx), var(--cal-ty))
-  scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));transform:scale(calc(var(--sensor-scale)*var(--viewer-scale)));
+  /* defaults voor calibrate */
+  --cal-tx: 0px;
+  --cal-ty: 0px;
+  --cal-scale: 1;
+
+  /* ✅ FIX: 1 transform chain (geen overwrite) */
+  transform:
+    translate(var(--cal-tx), var(--cal-ty))
+    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
   transform-origin:center;
   will-change:transform;
 }
@@ -390,13 +421,13 @@ transform:
   overflow:hidden;
 }
 
+/* Let op: JS zet object-fit: contain in fullscreen; CSS forceert niks extra */
 #comparisonWrapper:fullscreen #beforeImgTag,
 #comparisonWrapper:-webkit-full-screen #beforeImgTag,
 #comparisonWrapper:fullscreen #afterImgTag,
 #comparisonWrapper:-webkit-full-screen #afterImgTag{
   width:100%;
   height:100%;
-  object-fit:cover;
   object-position:center;
 }
 
@@ -469,13 +500,14 @@ body.sbs-mode #sbsWrapper .pane img{
   height:100%;
   object-fit:cover;
   object-position:center;
-  --cal-tx: 0px;
---cal-ty: 0px;
---cal-scale: 1;
 
-transform:
-  translate(var(--cal-tx), var(--cal-ty))
-  scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
+  --cal-tx: 0px;
+  --cal-ty: 0px;
+  --cal-scale: 1;
+
+  transform:
+    translate(var(--cal-tx), var(--cal-ty))
+    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
   transform-origin:center;
   will-change:transform;
 }
@@ -612,7 +644,52 @@ body.dragging *{
   transform-origin:top left;
 }
 
+#leftDetail, #rightDetail{
+  position: fixed;
+  width: 260px;
+  height: 260px;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+#leftDetail img, #rightDetail img{
+  position: absolute;
+  left: 0; top: 0;
+}
 
+/* === HARD OVERRIDE: WP/theme img constraints uitzetten in detail viewer === */
+#detailOverlay .detail-view-square,
+#detailOverlay #leftDetail,
+#detailOverlay #rightDetail{
+  width:260px !important;
+  height:260px !important;
+  aspect-ratio:1 / 1 !important;
+  box-sizing:border-box !important;
+}
+
+#detailOverlay .detail-view-square img,
+#detailOverlay #leftDetail img,
+#detailOverlay #rightDetail img{
+  max-width:none !important;
+  max-height:none !important;
+  display:block !important;
+}
+
+/* === DETAIL: naad weg in SBS === */
+body.sbs-mode #leftDetail{
+  border-right: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+body.sbs-mode #rightDetail{
+  border-left: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+#detailOverlay .detail-view-square{
+  background:#000 !important;
+}
 
 /* ===========================
    MOBILE EMBED
@@ -668,117 +745,4 @@ body.dragging *{
   #comparisonWrapper{ width:100% !important; height:auto !important; aspect-ratio:auto !important; }
   #infoContainer{ color:#000 !important; }
   #comparisonWrapper img{ object-fit:contain !important; }
-}
-
-/* ===========================
-   TOGGLES / ACTIVE STATE
-   =========================== */
-#bokehToggle.active{
-  outline:1px solid rgba(255,255,255,.35);
-}
-
-button.active,
-.toggle.active,
-.controls button.active{
-  border-color:var(--tvl-accent) !important;
-  box-shadow:0 0 0 1px var(--tvl-accent), 0 0 18px rgba(255,138,0,.25);
-}
-
-button.active{ color:#fff; }
-
-#calibrateToggle.active{
-  border-color: #fff;
-  opacity: 1;
-}
-
-/* Calibrate knop dezelfde look als de rest */
-#calibrateToggle{
-  -webkit-appearance: none;
-  appearance: none;
-  background: rgba(0,0,0,0.35);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.20);
-  border-radius: 999px;
-  padding: 10px 14px;
-  font: inherit;
-  font-weight: 600;
-  letter-spacing: .3px;
-
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  cursor: pointer;
-  user-select: none;
-}
-
-#calibrateToggle:hover{
-  background: rgba(255,255,255,0.08);
-}
-
-#calibrateToggle.active{
-  background: rgba(255,255,255,0.14);
-  border-color: rgba(255,255,255,0.35);
-}
-
-
-#leftDetail, #rightDetail{
-  position: fixed;
-  width: 260px;
-  height: 260px;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-}
-#leftDetail img, #rightDetail img{
-  position: absolute;
-  left: 0; top: 0;
-}
-
-/* === HARD OVERRIDE: WP/theme img constraints uitzetten in detail viewer === */
-#detailOverlay .detail-view-square,
-#detailOverlay #leftDetail,
-#detailOverlay #rightDetail{
-  width:260px !important;
-  height:260px !important;
-  aspect-ratio:1 / 1 !important;
-  box-sizing:border-box !important;
-}
-
-#detailOverlay .detail-view-square img,
-#detailOverlay #leftDetail img,
-#detailOverlay #rightDetail img{
-  max-width:none !important;
-  max-height:none !important;
-  width:auto;        /* JS zet ‘m toch */
-  height:auto;       /* JS zet ‘m toch */
-  display:block !important;
-}
-
-/* === DETAIL: naad weg in SBS === */
-body.sbs-mode #leftDetail{
-  border-right: 0 !important;
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-body.sbs-mode #rightDetail{
-  border-left: 0 !important;
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-#detailOverlay .detail-view-square.paired-left{
-  border-right-width: 0 !important;
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-#detailOverlay .detail-view-square.paired-right{
-  border-left-width: 0 !important;
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-#detailOverlay .detail-view-square{
-  background:#000 !important;
 }
