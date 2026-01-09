@@ -389,17 +389,14 @@ function resolveImageCandidates(lens, nominalFocal, tStr, flareMode, sceneMode){
     push(lensImageMap[b]);
 
     // 2) SCENE = BOKEH
-    if(sceneMode === "bokeh"){
-      // exact match
-      pushBokehPath(`${b}_bokeh_${flareMode}.jpg`);
+if(sceneMode === "bokeh"){
+  // jouw naming: bokeh is een aparte “scene” file zonder flare suffix
+  pushBokehPath(`${b}_bokeh.jpg`);
 
-      // flare fallback binnen bokeh
-      if(flareMode === "doubleflare") pushBokehPath(`${b}_bokeh_flare.jpg`);
-      pushBokehPath(`${b}_bokeh_noflare.jpg`);
-
-      // ultieme bokeh fallback
-      pushBokehPath(`${b}_bokeh.jpg`);
-    }
+  // (optioneel) support als je later toch combinaties gaat exporteren:
+  pushBokehPath(`${b}_bokeh_${flareMode}.jpg`);
+  pushBokehPath(`${b}_${flareMode}_bokeh.jpg`);
+}
 
     // 3) SCENE = PORTRAIT / NORMAL (of fallback vanaf bokeh)
     push(`${b}_${flareMode}.jpg`);
