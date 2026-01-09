@@ -223,44 +223,36 @@ const lensDescriptions = {
 
 // UI T2.8 moet voor sommige lenzen naar file T2.9 mappen
 const TSTOP_FILE_ALIAS = {
-  // slug -> { uiValue: actualValue }
-  "ironglass_titan_zoom": { "2.8": "2.9" },
-  "ironglass_zeiss_jena": { "2.8": "2.9" },
-  "ironglass_sovjet_mkii": { "2.8": "2.9" },
-  "ironglass_sovjet_medium_format": { "2.8": "2.9" },
-  // RED P: jouw files zijn t2_1 (dus "T2" en "WO" moeten allebei naar 2.1)
   "ironglass_red_p": {
     "wo": "2.1",
-    "2": "2.1"
+    "2":  "2.1",
+    "2.8":"2.1",   // als jij voor Red P alleen t2_1 hebt
+    "4":  "2.1"    // idem (optioneel)
   },
 
-  // MKII: heeft echt WO t1_6 en ook t2
   "ironglass_sovjet_mkii": {
-    "wo": "1.6"
+    "wo": "1.6",
+    "2.8":"2.9"    // als jouw MKII files t2_9 zijn
   },
 
-  // Zeiss Jena: heeft WO t1_9 (en geen t2 in jouw map, dus T2 → fallback naar 2.8)
   "ironglass_zeiss_jena": {
     "wo": "1.9",
-    "2": "2.8"
+    "2.8":"2.9"    // ← dit is waarschijnlijk jouw bug in de screenshot
   },
 
-  // Titan Zoom: in jouw set is alles t2_9 (dus alles mapt naar 2.9)
   "ironglass_titan_zoom": {
     "wo": "2.9",
-    "2": "2.9",
-    "2.8": "2.9"
+    "2":  "2.9",
+    "2.8":"2.9",
+    "4":  "2.9"
   },
 
-  // Sovjet Medium Format: idem (t2_9)
   "ironglass_sovjet_medium_format": {
     "wo": "2.9",
-    "2": "2.9",
-    "2.8": "2.9"
+    "2":  "2.9",
+    "2.8":"2.9",
+    "4":  "2.9"
   }
-
-  // voeg hier andere sets toe die "eigenlijk" T2.9 zijn
-  // "ironglass_xxx": { "2.8": "2.9" },
 };
 
 function fileTStopFor(lensSlug, uiVal){
