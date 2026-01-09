@@ -921,13 +921,13 @@ document.addEventListener("mousemove", (e) => {
     const ryR = (e.clientY - R.top)  / R.height;
 
     if(inL){
-     showDetailBoxAt(e, leftDetail,  leftDetailImg,  sbsLeftImg,  L, rxL, ryL, "left",  3.2, 260, 24);
+     showDetailBoxAt(e, leftDetail,  leftDetailImg,  sbsLeftImg,  L, rxL, ryL, "left",  3.2, 260, 4);
     } else {
       leftDetail.style.display = "none";
     }
 
     if(inR){
-      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, R, rxR, ryR, "right", 3.2, 260, 24);
+      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, R, rxR, ryR, "right", 3.2, 260, 4);
     } else {
       rightDetail.style.display = "none";
     }
