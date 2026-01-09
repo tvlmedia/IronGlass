@@ -261,7 +261,10 @@ const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("t
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
 const { jsPDF } = window.jspdf || {};
-const BASE_SENSOR = cameras["Sony Venice"]["6K 3:2"];
+const CAPTURE_CAMERA = "Fujifilm GFX Eterna";
+const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
+
+const BASE_SENSOR = cameras[CAPTURE_CAMERA][CAPTURE_FORMAT];
 let sbsActive=false, isExportingPdf=false, userScale=1;
 
 /* === Helpers === */
@@ -352,7 +355,12 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
 /* === Init defaults === */
 leftSelect.value="IronGlass Red P"; rightSelect.value="IronGlass Zeiss Jena"; focalLengthSelect.value="35mm"; tStopLeftSelect.value="2.8"; tStopRightSelect.value="2.8";
 updateLensInfo(); updateImages();
-cameraSelect.value="Sony Venice"; cameraSelect.dispatchEvent(new Event("change"));
+cameraSelect.value = CAPTURE_CAMERA;
+cameraSelect.dispatchEvent(new Event("change"));
+
+// na de camera-change is de format dropdown opnieuw gevuld
+sensorFormatSelect.value = CAPTURE_FORMAT;
+sensorFormatSelect.dispatchEvent(new Event("change"));
 
 /* === Resizes + fullscreen === */
 function onFsChange(){
