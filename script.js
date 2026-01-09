@@ -957,9 +957,10 @@ if(sbsActive){
   const rx = inL ? (e.clientX - L.left) / L.width  : (e.clientX - R.left) / R.width;
   const ry = inL ? (e.clientY - L.top)  / L.height : (e.clientY - R.top)  / R.height;
 
-  const size = 260;
-  const zoom = 3.2;
-  const pad  = 8;
+  const cfg  = getDetailConfig();
+const size = cfg.size;
+const zoom = cfg.zoom;
+const pad  = 8;
 
   // ✅ clamp 1x voor het hele duo
   const groupW = size * 2;
