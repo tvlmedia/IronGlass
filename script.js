@@ -431,9 +431,21 @@ const rawFileMap={
   "cooke_panchro_ff_50mm_t2_8":"images/raw/CookeFF_50mm_T2.8_RAW.tif"
 };
 function setDownloadButton(btn,key){
-  const file=rawFileMap[key]? (RAW_BASE+rawFileMap[key].split("/").pop()):null;
-  if(file){ btn.disabled=false; btn.title="Download RAW"; btn.onclick=()=>{ const url=new URL(file,location.href); url.origin===location.origin?(()=>{const a=document.createElement("a"); a.href=url.href; a.download=url.pathname.split("/").pop(); document.body.appendChild(a); a.click(); a.remove();})():window.open(url.href,"_blank","noopener,noreferrer"); }; }
-  else { btn.disabled=true; btn.title="RAW download (coming soon)"; btn.onclick=null; }
+  if(!btn) return; // ✅ guard
+  const file = rawFileMap[key] ? (RAW_BASE + rawFileMap[key].split("/").pop()) : null;
+
+  if(file){
+    btn.disabled = false;
+    btn.title = "Download RAW";
+    btn.onclick = () => {
+      const url = new URL(file, location.href);
+      window.open(url.href, "_blank", "noopener,noreferrer");
+    };
+  } else {
+    btn.disabled = true;
+    btn.title = "RAW download (coming soon)";
+    btn.onclick = null;
+  }
 }
 
 /* === Labels + lens info === */
@@ -835,6 +847,7 @@ const leftDetailImg  = leftDetail?.querySelector("img");
 const rightDetailImg = rightDetail?.querySelector("img");
 
 detailToggleButton?.addEventListener("click", () => {
+  if(!detailOverlay || !leftDetail || !rightDetail) return; // ✅ guard
   detailActive = !detailActive;
   detailOverlay.classList.toggle("active", detailActive);
 
@@ -842,10 +855,19 @@ detailToggleButton?.addEventListener("click", () => {
     leftDetail.style.display = "none";
     rightDetail.style.display = "none";
   }
-
   updateToggleHighlights();
 });
 
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape" && detailActive){
+    detailActive = false;
+    detailOverlay?.classList.remove("active");
+    detailToggleButton?.classList.remove("active");
+    leftDetail && (leftDetail.style.display = "none");
+    rightDetail && (rightDetail.style.display = "none");
+    updateToggleHighlights();
+  }
+});
 // Helper: force box square + force img sizing (ignore theme constraints)
 function showDetailBoxAt(
   e, box, img, srcEl, rect, rx, ry, side,
