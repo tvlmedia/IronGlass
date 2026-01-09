@@ -81,22 +81,22 @@ select,
 .control-button,
 #toggleButton,#fullscreenButton,#downloadPdfButton{
   height:32px;
-  line-height:30px;
+  line-height:1;                 /* <-- was 30px */
   padding:0 11px;
   background:#111;
   color:var(--ig-text);
   border:1px solid #333;
-  border-radius:999px;              /* pill shape, net als IronGlass */
+  border-radius:999px;
   font-size:13px;
   letter-spacing:.02em;
   text-transform:uppercase;
   cursor:pointer;
-  transition:
-    background .18s ease,
-    border-color .18s ease,
-    color .18s ease,
-    box-shadow .18s ease,
-    transform .06s ease;
+  box-sizing:border-box;
+
+  display:inline-flex;           /* <-- nieuw */
+  align-items:center;            /* <-- nieuw */
+  justify-content:center;        /* <-- nieuw */
+  gap:8px;                       /* <-- nieuw */
 }
 
 select:hover,
@@ -639,11 +639,11 @@ body.sbs-mode #comparisonWrapper {
 .controls.desktop-only .row-1 select,
 .controls.desktop-only .row-1 .control-button,
 .controls.desktop-only .row-1 #scaleCtrl {
-  min-width: auto;      /* override */
-  padding: 0 8px;       /* compacter */
-  font-size: 12px;      /* iets kleiner zodat alles past */
-  height: 30px;
-  line-height: 30px;
+  min-width: auto;
+  padding: 0 8px;
+  font-size: 12px;
+  height: 32px;     /* <-- was 30px */
+  line-height: 1;   /* <-- was 30px */
 }
 
 /* camera + sensor dropdowns iets smaller */
@@ -748,30 +748,7 @@ button.active,
 button.active{
   color: #fff;
 }
-/* --- FIX: top bar buttons netjes gecentreerd + geen 2 regels --- */
-#toolRoot .controls button{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 
-  height: 34px;          /* match je pill height */
-  padding: 0 14px;
-  line-height: 1;
-  white-space: nowrap;   /* nooit wrap */
-  flex: 0 0 auto;        /* niet “ingedrukt” worden */
-}
-
-/* als je labels met <br> hebt gedaan: verberg die linebreaks */
-#fullscreenButton br,
-#sbsToggle br,
-#toggleButton br{
-  display: none;
-}
-
-/* iconen niet “baseline” laten hangen */
-#toolRoot .controls button svg,
-#toolRoot .controls button img{
-  display: block;
-  flex: 0 0 auto;
+.control-button{
+  font-variant-emoji: text;
 }
