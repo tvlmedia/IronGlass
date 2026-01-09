@@ -386,8 +386,23 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
 }
 
 /* === Init defaults === */
-leftSelect.value="IronGlass Red P"; rightSelect.value="IronGlass Zeiss Jena"; focalLengthSelect.value="35mm"; tStopLeftSelect.value="2.8"; tStopRightSelect.value="2.8";
-updateLensInfo(); updateImages();
+/* === Init defaults === */
+leftSelect.value  = "IronGlass Titan Zoom";
+rightSelect.value = "IronGlass Sovjet Medium Format";
+
+// default focal + T-stop
+focalLengthSelect.value = "120mm";
+if (!focalLengthSelect.value) focalLengthSelect.selectedIndex = 0; // fallback als 120mm niet bestaat
+
+tStopLeftSelect.value  = "2.8";
+tStopRightSelect.value = "2.8";
+syncTStopsOnContextChange();
+
+updateLensInfo();
+updateImages();
+autoScaleNow();
+
+// default camera/sensor
 cameraSelect.value = CAPTURE_CAMERA;
 cameraSelect.dispatchEvent(new Event("change"));
 
