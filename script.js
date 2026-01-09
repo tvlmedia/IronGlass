@@ -958,7 +958,7 @@ groupY = Math.round(groupY);
 showDetailBoxAt(
   e, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry,
   "right", zoom, size, 0,
-  { x: groupX + size - 2, y: groupY }  // 👈 HIER
+ { x: groupX + size, y: groupY }
 );
   return;
 }
@@ -1008,8 +1008,9 @@ showDetailBoxAt(
     rectR, rxR, ryR, "right", 3.2, 260, 24
   );
 
-  if(!showL) leftDetail.style.display  = "none";
-  if(!showR) rightDetail.style.display = "none";
+ if(!showL) leftDetail.style.display  = "none";
+if(!showR) rightDetail.style.display = "none";
+}); // <-- SLUIT de mousemove listener HIER af
 
 document.addEventListener("keydown", (e) => {
   if(e.key === "Escape" && detailActive){
