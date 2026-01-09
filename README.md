@@ -1,2 +1,0 @@
-# lens-compare
-Lens Compare
