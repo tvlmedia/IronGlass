@@ -1027,16 +1027,7 @@ showDetailBoxAt(
 if(!showR) rightDetail.style.display = "none";
 }); // <-- SLUIT de mousemove listener HIER af
 
-document.addEventListener("keydown", (e) => {
-  if(e.key === "Escape" && detailActive){
-    detailActive = false;
-    detailOverlay.classList.remove("active");
-    detailToggleButton.classList.remove("active");
-    leftDetail.style.display = "none";
-    rightDetail.style.display = "none";
-    updateToggleHighlights();
-  }
-});
+
 
 /* === Letter/pillarbox berekening + slider === */
 function updateFullscreenBars(){
