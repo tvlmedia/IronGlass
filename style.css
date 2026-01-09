@@ -679,3 +679,33 @@ button.active{ color:#fff; }
   border-color: #fff;
   opacity: 1;
 }
+
+/* Calibrate knop dezelfde look als de rest */
+#calibrateToggle{
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: .3px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+#calibrateToggle:hover{
+  background: rgba(255,255,255,0.08);
+}
+
+#calibrateToggle.active{
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.35);
+}
