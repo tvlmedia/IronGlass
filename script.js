@@ -317,37 +317,10 @@ function updateLensInfo(){ const L=leftSelect.value,R=rightSelect.value; lensInf
 
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
-function resolveImageCandidates(lens, nominalFocal, tStr, flare){
-  const alias = aliasFor(lens, nominalFocal);
-  const bases = (alias !== nominalFocal)
-    ? [`${lens}_${alias}_t${tStr}`, `${lens}_${nominalFocal}_t${tStr}`]
-    : [`${lens}_${nominalFocal}_t${tStr}`];
-
-  const list = [];
-  bases.forEach(b => {
-    if (lensImageMap[`${b}_${flare}`]) list.push(lensImageMap[`${b}_${flare}`]);
-    if (lensImageMap[b]) list.push(lensImageMap[b]);
-    list.push(`${b}_${flare}.jpg`);
-    list.push(`${b}.jpg`);
-  });
-
-  return [...new Set(list)].map(f => IMG_BASE + f);
-}
-
-function setImgWithFallback(imgEl, urls){
-  let i = 0;
-
-  const tryNext = () => {
-    if (i >= urls.length) {
-      console.warn("❌ No image found:", urls);
-      return;
-    }
-    imgEl.onload = null;
-    imgEl.onerror = () => { i++; tryNext(); };
-    imgEl.src = urls[i];
-  };
-
-  tryNext();
+function resolveImagePath(lens, nominalFocal, tStr, flare){
+  const alias=aliasFor(lens,nominalFocal), bases= alias!==nominalFocal ? [`${lens}_${alias}_t${tStr}`,`${lens}_${nominalFocal}_t${tStr}`] : [`${lens}_${nominalFocal}_t${tStr}`];
+  const list=[]; bases.forEach(b=>{ if(lensImageMap[`${b}_${flare}`]) list.push(lensImageMap[`${b}_${flare}`]); if(lensImageMap[b]) list.push(lensImageMap[b]); list.push(`${b}_${flare}.jpg`,`${b}.jpg`); });
+  return IMG_BASE+list[0];
 }
 function updateImages(){
   const LL=leftSelect.value.toLowerCase().replace(/\s+/g,"_"), RR=rightSelect.value.toLowerCase().replace(/\s+/g,"_");
@@ -360,16 +333,10 @@ const tR = fileTStopFor(RR, uiTR);
 const tLActual = actualTStopForLabel(LL, uiTL);
 const tRActual = actualTStopForLabel(RR, uiTR);
   const focal=focalLengthSelect.value, flare=flareToggle.dataset.mode||"noflare";
-const leftUrls  = resolveImageCandidates(LL, focal, tL, flare);
-const rightUrls = resolveImageCandidates(RR, focal, tR, flare);
+  const imgLeft = resolveImagePath(LL,focal,tL,flare);
+  const imgRight= resolveImagePath(RR,focal,tR,flare);
+  beforeImgTag.src = imgRight; afterImgTag.src = imgLeft;
 
-setImgWithFallback(afterImgTag, leftUrls);
-setImgWithFallback(beforeImgTag, rightUrls);
-
-if(sbsActive){
-  setImgWithFallback(sbsLeftImg, leftUrls);
-  setImgWithFallback(sbsRightImg, rightUrls);
-}
   const lf=aliasFor(LL,focal), rf=aliasFor(RR,focal);
   const lu=lensDescriptions[leftSelect.value]?.url||"#", ru=lensDescriptions[rightSelect.value]?.url||"#";
   const tLNote = (String(tLActual) !== String(uiTL)) ? ` (eig. T${tLActual})` : "";
@@ -386,23 +353,8 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
 }
 
 /* === Init defaults === */
-/* === Init defaults === */
-leftSelect.value  = "IronGlass Titan Zoom";
-rightSelect.value = "IronGlass Sovjet Medium Format";
-
-// default focal + T-stop
-focalLengthSelect.value = "120mm";
-if (!focalLengthSelect.value) focalLengthSelect.selectedIndex = 0; // fallback als 120mm niet bestaat
-
-tStopLeftSelect.value  = "2.8";
-tStopRightSelect.value = "2.8";
-syncTStopsOnContextChange();
-
-updateLensInfo();
-updateImages();
-autoScaleNow();
-
-// default camera/sensor
+leftSelect.value="IronGlass Red P"; rightSelect.value="IronGlass Zeiss Jena"; focalLengthSelect.value="35mm"; tStopLeftSelect.value="2.8"; tStopRightSelect.value="2.8";
+updateLensInfo(); updateImages();
 cameraSelect.value = CAPTURE_CAMERA;
 cameraSelect.dispatchEvent(new Event("change"));
 
@@ -663,18 +615,4 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 
 /* === Kick first layout === */
 onFsChange();
-
-setTimeout(() => {
-  // force default camera + format (fixes unwanted overwrite)
-  cameraSelect.value = CAPTURE_CAMERA;
-  cameraSelect.dispatchEvent(new Event("change"));
-
-  requestAnimationFrame(() => {
-    sensorFormatSelect.value = CAPTURE_FORMAT;
-    sensorFormatSelect.dispatchEvent(new Event("change"));
-
-    autoScaleNow();
-    updateLensInfo();
-    updateImages();
-  });
-}, 50);
+setTimeout(updateImages,50);
