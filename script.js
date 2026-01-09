@@ -342,12 +342,23 @@ const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsW
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
 
 // === CALIBRATION (per lens/focal) ===
-// baseline = Zeiss Jena 120mm = 1.000
+// Resolve timeline / clip space (jouw max ranges)
+const CAL_W = 3840;
+const CAL_H = 2880;
+
+// In Resolve is Y meestal "omhoog = +", in CSS is "omlaag = +"
+const CAL_Y_INVERT = true; // zet op false als Y de verkeerde kant op gaat
+
+// per lensSlug + focal: { scale, x, y }  (x/y = Resolve Position waarden)
 const CALIBRATION = {
-  // lensSlug: { "120mm": { scale: 0.96 } }
   "ironglass_titan_zoom": {
-    "120mm": { scale: 0.96 }
+    "120mm": { scale: 0.96, x: 25.823, y: -70.244 }
   },
+
+  // voorbeelden:
+  // "ironglass_sovjet_medium_format": { "120mm": { scale: 1.00, x: 0, y: 0 } },
+  // "ironglass_sovjet_mkii":          { "85mm":  { scale: 0.98, x: 12.3, y: -44.1 } },
+};
 
   // later voeg je hier MKII / Medium Format etc toe:
   // "ironglass_sovjet_mkii": { "120mm": { scale: 0.XX } },
@@ -418,29 +429,62 @@ function getCalScale(lensSlug, focal){
   return CALIBRATION?.[lensSlug]?.[focal]?.scale ?? 1.0;
 }
 
+function getCal(lensSlug, focal){
+  return CALIBRATION?.[lensSlug]?.[focal] || null;
+}
+
 function applyCalibrationTransforms(){
   const focal = focalLengthSelect?.value || "35mm";
 
   const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
   const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
-  const leftScale  = calibrateActive ? getCalScale(leftSlug, focal)  : 1.0;
-  const rightScale = calibrateActive ? getCalScale(rightSlug, focal) : 1.0;
+  const lbL = comparisonWrapper._lbLeft || 0;
+  const lbR = comparisonWrapper._lbRight || 0;
+  const lbT = comparisonWrapper._lbTop || 0;
+  const lbB = comparisonWrapper._lbBottom || 0;
 
-  // reset/zet transform (scale only, position later)
-  const set = (img, s)=>{
-    if(!img) return;
-    img.style.transformOrigin = "center center";
-    img.style.transform = (s === 1.0) ? "" : `scale(${s})`;
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const usableW = Math.max(1, (comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
+  const usableH = Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+
+  const toCssPx = (x=0, y=0) => {
+    const dx = (x / CAL_W) * usableW;
+    let dy = (y / CAL_H) * usableH;
+    if(CAL_Y_INVERT) dy = -dy;
+    return { dx, dy };
   };
 
+  const apply = (img, cal) => {
+    if(!img) return;
+    img.style.transformOrigin = "center center";
+
+    if(!calibrateActive || !cal){
+      img.style.transform = "";
+      return;
+    }
+
+    const s = cal.scale ?? 1.0;
+    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+
+    const hasMove = (Math.abs(dx) > 0.0001) || (Math.abs(dy) > 0.0001);
+    const hasScale = Math.abs(s - 1.0) > 0.0001;
+
+    img.style.transform = (hasMove || hasScale)
+      ? `translate(${dx}px, ${dy}px) scale(${s})`
+      : "";
+  };
+
+  const leftCal  = getCal(leftSlug, focal);
+  const rightCal = getCal(rightSlug, focal);
+
   // jouw tool: after = links, before = rechts
-  set(afterImgTag, leftScale);
-  set(beforeImgTag, rightScale);
+  apply(afterImgTag,  leftCal);
+  apply(beforeImgTag, rightCal);
 
   // SBS images ook
-  set(sbsLeftImg, leftScale);
-  set(sbsRightImg, rightScale);
+  apply(sbsLeftImg,  leftCal);
+  apply(sbsRightImg, rightCal);
 }
 
 /* === Image resolver === */
@@ -701,13 +745,17 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&detailActive){ det
 
 /* === Letter/pillarbox berekening + slider === */
 function updateFullscreenBars(){
-  if(sbsActive){ ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); comparisonWrapper._lbLeft=comparisonWrapper._lbRight=comparisonWrapper._lbTop=comparisonWrapper._lbBottom=0; comparisonWrapper._usableW=comparisonWrapper.getBoundingClientRect().width; return; }
+  if(sbsActive){ ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); comparisonWrapper._lbLeft=comparisonWrapper._lbRight=comparisonWrapper._lbTop=comparisonWrapper._lbBottom=0; 
+                const r = comparisonWrapper.getBoundingClientRect();
+comparisonWrapper._usableW = r.width;
+comparisonWrapper._usableH = r.height;    return; }
+  
   const rect=comparisonWrapper.getBoundingClientRect(), hostW=Math.max(1,Math.round(rect.width)), hostH=Math.max(1,Math.round(rect.height)), targetAR=getTargetAR(), hostAR=hostW/hostH;
   let usedW,usedH, lbL=0,lbR=0,lbT=0,lbB=0;
   if(hostAR>targetAR){ usedH=hostH; usedW=Math.round(usedH*targetAR); const side=Math.floor((hostW-usedW)/2); lbL=lbR=side; }
   else { usedW=hostW; usedH=Math.round(usedW/targetAR); const bar=Math.floor((hostH-usedH)/2); lbT=lbB=bar; }
   [["--lb-top",lbT],["--lb-bottom",lbB],["--lb-left",lbL],["--lb-right",lbR]].forEach(([k,v])=>comparisonWrapper.style.setProperty(k,`${v}px`));
-  Object.assign(comparisonWrapper,{ _lbLeft:lbL,_lbRight:lbR,_lbTop:lbT,_lbBottom:lbB,_usableW:usedW });
+  Object.assign(comparisonWrapper,{ _lbLeft:lbL,_lbRight:lbR,_lbTop:lbT,_lbBottom:lbB,_usableW:usedW, _usableH:usedH });
 }
 function resetSplitToMiddle(){
   if(sbsActive) return;
