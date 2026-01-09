@@ -499,7 +499,7 @@ function getCal(lensSlug, focal){
   );
 
   // kleine safety margin tegen rounding/subpixels (scheelt precies die “109%” situaties)
-  required *= 1.02;
+  required *= 1.0;
 
   const pct = clamp(Math.ceil(required * 100), 100, 130);
 
