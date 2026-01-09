@@ -228,6 +228,36 @@ const TSTOP_FILE_ALIAS = {
   "ironglass_zeiss_jena": { "2.8": "2.9" },
   "ironglass_sovjet_mkii": { "2.8": "2.9" },
   "ironglass_sovjet_medium_format": { "2.8": "2.9" },
+  // RED P: jouw files zijn t2_1 (dus "T2" en "WO" moeten allebei naar 2.1)
+  "ironglass_red_p": {
+    "wo": "2.1",
+    "2": "2.1"
+  },
+
+  // MKII: heeft echt WO t1_6 en ook t2
+  "ironglass_sovjet_mkii": {
+    "wo": "1.6"
+  },
+
+  // Zeiss Jena: heeft WO t1_9 (en geen t2 in jouw map, dus T2 → fallback naar 2.8)
+  "ironglass_zeiss_jena": {
+    "wo": "1.9",
+    "2": "2.8"
+  },
+
+  // Titan Zoom: in jouw set is alles t2_9 (dus alles mapt naar 2.9)
+  "ironglass_titan_zoom": {
+    "wo": "2.9",
+    "2": "2.9",
+    "2.8": "2.9"
+  },
+
+  // Sovjet Medium Format: idem (t2_9)
+  "ironglass_sovjet_medium_format": {
+    "wo": "2.9",
+    "2": "2.9",
+    "2.8": "2.9"
+  }
 
   // voeg hier andere sets toe die "eigenlijk" T2.9 zijn
   // "ironglass_xxx": { "2.8": "2.9" },
@@ -303,8 +333,20 @@ function applyCurrentFormat(){
 }
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
-const DEFAULT_T_STOPS=["2.8","4"]; function fillTStops(sel,opts=DEFAULT_T_STOPS){ sel.innerHTML=""; opts.forEach(t=>sel.add(new Option(`T${t}`,t))); }
-fillTStops(tStopLeftSelect); fillTStops(tStopRightSelect); tStopLeftSelect.value="2.8"; tStopRightSelect.value="2.8";
+const DEFAULT_T_STOPS = ["wo", "2", "2.8", "4"];
+
+function fillTStops(sel, opts = DEFAULT_T_STOPS){
+  sel.innerHTML = "";
+  opts.forEach(v => {
+    const label = (v === "wo") ? "WO" : `T${v}`;
+    sel.add(new Option(label, v));
+  });
+}
+
+fillTStops(tStopLeftSelect);
+fillTStops(tStopRightSelect);
+tStopLeftSelect.value  = "wo";
+tStopRightSelect.value = "wo";
 function syncTStopsOnContextChange(){ const t=tStopLeftSelect.value||"2.8"; tStopLeftSelect.value=t; tStopRightSelect.value=t; }
 
 // === Bokeh toggle (zonder ON/OFF tekst) ===
@@ -697,9 +739,11 @@ setImageWithFallback(afterImgTag,  leftCandidates);
   const tLNote = (String(tLActual) !== String(uiTL)) ? ` (eig. T${tLActual})` : "";
 const tRNote = (String(tRActual) !== String(uiTR)) ? ` (eig. T${tRActual})` : "";
 
-leftLabel.innerHTML = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lf} T${uiTL}${tLNote}</a>`;
-rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rf} T${uiTR}${tRNote}</a>`;
+const uiTLLabel = (uiTL === "wo") ? "WO" : `T${uiTL}`;
+const uiTRLabel = (uiTR === "wo") ? "WO" : `T${uiTR}`;
 
+leftLabel.innerHTML = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lf} ${uiTLLabel}${tLNote}</a>`;
+rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rf} ${uiTRLabel}${tRNote}</a>`;
   setDownloadButton(downloadLeftRawButton,  `${LL}_${lf}_t${tL}`);
   setDownloadButton(downloadRightRawButton, `${RR}_${rf}_t${tR}`);
 
