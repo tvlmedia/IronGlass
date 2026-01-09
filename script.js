@@ -499,7 +499,7 @@ function getCal(lensSlug, focal){
   );
 
   // kleine safety margin tegen rounding/subpixels (scheelt precies die “109%” situaties)
-  required *= 1.0;
+  required *= 1.005;
 
   const pct = clamp(Math.ceil(required * 100), 100, 130);
 
@@ -977,7 +977,7 @@ async function placeContain(pdf, dataURL, box){ const im=await loadHTMLImage(dat
 const ensureAbsoluteUrl=url=>!url?"":(/^https?:\/\//i.test(url)?url:new URL(url,"https://tvlrental.nl/").href);
 const pdfLinkRect=(pdf,x,y,w,h,url)=>{ const abs=ensureAbsoluteUrl(url); if(abs) pdf.link(x,y,w,h,{url:abs}); };
 function getSensorText(){ const cam=cameraSelect.value, fmt=sensorFormatSelect.value, label=cameras[cam]?.[fmt]?.label||""; return `${cam} – ${label}`; }
-function getCurrentSplitFraction(){ const rect=comparisonWrapper.getBoundingClientRect(), lbL=comparisonWrapper._lbLeft||0, lbR=comparisonWrapper._lbRight||0, usable=Math.max(1,Math.round(rect.width-lbL-lbR)); const s=slider.getBoundingClientRect(); const x=(s.left+s.width/2)-rect.left-lbL; return clamp(x/usable,0,1); }
+
 async function buildSplitFromSensor(leftURL,rightURL,W,H){
   const L=await loadHTMLImage(leftURL), R=await loadHTMLImage(rightURL);
   const cvs=document.createElement("canvas"); cvs.width=W; cvs.height=H; const ctx=cvs.getContext("2d",{alpha:false}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
