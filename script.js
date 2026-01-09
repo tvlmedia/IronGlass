@@ -257,6 +257,8 @@ const focalLengthSelect=q("focalLength"), beforeImgTag=q("beforeImgTag"), afterI
 const leftLabel=q("leftLabel"), rightLabel=q("rightLabel"), downloadLeftRawButton=q("downloadLeftRawButton"), downloadRightRawButton=q("downloadRightRawButton");
 const flareToggle=q("flareToggle"), scaleSlider=q("scaleSlider"), scaleVal=q("scaleVal"), lensInfoDiv=q("lensInfo");
 const bokehToggle = q("bokehToggle");
+const calibrateBtn = q("calibrateToggle");
+let calibrateActive = false;
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
@@ -320,6 +322,18 @@ flareToggle.addEventListener("click", ()=>{
 const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
 
+// === CALIBRATION (per lens/focal) ===
+// baseline = Zeiss Jena 120mm = 1.000
+const CALIBRATION = {
+  // lensSlug: { "120mm": { scale: 0.96 } }
+  "ironglass_titan_zoom": {
+    "120mm": { scale: 0.96 }
+  },
+
+  // later voeg je hier MKII / Medium Format etc toe:
+  // "ironglass_sovjet_mkii": { "120mm": { scale: 0.XX } },
+  // "ironglass_sovjet_medium_format": { "120mm": { scale: 0.XX } },
+};
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
@@ -346,6 +360,7 @@ function updateToggleHighlights(){
   setToggleActive(flareToggle, (flareToggle?.dataset.mode && flareToggle.dataset.mode !== "noflare"));
   setToggleActive(sbsBtn, !!sbsActive);
   setToggleActive(detailToggleButton, !!isDetailOn);
+  setToggleActive(calibrateBtn, !!calibrateActive); // <-- deze erbij
 }
 /* === RAW map + download === */
 const rawFileMap={
@@ -363,6 +378,41 @@ function setDownloadButton(btn,key){
 
 /* === Labels + lens info === */
 function updateLensInfo(){ const L=leftSelect.value,R=rightSelect.value; lensInfoDiv.innerHTML=`<p><strong>${L}:</strong> ${lensDescriptions[L]?.text||""}</p><p><strong>${R}:</strong> ${lensDescriptions[R]?.text||""}</p>`; }
+
+/* === Calibrate Function === */
+
+function lensSlugFromLabel(lbl=""){
+  return String(lbl).toLowerCase().replace(/\s+/g,"_");
+}
+
+function getCalScale(lensSlug, focal){
+  return CALIBRATION?.[lensSlug]?.[focal]?.scale ?? 1.0;
+}
+
+function applyCalibrationTransforms(){
+  const focal = focalLengthSelect?.value || "35mm";
+
+  const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+  const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
+
+  const leftScale  = calibrateActive ? getCalScale(leftSlug, focal)  : 1.0;
+  const rightScale = calibrateActive ? getCalScale(rightSlug, focal) : 1.0;
+
+  // reset/zet transform (scale only, position later)
+  const set = (img, s)=>{
+    if(!img) return;
+    img.style.transformOrigin = "center center";
+    img.style.transform = (s === 1.0) ? "" : `scale(${s})`;
+  };
+
+  // jouw tool: after = links, before = rechts
+  set(afterImgTag, leftScale);
+  set(beforeImgTag, rightScale);
+
+  // SBS images ook
+  set(sbsLeftImg, leftScale);
+  set(sbsRightImg, rightScale);
+}
 
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
@@ -424,6 +474,14 @@ if(sceneMode === "bokeh"){
     push(`${b}.jpg`);
   });
 
+// Calibration Toggle
+  
+calibrateBtn?.addEventListener("click", ()=>{
+  calibrateActive = !calibrateActive;
+  setToggleActive(calibrateBtn, calibrateActive); // jij hebt deze helper al
+  applyCalibrationTransforms();
+});
+  
   // maak er full urls van
   return list.map(f => IMG_BASE + f);
 }
