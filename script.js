@@ -361,8 +361,23 @@ const CALIBRATION = {
 
 // Calibration Toggle
   
+let preCalibrateScalePct = 100; // onthoud user scale van vóór calibrate
+
 calibrateBtn?.addEventListener("click", ()=>{
   calibrateActive = !calibrateActive;
+
+  if(calibrateActive){
+    // onthoud huidige sliderstand (zodat je bij uitzetten terug kan)
+    preCalibrateScalePct = Math.round((userScale || 1) * 100);
+
+    // auto "screen-fill" scale berekenen en toepassen
+    autoScaleForCalibration();
+  } else {
+    // bij uitzetten: terug naar wat user had
+    if(scaleSlider) scaleSlider.value = String(preCalibrateScalePct);
+    setUserScaleFromPct(preCalibrateScalePct);
+  }
+
   applyCalibrationTransforms();
   updateToggleHighlights();
 });
@@ -450,6 +465,63 @@ function applyCalibrationTransforms(){
   const apply = (img, cal) => {
   if(!img) return;
   img.style.transformOrigin = "center center";
+
+
+// Auto scaling voor calibrate
+    
+    function autoScaleForCalibration(){
+  const focal = focalLengthSelect?.value || "35mm";
+  const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+  const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
+
+  const leftCal  = getCal(leftSlug, focal);
+  const rightCal = getCal(rightSlug, focal);
+
+  // Zorg dat usableW/H kloppen (letter/pillarbox)
+  updateFullscreenBars();
+
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const usableW = Math.max(1, (comparisonWrapper._usableW ?? rect.width));
+  const usableH = Math.max(1, (comparisonWrapper._usableH ?? rect.height));
+
+  const toCssPx = (x=0, y=0) => {
+    const dx = (x / CAL_W) * usableW;
+    let dy = (y / CAL_H) * usableH;
+    if(CAL_Y_INVERT) dy = -dy;
+    return { dx, dy };
+  };
+
+  // Hoeveel scale heb je minimaal nodig om na translate geen randen te zien?
+  const requiredScaleFor = (cal) => {
+    if(!cal) return 1;
+
+    const base = (cal.scale ?? 1);
+    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+
+    // translate kan randen “open trekken” → extra scale nodig
+    const needX = 1 + (2 * Math.abs(dx)) / usableW;
+    const needY = 1 + (2 * Math.abs(dy)) / usableH;
+    const needCover = Math.max(needX, needY, 1);
+
+    // userScale moet compenseren voor base scale
+    return needCover / Math.max(0.0001, base);
+  };
+
+  // Pak de zwaarste van de twee (links/rechts)
+  let required = Math.max(
+    1,
+    requiredScaleFor(leftCal),
+    requiredScaleFor(rightCal)
+  );
+
+  // kleine safety margin tegen rounding/subpixels (scheelt precies die “109%” situaties)
+  required *= 1.02;
+
+  const pct = clamp(Math.ceil(required * 100), 100, 130);
+
+  if(scaleSlider) scaleSlider.value = String(pct);
+  setUserScaleFromPct(pct);
+}
 
   // Calibrate UIT → niks forceren via transform (CSS kan z’n werk doen)
   if(!calibrateActive){
