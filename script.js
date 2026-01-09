@@ -766,40 +766,21 @@ slider.addEventListener("touchstart",e=>{ e.preventDefault(); isDragging=true; d
 window.addEventListener("touchend",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
 window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
 
-/* === On image load, recalc bars/slider === */
-function whenImagesReadyThenReset(){
-  const wait = (im) => {
-    if(im.complete && im.naturalWidth > 0) return Promise.resolve();
-
-    return new Promise((res, rej) => {
-      const onLoad = () => { cleanup(); res(); };
-      const onErr  = () => { cleanup(); rej(); };
-
-      const cleanup = () => {
-        im.removeEventListener("load", onLoad);
-        im.removeEventListener("error", onErr);
-      };
-
-      im.addEventListener("load", onLoad, { once:true });
-      im.addEventListener("error", onErr, { once:true });
-    });
-  };
-
-  Promise.all([wait(beforeImgTag), wait(afterImgTag)]).then(() => {
-    updateFullscreenBars();
-    resetSplitToMiddle();
-    if(calibrateActive){
-  autoScaleForCalibration();
-} else {
-  applyCalibrationTransforms();
-}
-  });
+function recalcLayout(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
+  if(calibrateActive) autoScaleForCalibration();
+  else applyCalibrationTransforms();
 }
 
-updateImages();
-whenImagesReadyThenReset();
-beforeImgTag.addEventListener("load", whenImagesReadyThenReset);
-afterImgTag.addEventListener("load", whenImagesReadyThenReset);
+// 1x listeners, klaar
+beforeImgTag.addEventListener("load", recalcLayout);
+afterImgTag.addEventListener("load", recalcLayout);
+beforeImgTag.addEventListener("error", recalcLayout);
+afterImgTag.addEventListener("error", recalcLayout);
+
+// eerste keer na init/updateImages
+recalcLayout();
 
 /* === Scaling (UI) === */
 function setUserScaleFromPct(pct){
