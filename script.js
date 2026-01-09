@@ -363,6 +363,24 @@ const CALIBRATION = {
 
 };
 
+// === Calibrate autoscale whitelist ===
+const CAL_AUTOSCALE_WHITELIST = {
+  "Fujifilm GFX Eterna": new Set([
+    "Open Gate 4:3 4K (3840x2880)",
+    "GF Cine 5.8K (5824x2436)",
+    "Premista 5.4K (5440x2868)"
+  ])
+};
+
+function shouldAutoScaleForCalibration(){
+  const cam = cameraSelect?.value || "";
+  const fmt = sensorFormatSelect?.value || "";
+  return !!CAL_AUTOSCALE_WHITELIST?.[cam]?.has(fmt);
+}
+
+// Onthoud of we ooit autoscale hebben toegepast (zodat we later kunnen “terugzetten”)
+let calibrateAutoScaled = false;
+
 // Calibration Toggle
   
 let preCalibrateScalePct = 100; // onthoud user scale van vóór calibrate
@@ -371,15 +389,15 @@ calibrateBtn?.addEventListener("click", ()=>{
   calibrateActive = !calibrateActive;
 
   if(calibrateActive){
-    // onthoud huidige sliderstand (zodat je bij uitzetten terug kan)
     preCalibrateScalePct = Math.round((userScale || 1) * 100);
 
-    // auto "screen-fill" scale berekenen en toepassen
+    calibrateAutoScaled = false;   // ✅ reset
     autoScaleForCalibration();
   } else {
-    // bij uitzetten: terug naar wat user had
     if(scaleSlider) scaleSlider.value = String(preCalibrateScalePct);
     setUserScaleFromPct(preCalibrateScalePct);
+
+    calibrateAutoScaled = false;   // ✅ reset
   }
 
   applyCalibrationTransforms();
@@ -465,7 +483,22 @@ function getCal(lensSlug, focal){
 
 // Auto scaling voor calibrate
     
-    function autoScaleForCalibration(){
+   function autoScaleForCalibration(){
+
+  // ✅ Alleen autoscale op de whitelist (GFX + specifieke modes)
+  if(!shouldAutoScaleForCalibration()){
+    // Als we eerder wél autoscaled hadden (bijv. je kwam van GFX), zet dan netjes terug
+    if(calibrateAutoScaled){
+      calibrateAutoScaled = false;
+
+      const pct = clamp(preCalibrateScalePct || 100, 100, 130);
+      if(scaleSlider) scaleSlider.value = String(pct);
+      setUserScaleFromPct(pct);
+    }
+    return; // geen auto-zoom op andere camera/sensor modes
+  }
+
+  // --- je bestaande code hieronder blijft hetzelfde ---
   const focal = focalLengthSelect?.value || "35mm";
   const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
   const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
@@ -473,7 +506,6 @@ function getCal(lensSlug, focal){
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
 
-  // Zorg dat usableW/H kloppen (letter/pillarbox)
   updateFullscreenBars();
 
   const rect = comparisonWrapper.getBoundingClientRect();
@@ -487,36 +519,33 @@ function getCal(lensSlug, focal){
     return { dx, dy };
   };
 
-  // Hoeveel scale heb je minimaal nodig om na translate geen randen te zien?
   const requiredScaleFor = (cal) => {
     if(!cal) return 1;
 
     const base = (cal.scale ?? 1);
     const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
 
-    // translate kan randen “open trekken” → extra scale nodig
     const needX = 1 + (2 * Math.abs(dx)) / usableW;
     const needY = 1 + (2 * Math.abs(dy)) / usableH;
     const needCover = Math.max(needX, needY, 1);
 
-    // userScale moet compenseren voor base scale
     return needCover / Math.max(0.0001, base);
   };
 
-  // Pak de zwaarste van de twee (links/rechts)
   let required = Math.max(
     1,
     requiredScaleFor(leftCal),
     requiredScaleFor(rightCal)
   );
 
-  // kleine safety margin tegen rounding/subpixels (scheelt precies die “109%” situaties)
   required *= 1.005;
 
   const pct = clamp(Math.ceil(required * 100), 100, 130);
 
   if(scaleSlider) scaleSlider.value = String(pct);
   setUserScaleFromPct(pct);
+
+  calibrateAutoScaled = (pct > 100); // ✅ onthoud dat autoscale actief was
 }
 
 function setCalVars(img, dx=0, dy=0, sc=1){
