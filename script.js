@@ -909,21 +909,19 @@ document.addEventListener("mousemove", (e) => {
       return;
     }
 
-    const rectL = L, rectR = R;
-    const rxL = (e.clientX - rectL.left) / rectL.width;
-    const ryL = (e.clientY - rectL.top)  / rectL.height;
-    const rxR = (e.clientX - rectR.left) / rectR.width;
-    const ryR = (e.clientY - rectR.top)  / rectR.height;
+    const rxL = (e.clientX - L.left) / L.width;
+    const ryL = (e.clientY - L.top)  / L.height;
+    const rxR = (e.clientX - R.left) / R.width;
+    const ryR = (e.clientY - R.top)  / R.height;
 
-    // Links alleen tonen als muis in links zit, zelfde voor rechts
     if(inL){
-      showDetailBoxAt(e, leftDetail, leftDetailImg, sbsLeftImg, rectL, rxL, ryL, 3.2, 260);
+      showDetailBoxAt(e, leftDetail, leftDetailImg, sbsLeftImg, L, rxL, ryL, 3.2, 260);
     } else {
       leftDetail.style.display = "none";
     }
 
     if(inR){
-      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, rectR, rxR, ryR, 3.2, 260);
+      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, R, rxR, ryR, 3.2, 260);
     } else {
       rightDetail.style.display = "none";
     }
@@ -931,7 +929,7 @@ document.addEventListener("mousemove", (e) => {
     return;
   }
 
-    // ===== SLIDER MODE (before/after) =====
+  // ===== SLIDER MODE (before/after) =====
   // gebruik de echte "usable" area (zonder letterbox/pillarbox)
   const host = comparisonWrapper.getBoundingClientRect();
   const lbL = comparisonWrapper._lbLeft || 0;
@@ -949,12 +947,12 @@ document.addEventListener("mousemove", (e) => {
   const rx = (e.clientX - usableRect.left) / usableRect.width;
   const ry = (e.clientY - usableRect.top)  / usableRect.height;
 
-  // zelfde rect voor beide, want het is dezelfde viewport
   const showL = showDetailBoxAt(e, leftDetail,  leftDetailImg,  afterImgTag,  usableRect, rx, ry, 3.2, 260);
   const showR = showDetailBoxAt(e, rightDetail, rightDetailImg, beforeImgTag, usableRect, rx, ry, 3.2, 260);
 
   if(!showL) leftDetail.style.display  = "none";
   if(!showR) rightDetail.style.display = "none";
+}); // ✅ <-- BELANGRIJK: hier afsluiten!
 
 comparisonWrapper.addEventListener("mouseleave", () => {
   leftDetail.style.display = "none";
