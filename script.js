@@ -263,7 +263,7 @@ function applyCurrentFormat(){ const {w,h}=getCurrentWH(); comparisonWrapper.sty
 
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
-const DEFAULT_T_STOPS=["2.8","5.6"]; function fillTStops(sel,opts=DEFAULT_T_STOPS){ sel.innerHTML=""; opts.forEach(t=>sel.add(new Option(`T${t}`,t))); }
+const DEFAULT_T_STOPS=["2.8","4"]; function fillTStops(sel,opts=DEFAULT_T_STOPS){ sel.innerHTML=""; opts.forEach(t=>sel.add(new Option(`T${t}`,t))); }
 fillTStops(tStopLeftSelect); fillTStops(tStopRightSelect); tStopLeftSelect.value="2.8"; tStopRightSelect.value="2.8";
 function syncTStopsOnContextChange(){ const t=tStopLeftSelect.value||"2.8"; tStopLeftSelect.value=t; tStopRightSelect.value=t; }
 
