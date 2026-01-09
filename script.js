@@ -231,6 +231,25 @@ const lensDescriptions = {
   "IronGlass Titan Zoom": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
  };
 
+// UI T2.8 moet voor sommige lenzen naar file T2.9 mappen
+const TSTOP_FILE_ALIAS = {
+  // slug -> { uiValue: actualValue }
+  "ironglass_titan_zoom": { "2.8": "2.9" },
+  "ironglass_sovjet_medium_format": { "2.8": "2.9" },
+
+  // voeg hier andere sets toe die "eigenlijk" T2.9 zijn
+  // "ironglass_xxx": { "2.8": "2.9" },
+};
+
+function fileTStopFor(lensSlug, uiVal){
+  const actual = TSTOP_FILE_ALIAS[lensSlug]?.[uiVal] || uiVal;
+  return String(actual).replace(".", "_"); // "2.9" -> "2_9"
+}
+
+function actualTStopForLabel(lensSlug, uiVal){
+  return TSTOP_FILE_ALIAS[lensSlug]?.[uiVal] || uiVal;
+}
+
 /* === DOM refs === */
 const q = id => document.getElementById(id);
 const cameraSelect=q("cameraSelect"), sensorFormatSelect=q("sensorFormatSelect"), comparisonWrapper=q("comparisonWrapper");
@@ -302,8 +321,14 @@ function resolveImagePath(lens, nominalFocal, tStr, flare){
 }
 function updateImages(){
   const LL=leftSelect.value.toLowerCase().replace(/\s+/g,"_"), RR=rightSelect.value.toLowerCase().replace(/\s+/g,"_");
-  const tL=tStopLeftSelect.value.replace(".","_"), tR=tStopRightSelect.value.replace(".","_");
-  const tLRaw=tStopLeftSelect.value, tRRaw=tStopRightSelect.value;
+  const uiTL = tStopLeftSelect.value;
+const uiTR = tStopRightSelect.value;
+
+const tL = fileTStopFor(LL, uiTL);
+const tR = fileTStopFor(RR, uiTR);
+
+const tLActual = actualTStopForLabel(LL, uiTL);
+const tRActual = actualTStopForLabel(RR, uiTR);
   const focal=focalLengthSelect.value, flare=flareToggle.dataset.mode||"noflare";
   const imgLeft = resolveImagePath(LL,focal,tL,flare);
   const imgRight= resolveImagePath(RR,focal,tR,flare);
@@ -311,8 +336,11 @@ function updateImages(){
 
   const lf=aliasFor(LL,focal), rf=aliasFor(RR,focal);
   const lu=lensDescriptions[leftSelect.value]?.url||"#", ru=lensDescriptions[rightSelect.value]?.url||"#";
-  leftLabel.innerHTML = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lf} T${tLRaw}</a>`;
-  rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rf} T${tRRaw}</a>`;
+  const tLNote = (String(tLActual) !== String(uiTL)) ? ` (eig. T${tLActual})` : "";
+const tRNote = (String(tRActual) !== String(uiTR)) ? ` (eig. T${tRActual})` : "";
+
+leftLabel.innerHTML = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lf} T${uiTL}${tLNote}</a>`;
+rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rf} T${uiTR}${tRNote}</a>`;
 
   setDownloadButton(downloadLeftRawButton,  `${LL}_${lf}_t${tL}`);
   setDownloadButton(downloadRightRawButton, `${RR}_${rf}_t${tR}`);
