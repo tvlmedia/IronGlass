@@ -741,3 +741,16 @@ button.active{ color:#fff; }
   height:auto;       /* JS zet ‘m toch */
   display:block !important;
 }
+
+/* === DETAIL: naad weg in SBS === */
+body.sbs-mode #leftDetail{
+  border-right: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+body.sbs-mode #rightDetail{
+  border-left: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
