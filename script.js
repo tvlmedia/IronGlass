@@ -207,7 +207,24 @@ const cameras = {
 const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
 
 const notes = {
+  // voorbeeld die je al had:
   "ironglass_sovjet_mkii_120mm": "135mm",
+
+  // 80/90 -> 85 (als jouw bestanden 85mm zijn)
+  "ironglass_red_p_80mm": "85mm",
+  "ironglass_red_p_90mm": "85mm",
+
+  "ironglass_sovjet_mkii_80mm": "85mm",
+  "ironglass_sovjet_mkii_90mm": "85mm",
+
+  "ironglass_zeiss_jena_80mm": "85mm",
+  "ironglass_zeiss_jena_90mm": "85mm",
+
+  "ironglass_titan_zoom_80mm": "85mm",
+  "ironglass_titan_zoom_90mm": "85mm",
+
+  "ironglass_sovjet_medium_format_80mm": "85mm",
+  "ironglass_sovjet_medium_format_90mm": "85mm",
 };
 
 const lensImageMap = {
