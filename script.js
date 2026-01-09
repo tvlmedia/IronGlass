@@ -663,4 +663,18 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 
 /* === Kick first layout === */
 onFsChange();
-setTimeout(updateImages,50);
+
+setTimeout(() => {
+  // force default camera + format (fixes unwanted overwrite)
+  cameraSelect.value = CAPTURE_CAMERA;
+  cameraSelect.dispatchEvent(new Event("change"));
+
+  requestAnimationFrame(() => {
+    sensorFormatSelect.value = CAPTURE_FORMAT;
+    sensorFormatSelect.dispatchEvent(new Event("change"));
+
+    autoScaleNow();
+    updateLensInfo();
+    updateImages();
+  });
+}, 50);
