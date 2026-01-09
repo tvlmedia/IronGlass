@@ -840,6 +840,48 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
   el.addEventListener("change",()=>{ if(el===focalLengthSelect) syncTStopsOnContextChange(); updateImages(); })
 );
 
+
+function getContainRect(imgEl){
+  const rect = imgEl.getBoundingClientRect();
+  const nW = imgEl.naturalWidth  || 1;
+  const nH = imgEl.naturalHeight || 1;
+
+  const elW = rect.width;
+  const elH = rect.height;
+  const imgAR = nW / nH;
+  const elAR  = elW / elH;
+
+  // default: hele box
+  let drawW = elW, drawH = elH;
+
+  // alleen corrigeren als object-fit: contain actief is
+  const fit = getComputedStyle(imgEl).objectFit;
+  if(fit === "contain"){
+    if(elAR > imgAR){
+      drawH = elH;
+      drawW = drawH * imgAR;
+    } else {
+      drawW = elW;
+      drawH = drawW / imgAR;
+    }
+  }
+
+  const padX = (elW - drawW) / 2;
+  const padY = (elH - drawH) / 2;
+
+  // “echte” beeld-rect binnen de img box
+  const left = rect.left + padX;
+  const top  = rect.top  + padY;
+
+  return {
+    left, top,
+    width: drawW,
+    height: drawH,
+    right: left + drawW,
+    bottom: top + drawH
+  };
+}
+
 // ===== DETAIL (zoom) viewer =====
 let detailActive = false;
 
@@ -933,24 +975,23 @@ document.addEventListener("mousemove", (e) => {
 
  // ===== SBS MODE =====
 if(sbsActive){
-  const L = sbsLeftImg.getBoundingClientRect();
-  const R = sbsRightImg.getBoundingClientRect();
+  const L = getContainRect(sbsLeftImg);
+const R = getContainRect(sbsRightImg);
 
-  const inL = (e.clientX >= L.left && e.clientX <= L.right && e.clientY >= L.top && e.clientY <= L.bottom);
-  const inR = (e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom);
+const inL = (e.clientX >= L.left && e.clientX <= L.right && e.clientY >= L.top && e.clientY <= L.bottom);
+const inR = (e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom);
 
-  if(!inL && !inR){
-    leftDetail.style.display = "none";
-    rightDetail.style.display = "none";
-    return;
-  }
+if(!inL && !inR){
+  leftDetail.style.display = "none";
+  rightDetail.style.display = "none";
+  return;
+}
 
-  const rx = inL ? (e.clientX - L.left) / L.width  : (e.clientX - R.left) / R.width;
-  const ry = inL ? (e.clientY - L.top)  / L.height : (e.clientY - R.top)  / R.height;
+const rx = inL ? (e.clientX - L.left) / L.width  : (e.clientX - R.left) / R.width;
+const ry = inL ? (e.clientY - L.top)  / L.height : (e.clientY - R.top)  / R.height;
 
-  const size = 260;
-  const zoom = 3.2;
-  const pad  = 8;
+showDetailBoxAt(e, leftDetail,  leftDetailImg,  sbsLeftImg,  L, rx, ry, "left",  3.2, 260, 0, { x: groupX,       y: groupY });
+showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry, "right", 3.2, 260, 0, { x: groupX + 260, y: groupY });
 
   // ✅ clamp 1x voor het hele duo
   const groupW = size * 2;
@@ -1004,20 +1045,14 @@ showDetailBoxAt(
   }
 
   // 2) rx/ry PER IMAGE op basis van de getransformeerde img rects
-  const rectL = afterImgTag.getBoundingClientRect();
-  const rectR = beforeImgTag.getBoundingClientRect();
+  const rectL = getContainRect(afterImgTag);
+const rectR = getContainRect(beforeImgTag);
 
-  const rxL = (e.clientX - rectL.left) / rectL.width;
-  const ryL = (e.clientY - rectL.top)  / rectL.height;
+const rxL = (e.clientX - rectL.left) / rectL.width;
+const ryL = (e.clientY - rectL.top)  / rectL.height;
 
-  const rxR = (e.clientX - rectR.left) / rectR.width;
-  const ryR = (e.clientY - rectR.top)  / rectR.height;
-
-  const showL = showDetailBoxAt(
-    e, leftDetail, leftDetailImg, afterImgTag,
-    rectL, rxL, ryL, "left", 3.2, 260, 0
-  );
-
+const rxR = (e.clientX - rectR.left) / rectR.width;
+const ryR = (e.clientY - rectR.top)  / rectR.height;
   const showR = showDetailBoxAt(
     e, rightDetail, rightDetailImg, beforeImgTag,
     rectR, rxR, ryR, "right", 3.2, 260, 0
