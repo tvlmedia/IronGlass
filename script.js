@@ -660,16 +660,18 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 onFsChange();
 
 setTimeout(() => {
-  // force default camera + format (fixes unwanted overwrite)
-  cameraSelect.value = CAPTURE_CAMERA;
-  cameraSelect.dispatchEvent(new Event("change"));
+  // Force default camera + format (anti-“springt terug naar Alexa”)
+  if (cameraSelect.value !== CAPTURE_CAMERA) {
+    cameraSelect.value = CAPTURE_CAMERA;
+    cameraSelect.dispatchEvent(new Event("change"));
+  }
 
-  requestAnimationFrame(() => {
+  if (sensorFormatSelect.value !== CAPTURE_FORMAT) {
     sensorFormatSelect.value = CAPTURE_FORMAT;
     sensorFormatSelect.dispatchEvent(new Event("change"));
+  }
 
-    autoScaleNow();
-    updateLensInfo();
-    updateImages();
-  });
+  updateLensInfo();
+  updateImages();
+  autoScaleNow();
 }, 50);
