@@ -940,23 +940,26 @@ if(sbsActive){
   // ✅ clamp 1x voor het hele duo
   const groupW = size * 2;
   let groupX = e.clientX - (groupW / 2);
-  let groupY = e.clientY - (size / 2);
+let groupY = e.clientY - (size / 2);
 
-  groupX = clamp(groupX, pad, window.innerWidth  - groupW - pad);
-  groupY = clamp(groupY, pad, window.innerHeight - size  - pad);
+groupX = clamp(groupX, pad, window.innerWidth  - groupW - pad);
+groupY = clamp(groupY, pad, window.innerHeight - size  - pad);
 
-  showDetailBoxAt(
-    e, leftDetail, leftDetailImg, sbsLeftImg, L, rx, ry,
-    "left", zoom, size, 0,
-    { x: groupX, y: groupY }
-  );
+// ✅ subpixel seams fix
+groupX = Math.round(groupX);
+groupY = Math.round(groupY);
 
   showDetailBoxAt(
-    e, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry,
-    "right", zoom, size, 0,
-    { x: groupX + size, y: groupY }
-  );
+  e, leftDetail, leftDetailImg, sbsLeftImg, L, rx, ry,
+  "left", zoom, size, 0,
+  { x: groupX, y: groupY }
+);
 
+showDetailBoxAt(
+  e, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry,
+  "right", zoom, size, 0,
+  { x: groupX + size - 2, y: groupY }  // 👈 HIER
+);
   return;
 }
 
