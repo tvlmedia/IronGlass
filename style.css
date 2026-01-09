@@ -754,3 +754,21 @@ body.sbs-mode #rightDetail{
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
 }
+
+/* Detail viewer: als duo naast elkaar -> geen dubbele rand in het midden */
+#detailOverlay .detail-box.paired-left{
+  border-right-width: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+#detailOverlay .detail-box.paired-right{
+  border-left-width: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+/* (optioneel maar vaak fijn) voorkom dat je tussenruimte “doorschemert” */
+#detailOverlay .detail-box{
+  background: #000 !important;
+}
