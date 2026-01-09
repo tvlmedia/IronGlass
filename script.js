@@ -858,6 +858,15 @@ detailToggleButton?.addEventListener("click", () => {
   updateToggleHighlights();
 });
 
+function getDetailConfig(){
+  const fs = isWrapperFullscreen();
+
+  // tweak deze twee waardes naar smaak
+  return fs
+    ? { zoom: 2.2, size: 320 }   // fullscreen: minder ingezoomd + iets grotere box
+    : { zoom: 3.2, size: 260 };  // normaal: zoals je nu hebt
+}
+
 document.addEventListener("keydown", (e) => {
   if(e.key === "Escape" && detailActive){
     detailActive = false;
