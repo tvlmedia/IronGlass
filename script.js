@@ -507,6 +507,12 @@ function getCal(lensSlug, focal){
   setUserScaleFromPct(pct);
 }
 
+function setCalVars(img, dx=0, dy=0, sc=1){
+  img.style.setProperty("--cal-tx", `${dx}px`);
+  img.style.setProperty("--cal-ty", `${dy}px`);
+  img.style.setProperty("--cal-scale", String(sc));
+}
+
 function applyCalibrationTransforms(){
   const focal = focalLengthSelect?.value || "35mm";
 
