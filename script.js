@@ -216,7 +216,7 @@ const notes = {
 
   // Medium Format: kies welke jij als “85mm slot” wil gebruiken:
   // optie A (meest logisch als je 90mm wil tonen bij 85mm)
-  "ironglass_sovjet_medium_format_85mm": "90mm",
+  "ironglass_sovjet_medium_format_85mm": "80mm",
   // optie B (als je liever de 80mm pakt, gebruik dan deze i.p.v. 90mm)
   // "ironglass_sovjet_medium_format_85mm": "80mm",
 };
