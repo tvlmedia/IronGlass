@@ -748,3 +748,30 @@ button.active,
 button.active{
   color: #fff;
 }
+/* --- FIX: top bar buttons netjes gecentreerd + geen 2 regels --- */
+#toolRoot .controls button{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  height: 34px;          /* match je pill height */
+  padding: 0 14px;
+  line-height: 1;
+  white-space: nowrap;   /* nooit wrap */
+  flex: 0 0 auto;        /* niet “ingedrukt” worden */
+}
+
+/* als je labels met <br> hebt gedaan: verberg die linebreaks */
+#fullscreenButton br,
+#sbsToggle br,
+#toggleButton br{
+  display: none;
+}
+
+/* iconen niet “baseline” laten hangen */
+#toolRoot .controls button svg,
+#toolRoot .controls button img{
+  display: block;
+  flex: 0 0 auto;
+}
