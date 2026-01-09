@@ -227,6 +227,8 @@ const lensDescriptions = {
   "IronGlass Red P": { text:"Extremely vintage Soviet optics with single coating, heavy character, flare and distortion. Pure, raw, unpolished glass for maximum personality.", url:"https://ironglassadapters.com/rehousing/red-p-limited-edition-soviet-lens-rehousing/" },
   "IronGlass Zeiss Jena": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss-jena-rehousing/" },
   "IronGlass MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/rehoused-soviet-lenses/mkii/" },
+  "IronGlass Titan Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
+  "IronGlass Titan Zoom": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
  };
 
 /* === DOM refs === */
