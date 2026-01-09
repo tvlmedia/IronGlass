@@ -837,33 +837,44 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
   el.addEventListener("change",()=>{ if(el===focalLengthSelect) syncTStopsOnContextChange(); updateImages(); })
 );
 
-/* === Detail (zoom) viewer === */
-let detailActive=false; const leftDetailImg=leftDetail?.querySelector("img"), rightDetailImg=rightDetail?.querySelector("img");
-detailToggleButton?.addEventListener("click",()=>{
-  detailActive=!detailActive;
-  detailOverlay.classList.toggle("active",detailActive);
-  if(!detailActive){ leftDetail.style.display="none"; rightDetail.style.display="none"; }
+// ===== DETAIL (zoom) viewer =====
+let detailActive = false;
+
+const leftDetailImg  = leftDetail?.querySelector("img");
+const rightDetailImg = rightDetail?.querySelector("img");
+
+detailToggleButton?.addEventListener("click", () => {
+  detailActive = !detailActive;
+  detailOverlay.classList.toggle("active", detailActive);
+
+  if(!detailActive){
+    leftDetail.style.display = "none";
+    rightDetail.style.display = "none";
+  }
+
   updateToggleHighlights();
 });
 
-function updateZoomViewerAt(e, box, img, srcEl, { zoom = 3.2, size = 260 } = {}){
-  const rect = srcEl.getBoundingClientRect ? srcEl.getBoundingClientRect() : srcEl;
-  const rx = (e.clientX - rect.left) / rect.width;
-  const ry = (e.clientY - rect.top) / rect.height;
+// Helper: force box square + force img sizing (ignore theme constraints)
+function showDetailBoxAt(e, box, img, srcEl, rect, rx, ry, zoom = 3.2, size = 260){
+  if(!box || !img || !srcEl || !rect) return false;
 
+  // buiten beeld → hide
   if(rx < 0 || rx > 1 || ry < 0 || ry > 1){
     box.style.display = "none";
     return false;
   }
 
+  // src sync
   if(img.src !== srcEl.src) img.src = srcEl.src;
 
-  const zw = rect.width * zoom;
+  const zw = rect.width  * zoom;
   const zh = rect.height * zoom;
-  const offX = -(rx * zw) + size / 2;
-  const offY = -(ry * zh) + size / 2;
 
-  // Force square + avoid CSS constraints
+  const offX = -(rx * zw) + (size / 2);
+  const offY = -(ry * zh) + (size / 2);
+
+  // box: altijd vierkant
   box.style.right = "auto";
   box.style.bottom = "auto";
   box.style.setProperty("width",  `${size}px`, "important");
@@ -873,39 +884,87 @@ function updateZoomViewerAt(e, box, img, srcEl, { zoom = 3.2, size = 260 } = {})
   box.style.top  = `${e.clientY - size/2}px`;
   box.style.display = "block";
 
-  Object.assign(img.style, {
-    width: `${zw}px`,
-    height:`${zh}px`,
-    transform:`translate(${offX}px, ${offY}px)`
-  });
+  // img: force dimensions + ignore any max constraints from theme
+  img.style.setProperty("max-width", "none", "important");
+  img.style.setProperty("max-height","none", "important");
+  img.style.setProperty("width",  `${zw}px`, "important");
+  img.style.setProperty("height", `${zh}px`, "important");
+  img.style.setProperty("transform", `translate(${offX}px, ${offY}px)`, "important");
 
   return true;
 }
-document.addEventListener("mousemove",e=>{
+
+document.addEventListener("mousemove", (e) => {
   if(!detailActive) return;
+
+  // ===== SBS MODE =====
   if(sbsActive){
-    const L=sbsLeftImg.getBoundingClientRect(), R=sbsRightImg.getBoundingClientRect();
-    const inL=e.clientX>=L.left&&e.clientX<=L.right&&e.clientY>=L.top&&e.clientY<=L.bottom, inR=e.clientX>=R.left&&e.clientX<=R.right&&e.clientY>=R.top&&e.clientY<=R.bottom;
-    if(!inL&&!inR){ leftDetail.style.display="none"; rightDetail.style.display="none"; return; }
-    const rect=inL?L:R, rx=(e.clientX-rect.left)/rect.width, ry=(e.clientY-rect.top)/rect.height;
-    const upd=(box,img,srcEl,r,rx,ry,z=3.2,s=260)=>{ if(img.src!==srcEl.src) img.src=srcEl.src; const zw=r.width*z, zh=r.height*z, ox=-(rx*zw)+s/2, oy=-(ry*zh)+s/2; 
-                                                    box.style.right = "auto";
-box.style.bottom = "auto";
-box.style.setProperty("width",  `${s}px`, "important");
-box.style.setProperty("height", `${s}px`, "important");
-box.style.setProperty("aspect-ratio", "1 / 1", "important");
-box.style.left = `${e.clientX - s/2}px`;
-box.style.top  = `${e.clientY - s/2}px`;
-box.style.display = "block";
-                                                    Object.assign(img.style,{width:`${zw}px`,height:`${zh}px`,transform:`translate(${ox}px, ${oy}px)`}); };
-    upd(leftDetail,leftDetailImg,sbsLeftImg,L,rx,ry); upd(rightDetail,rightDetailImg,sbsRightImg,R,rx,ry);
+    const L = sbsLeftImg.getBoundingClientRect();
+    const R = sbsRightImg.getBoundingClientRect();
+
+    const inL = (e.clientX >= L.left && e.clientX <= L.right && e.clientY >= L.top && e.clientY <= L.bottom);
+    const inR = (e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom);
+
+    if(!inL && !inR){
+      leftDetail.style.display = "none";
+      rightDetail.style.display = "none";
+      return;
+    }
+
+    const rectL = L, rectR = R;
+    const rxL = (e.clientX - rectL.left) / rectL.width;
+    const ryL = (e.clientY - rectL.top)  / rectL.height;
+    const rxR = (e.clientX - rectR.left) / rectR.width;
+    const ryR = (e.clientY - rectR.top)  / rectR.height;
+
+    // Links alleen tonen als muis in links zit, zelfde voor rechts
+    if(inL){
+      showDetailBoxAt(e, leftDetail, leftDetailImg, sbsLeftImg, rectL, rxL, ryL, 3.2, 260);
+    } else {
+      leftDetail.style.display = "none";
+    }
+
+    if(inR){
+      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, rectR, rxR, ryR, 3.2, 260);
+    } else {
+      rightDetail.style.display = "none";
+    }
+
     return;
   }
-  const showL=updateZoomViewerAt(e,leftDetail,leftDetailImg,afterImgTag), showR=updateZoomViewerAt(e,rightDetail,rightDetailImg,beforeImgTag);
-  if(!showL && !showR){ leftDetail.style.display="none"; rightDetail.style.display="none"; }
+
+  // ===== SLIDER MODE (before/after) =====
+  const rL = afterImgTag.getBoundingClientRect();
+  const rR = beforeImgTag.getBoundingClientRect();
+
+  const rxL = (e.clientX - rL.left) / rL.width;
+  const ryL = (e.clientY - rL.top)  / rL.height;
+
+  const rxR = (e.clientX - rR.left) / rR.width;
+  const ryR = (e.clientY - rR.top)  / rR.height;
+
+  const showL = showDetailBoxAt(e, leftDetail,  leftDetailImg,  afterImgTag,  rL, rxL, ryL, 3.2, 260);
+  const showR = showDetailBoxAt(e, rightDetail, rightDetailImg, beforeImgTag, rR, rxR, ryR, 3.2, 260);
+
+  if(!showL) leftDetail.style.display  = "none";
+  if(!showR) rightDetail.style.display = "none";
 });
-comparisonWrapper.addEventListener("mouseleave",()=>{ leftDetail.style.display="none"; rightDetail.style.display="none"; });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&detailActive){ detailActive=false; detailOverlay.classList.remove("active"); detailToggleButton.classList.remove("active"); leftDetail.style.display="none"; rightDetail.style.display="none"; } });
+
+comparisonWrapper.addEventListener("mouseleave", () => {
+  leftDetail.style.display = "none";
+  rightDetail.style.display = "none";
+});
+
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape" && detailActive){
+    detailActive = false;
+    detailOverlay.classList.remove("active");
+    detailToggleButton.classList.remove("active");
+    leftDetail.style.display = "none";
+    rightDetail.style.display = "none";
+    updateToggleHighlights();
+  }
+});
 
 /* === Letter/pillarbox berekening + slider === */
 function updateFullscreenBars(){
