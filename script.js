@@ -854,7 +854,11 @@ detailToggleButton?.addEventListener("click", () => {
 });
 
 // Helper: force box square + force img sizing (ignore theme constraints)
-function showDetailBoxAt(e, box, img, srcEl, rect, rx, ry, side, zoom = 3.2, size = 260, gap = 24){
+function showDetailBoxAt(
+  e, box, img, srcEl, rect, rx, ry, side,
+  zoom = 3.2, size = 260, gap = 24,
+  pos = null // <-- NIEUW
+){
   if(!box || !img || !srcEl || !rect) return false;
 
   if(rx < 0 || rx > 1 || ry < 0 || ry > 1){
@@ -870,17 +874,28 @@ function showDetailBoxAt(e, box, img, srcEl, rect, rx, ry, side, zoom = 3.2, siz
   const offX = -(rx * zw) + (size / 2);
   const offY = -(ry * zh) + (size / 2);
 
-  // ✅ plaats links/rechts van cursor
-  let x = (side === "left")
-    ? (e.clientX - size - gap)
-    : (e.clientX + gap);
+  // ✅ kill eventuele CSS die je positie “verplaatst”
+  box.style.setProperty("transform", "none", "important");
+  box.style.setProperty("box-sizing", "border-box", "important");
 
-  let y = e.clientY - (size/2);
+  let x, y;
 
-  // ✅ keep in viewport
-  const pad = 8;
-  x = Math.max(pad, Math.min(window.innerWidth  - size - pad, x));
-  y = Math.max(pad, Math.min(window.innerHeight - size - pad, y));
+  // ✅ als we pos meegeven: gebruik exact die coördinaten (GEEN extra clamp)
+  if(pos && typeof pos.x === "number" && typeof pos.y === "number"){
+    x = pos.x;
+    y = pos.y;
+  } else {
+    // oude gedrag
+    x = (side === "left")
+      ? (e.clientX - size - gap)
+      : (e.clientX + gap);
+
+    y = e.clientY - (size/2);
+
+    const pad = 8;
+    x = Math.max(pad, Math.min(window.innerWidth  - size - pad, x));
+    y = Math.max(pad, Math.min(window.innerHeight - size - pad, y));
+  }
 
   box.style.setProperty("width",  `${size}px`, "important");
   box.style.setProperty("height", `${size}px`, "important");
@@ -915,27 +930,32 @@ if(sbsActive){
     return;
   }
 
-  // rx/ry uit de pane waar je cursor in zit
   const rx = inL ? (e.clientX - L.left) / L.width  : (e.clientX - R.left) / R.width;
   const ry = inL ? (e.clientY - L.top)  / L.height : (e.clientY - R.top)  / R.height;
 
-  // ✅ plaats beide viewers strak tegen elkaar aan (geen gap)
   const size = 260;
   const zoom = 3.2;
   const pad  = 8;
 
-  const groupW = size * 2;                         // totaal 2 boxes breed
-  let groupX = e.clientX - (groupW / 2);           // center op cursor
-  groupX = clamp(groupX, pad, window.innerWidth - groupW - pad);
+  // ✅ clamp 1x voor het hele duo
+  const groupW = size * 2;
+  let groupX = e.clientX - (groupW / 2);
+  let groupY = e.clientY - (size / 2);
 
-  // seamX = plek waar de 2 boxes elkaar raken
-  const seamX = groupX + size;
+  groupX = clamp(groupX, pad, window.innerWidth  - groupW - pad);
+  groupY = clamp(groupY, pad, window.innerHeight - size  - pad);
 
-  // fake event zodat showDetailBoxAt exact deze seam gebruikt
-  const ev = { clientX: seamX, clientY: e.clientY };
+  showDetailBoxAt(
+    e, leftDetail, leftDetailImg, sbsLeftImg, L, rx, ry,
+    "left", zoom, size, 0,
+    { x: groupX, y: groupY }
+  );
 
-  showDetailBoxAt(ev, leftDetail,  leftDetailImg,  sbsLeftImg,  L, rx, ry, "left",  zoom, size, 0);
-  showDetailBoxAt(ev, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry, "right", zoom, size, 0);
+  showDetailBoxAt(
+    e, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry,
+    "right", zoom, size, 0,
+    { x: groupX + size, y: groupY }
+  );
 
   return;
 }
