@@ -451,11 +451,20 @@ function applyCalibrationTransforms(){
   if(!img) return;
   img.style.transformOrigin = "center center";
 
-  if(!calibrateActive || !cal){
+  // Calibrate UIT → niks forceren via transform (CSS kan z’n werk doen)
+  if(!calibrateActive){
     img.style.transform = "";
     return;
   }
 
+  // Calibrate AAN maar géén cal-entry → alsnog userScale toepassen
+  if(!cal){
+    const sOnly = (userScale ?? 1.0);
+    img.style.transform = (Math.abs(sOnly - 1.0) > 0.0001) ? `scale(${sOnly})` : "";
+    return;
+  }
+
+  // Calibrate AAN + cal-entry → translate + (cal.scale * userScale)
   const s = (cal.scale ?? 1.0) * (userScale ?? 1.0);
   const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
 
