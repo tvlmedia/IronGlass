@@ -562,9 +562,9 @@ function applyCalibrationTransforms(){
   apply(beforeImgTag, rightCal);
 
   // SBS images ook
-  apply(sbsLeftImg,  leftCal);
+   apply(sbsLeftImg,  leftCal);
   apply(sbsRightImg, rightCal);
-}
+} // <-- BELANGRIJK
 
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
@@ -669,10 +669,11 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
  resetSplitToMiddle();
 
 if(calibrateActive){
-  autoScaleForCalibration();   // zet userScale goed → doet zelf al applyCalibrationTransforms()
+  autoScaleForCalibration();
 } else {
   applyCalibrationTransforms();
 }
+} // <-- sluit updateImages() hier af
 
 /* === Init defaults === */
 leftSelect.value  = "IronGlass Titan Zoom";
@@ -683,7 +684,6 @@ tStopRightSelect.value  = "2.8";
 
 updateLensInfo();
 updateImages();
-
 
 /* === Resizes + fullscreen === */
 function onFsChange(){
