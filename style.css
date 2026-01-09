@@ -1,8 +1,12 @@
 /* ===========================
    GLOBAL / BASICS
    =========================== */
-* { -webkit-user-drag: none; user-select: none; }
-:root {
+*{
+  -webkit-user-drag:none;
+  user-select:none;
+}
+
+:root{
   --sensor-scale: 1;
   --viewer-scale: 1;
 
@@ -16,6 +20,9 @@
   --ig-accent-soft: rgba(255,124,0,0.18);
   --ig-text: #f5f5f5;
   --ig-text-muted: #9c9c9c;
+
+  /* Active accent (toggle glow) */
+  --tvl-accent:#ff8a00;
 }
 
 body{
@@ -25,39 +32,56 @@ body{
   font-family:"Inter","Helvetica Neue",sans-serif;
   font-size:14px;
   line-height:1.6;
-  /* FLEX WEG: dus NIET meer display:flex / align-items:center hier */
-}
-#igHeader {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 20px 0 6px;          /* iets compacter onder */
 }
 
-#igHeader img {
-  height: 64px;                 /* groter logo */
-  width: auto;
-  opacity: 0.95;
-  filter: drop-shadow(0 0 10px rgba(0,0,0,0.6));
-  transition: opacity .2s ease;
-}
-
-#igHeader img:hover {
-  opacity: 1;
-}
 /* ===========================
-   CONTROLS (los van viewer)
+   HEADER LOGO
+   =========================== */
+#igHeader{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  padding:20px 0 6px;
+}
+
+#igHeader img{
+  height:64px;
+  width:auto;
+  opacity:.95;
+  filter:drop-shadow(0 0 10px rgba(0,0,0,.6));
+  transition:opacity .2s ease;
+}
+
+#igHeader img:hover{ opacity:1; }
+
+/* ===========================
+   OUTER LAYOUT
+   =========================== */
+#toolRoot{ width:100%; }
+
+.frame-1200{
+  width:min(1200px,96vw);
+  margin:0 auto;
+}
+
+/* In SxS mag de viewer breder, maar controls blijven “normaal” */
+body.sbs-mode .frame-1200{
+  width:min(1600px,96vw); /* maak gerust 1800px als je wil */
+}
+
+/* ===========================
+   CONTROLS
    =========================== */
 .controls.desktop-only{
   position:sticky;
   top:0;
   z-index:50;
 
-  width:100%;          /* laten staan */
-  max-width:none;      /* <-- deze mag je weghalen, of op none zetten */
-  margin:18px 0 20px;  /* geen auto meer nodig binnen toolRoot */
-
+  width:100%;
+  margin:18px 0 20px;
   padding:14px 16px;
+  box-sizing:border-box;
+
   border-radius:12px;
   background:linear-gradient(145deg,#0a0a0a,#141414);
   border:1px solid rgba(255,124,0,0.18);
@@ -68,18 +92,41 @@ body{
   -webkit-backdrop-filter:blur(8px);
 }
 
+/* Controls in SxS: max 1200 en gecentreerd */
+body.sbs-mode .controls.desktop-only{
+  max-width:1200px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
 .controls.desktop-only .row{
   display:flex;
   align-items:center;
   justify-content:center;
-  flex-wrap:wrap;
   gap:8px 10px;
+  flex-wrap:wrap;
 }
+
 .controls.desktop-only .row-2{ margin-top:6px; }
 
-select,
-.control-button,
-/* SELECTS: laat native, geen flex */
+/* Row-1: niet wrappen, maar wél scrollbaar als het krap wordt */
+.controls.desktop-only .row-1{
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  gap:6px;
+}
+.controls.desktop-only .row-1::-webkit-scrollbar{ display:none; }
+
+/* ===========================
+   INPUT STYLES
+   - SELECTS native (niet flex)
+   - BUTTONS inline-flex (perfect gecentreerd)
+   =========================== */
+
+/* SELECTS */
 select{
   height:32px;
   padding:0 11px;
@@ -93,12 +140,12 @@ select{
   cursor:pointer;
   box-sizing:border-box;
 
-  display:inline-block;     /* <- belangrijk */
-  line-height:normal;       /* <- belangrijk */
+  display:inline-block;
+  line-height:normal;
   vertical-align:middle;
 }
 
-/* BUTTONS: wél flex-centeren */
+/* BUTTONS */
 .control-button,
 #toggleButton,#fullscreenButton,#downloadPdfButton{
   height:32px;
@@ -118,27 +165,30 @@ select{
   justify-content:center;
   gap:8px;
   line-height:1;
+  white-space:nowrap;
   vertical-align:middle;
+
+  font-variant-emoji:text;
 }
 
 select:hover,
-.control-button:hover,
-#toggleButton:hover,#fullscreenButton:hover,#downloadPdfButton:hover{
+.control-button:hover{
   background:var(--ig-accent);
   border-color:var(--ig-accent);
   color:#000;
   box-shadow:0 0 12px rgba(255,124,0,0.45);
 }
+
 .control-button:active,
 select:active{
-  transform:translateY(0.5px) scale(0.99);
+  transform:translateY(.5px) scale(.99);
   box-shadow:none;
 }
 
 .control-button:focus,
 select:focus{
   outline:none;
-  box-shadow:0 0 0 1px var(--ig-accent-soft),0 0 0 3px rgba(0,0,0,.9);
+  box-shadow:0 0 0 1px var(--ig-accent-soft), 0 0 0 3px rgba(0,0,0,.9);
   border-color:var(--ig-accent);
 }
 
@@ -148,11 +198,40 @@ select:focus{
   box-shadow:none;
 }
 
+/* widths */
 #cameraSelect,#sensorFormatSelect,#focalLength{ min-width:130px; }
 #leftLens,#rightLens{ min-width:200px; }
 #tStopLeftSelect,#tStopRightSelect{ min-width:90px; }
 
-/* Scale chip + slider met IronGlass accent */
+/* Row-1 compacter */
+.controls.desktop-only .row-1 select,
+.controls.desktop-only .row-1 .control-button,
+.controls.desktop-only .row-1 #scaleCtrl{
+  min-width:auto;
+  padding:0 8px;
+  font-size:12px;
+  height:32px;
+}
+
+/* Selects in row-1 nooit “line-height 1” meegeven */
+.controls.desktop-only .row-1 select{
+  line-height:normal;
+}
+
+/* camera/sensor iets smaller */
+.controls.desktop-only .row-1 #cameraSelect,
+.controls.desktop-only .row-1 #sensorFormatSelect{
+  min-width:110px;
+}
+
+#flareToggle{
+  min-width:95px;
+  padding:0 8px;
+}
+
+/* ===========================
+   SCALE CHIP
+   =========================== */
 #scaleCtrl.chip{
   display:inline-flex;
   align-items:center;
@@ -163,12 +242,15 @@ select:focus{
   background:#111;
   border:1px solid #333;
   border-radius:999px;
+  box-sizing:border-box;
 }
+
 #scaleCtrl #scaleVal{
   min-width:44px;
   text-align:right;
   color:var(--ig-text-muted);
 }
+
 #scaleCtrl input[type="range"]{
   -webkit-appearance:none;
   appearance:none;
@@ -178,6 +260,7 @@ select:focus{
   padding:0;
   background:transparent;
 }
+
 #scaleCtrl input[type="range"]::-webkit-slider-runnable-track{
   height:4px;
   background:#222;
@@ -190,6 +273,7 @@ select:focus{
   border-radius:999px;
   border-bottom:1px solid rgba(255,255,255,.35);
 }
+
 #scaleCtrl input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none;
   appearance:none;
@@ -213,49 +297,57 @@ select:focus{
 /* ===========================
    VIEWER
    =========================== */
-#toolRoot{ width:min(1200px,96vw); margin:0 auto; }
-
 #comparisonWrapper{
   position:relative;
-  width:100%;          /* genoeg, max-width mag weg */
+  width:100%;
   min-height:clamp(360px,56vw,900px);
   margin:0;
   background:#000;
   overflow:hidden;
-  --lb-top:0px; --lb-bottom:0px; --lb-left:0px; --lb-right:0px;
+
+  --lb-top:0px;
+  --lb-bottom:0px;
+  --lb-left:0px;
+  --lb-right:0px;
+  box-sizing:border-box;
 }
-/* buitenrand van de viewer */
+
+/* buitenrand */
 #comparisonWrapper::after{
   content:"";
   position:absolute;
   inset:0;
-  border:1px solid rgba(226,107,0,0.38); /* iets dieper oranje */
+  border:1px solid rgba(226,107,0,0.38);
   box-shadow:0 0 16px rgba(226,107,0,0.22);
   pointer-events:none;
 }
 
-/* Rechter laag (before) + Linker laag (after) */
+/* layers */
 #beforeImage{ position:absolute; inset:0; }
-#beforeImgTag{
-  position:absolute; inset:0; width:100%; height:100%;
-  object-fit:cover; display:block;
+#beforeImgTag,
+#afterImgTag{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
   transform:scale(calc(var(--sensor-scale)*var(--viewer-scale)));
-  transform-origin:center; will-change:transform;
+  transform-origin:center;
+  will-change:transform;
 }
 
 #afterWrapper{
-  position:absolute; inset:0; overflow:hidden; z-index:2;
-  clip-path:inset(0 50% 0 0); -webkit-clip-path:inset(0 50% 0 0);
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  z-index:2;
+  clip-path:inset(0 50% 0 0);
+  -webkit-clip-path:inset(0 50% 0 0);
   will-change:clip-path;
 }
-#afterImgTag{
-  position:absolute; inset:0; width:100%; height:100%;
-  object-fit:cover; display:block;
-  transform:scale(calc(var(--sensor-scale)*var(--viewer-scale)));
-  transform-origin:center; will-change:transform;
-}
 
-/* Slider-lijn */
+/* slider lijn */
 #slider{
   position:absolute;
   top:0;
@@ -270,112 +362,141 @@ select:focus{
   touch-action:none;
 }
 
-/* ==== Outlines per helft (slider-mode) ====
-   borders op de WRAPPERS zodat clip-path niets afknipt */
+/* per-helft outline */
 #beforeImage,
 #afterWrapper{
   box-sizing:border-box;
-  border:1px solid rgba(226,107,0,0.38);  /* zelfde als buitenrand */
+  border:1px solid rgba(226,107,0,0.38);
 }
-#beforeImage{ border-left:none; }   /* top, right, bottom */
-#afterWrapper{ border-right:none; } /* top, left,  bottom */
+#beforeImage{ border-left:none; }
+#afterWrapper{ border-right:none; }
 
 /* ===========================
    FULLSCREEN
    =========================== */
 #comparisonWrapper:fullscreen,
 #comparisonWrapper:-webkit-full-screen{
-  width:100vw; height:100vh; margin:0; background:#000; box-sizing:border-box;
+  width:100vw;
+  height:100vh;
+  margin:0;
+  background:#000;
   padding:var(--lb-top,0) var(--lb-right,0) var(--lb-bottom,0) var(--lb-left,0);
   overflow:hidden;
 }
-#comparisonWrapper:fullscreen #beforeImgTag,
-#comparisonWrapper:-webkit-full-screen #beforeImgTag,
-#comparisonWrapper:fullscreen #afterWrapper,
-#comparisonWrapper:-webkit-full-screen #afterWrapper{ position:absolute; inset:0; }
+
 #comparisonWrapper:fullscreen #beforeImgTag,
 #comparisonWrapper:-webkit-full-screen #beforeImgTag,
 #comparisonWrapper:fullscreen #afterImgTag,
 #comparisonWrapper:-webkit-full-screen #afterImgTag{
-  width:100%; height:100%; object-fit:cover; object-position:center;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
 }
-#comparisonWrapper:fullscreen #slider,
-#comparisonWrapper:-webkit-full-screen #slider{ top:0; bottom:0; }
 
-#fsBars{ position:absolute; inset:0; pointer-events:none; z-index:9; }
+#fsBars{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:9;
+}
 #fsBars .bar{ position:absolute; background:#000; }
-#fsBars .top{    top:0; left:var(--lb-left,0); right:var(--lb-right,0); height:var(--lb-top,0); }
+#fsBars .top{ top:0; left:var(--lb-left,0); right:var(--lb-right,0); height:var(--lb-top,0); }
 #fsBars .bottom{ bottom:0; left:var(--lb-left,0); right:var(--lb-right,0); height:var(--lb-bottom,0); }
-#fsBars .left{   top:var(--lb-top,0); bottom:var(--lb-bottom,0); left:0;  width:var(--lb-left,0); }
-#fsBars .right{  top:var(--lb-top,0); bottom:var(--lb-bottom,0); right:0; width:var(--lb-right,0); }
+#fsBars .left{ top:var(--lb-top,0); bottom:var(--lb-bottom,0); left:0; width:var(--lb-left,0); }
+#fsBars .right{ top:var(--lb-top,0); bottom:var(--lb-bottom,0); right:0; width:var(--lb-right,0); }
 
-/* === FULLSCREEN: oranje outline rond het beeld (binnen letter/pillarbox) === */
+/* oranje outline binnen letter/pillarbox */
 #comparisonWrapper:fullscreen #fsBars::after,
 #comparisonWrapper:-webkit-full-screen #fsBars::after{
   content:"";
   position:absolute;
-
-  /* dit is de "usable image area" */
   top:var(--lb-top,0);
   bottom:var(--lb-bottom,0);
   left:var(--lb-left,0);
   right:var(--lb-right,0);
-
   border:1px solid rgba(226,107,0,0.38);
   box-shadow:0 0 16px rgba(226,107,0,0.22);
   pointer-events:none;
-
-  /* belangrijk: boven de zwarte bars */
   z-index:10;
 }
 
 /* ===========================
    SIDE-BY-SIDE (SxS)
    =========================== */
-#sbsWrapper{ position:absolute; inset:0; z-index:3; display:none; padding:0; box-sizing:border-box; }
-.sbs-mode #sbsWrapper{ display:flex; width:100%; height:100%; }
-
-/* Per pane outline */
-.sbs-mode #sbsWrapper .pane{
-  position:relative; flex:1 1 50%; overflow:hidden;
-  display:flex; align-items:center; justify-content:center;
-  border:1px solid rgba(255,255,255,.3);
+#sbsWrapper{
+  position:absolute;
+  inset:0;
+  z-index:3;
+  display:none;
+  padding:0;
+  box-sizing:border-box;
 }
-.sbs-mode #sbsWrapper .pane:first-child{ border-right:0; }
-.sbs-mode #sbsWrapper .pane:last-child { border-left:0; }
 
-/* 1px middenlijn in SxS */
-.sbs-mode #sbsWrapper::before{
+/* In SxS: verberg slider-mode layers */
+body.sbs-mode #beforeImage,
+body.sbs-mode #afterWrapper,
+body.sbs-mode #slider,
+body.sbs-mode #fsBars{
+  display:none !important;
+}
+
+body.sbs-mode #comparisonWrapper::after{ display:none; }
+
+body.sbs-mode #sbsWrapper{
+  display:flex !important;
+}
+
+body.sbs-mode #sbsWrapper .pane{
+  position:relative;
+  flex:1 1 50%;
+  overflow:hidden;
+  border:1px solid rgba(226,107,0,0.38);
+}
+body.sbs-mode #sbsWrapper .pane:first-child{ border-right:0; }
+body.sbs-mode #sbsWrapper .pane:last-child{ border-left:0; }
+
+body.sbs-mode #sbsWrapper .pane img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  transform:scale(calc(var(--sensor-scale)*var(--viewer-scale)));
+  transform-origin:center;
+  will-change:transform;
+}
+
+/* middenlijn oranje */
+body.sbs-mode #sbsWrapper::before{
   content:"";
   position:absolute;
   top:0;
   bottom:0;
   left:50%;
   width:1px;
-  background:rgba(255,255,255,.35);
-  box-shadow:0 0 10px rgba(0,0,0,.9);
+  background:var(--ig-accent);
+  box-shadow:0 0 14px rgba(255,124,0,0.55);
   z-index:4;
 }
 
-
-/* geen dubbele buitenrand in SxS: viewer-rand uit */
-.sbs-mode #comparisonWrapper::after{ display:none; }
-
 /* ===========================
-   LABELS + RAW buttons
+   INFO / LABELS
    =========================== */
 #infoContainer{
   width:100%;
-  max-width:none;      /* kan weg */
   margin:12px 0 10px;
   padding:0 40px;
   box-sizing:border-box;
+
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:48px;
   color:var(--ig-text-muted);
 }
+
 .infoCol{
   flex:1 1 0;
   min-width:0;
@@ -385,10 +506,12 @@ select:focus{
   text-align:center;
   gap:10px;
 }
+
 #leftLabel,#rightLabel{
   white-space:nowrap;
   font-size:13px;
 }
+
 #infoContainer a{
   color:var(--ig-text);
   text-decoration:none;
@@ -398,135 +521,98 @@ select:focus{
   text-decoration:underline;
 }
 
+/* ===========================
+   LENS INFO + EXPLANATION
+   =========================== */
+#lensInfo{
+  width:100%;
+  margin:16px 0 0;
+  padding:0 40px;
+  box-sizing:border-box;
+  text-align:left;
+}
+
+#lensInfo b,
+#lensInfo strong{
+  color:var(--ig-accent);
+  font-weight:700;
+}
+
+#explanationBox{
+  width:100%;
+  margin:12px 0 40px;
+  padding:12px 16px;
+  box-sizing:border-box;
+
+  font-size:13px;
+  color:#aaa;
+  background:#1a1a1a;
+  border-left:4px solid orange;
+  border-radius:6px;
+  line-height:1.5;
+}
 
 /* ===========================
    DETAIL VIEWER
    =========================== */
-body.dragging, body.dragging *{ user-select:none !important; -webkit-user-select:none !important; -ms-user-select:none !important; }
-#detailOverlay{ position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:9999; overflow:visible; display:none; }
+body.dragging,
+body.dragging *{
+  user-select:none !important;
+  -webkit-user-select:none !important;
+  -ms-user-select:none !important;
+}
+
+#detailOverlay{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  pointer-events:none;
+  z-index:9999;
+  display:none;
+}
+
 #detailOverlay.active{ display:block; }
+
 .detail-view-square{
   position:absolute;
   width:260px;
   height:260px;
   overflow:hidden;
 
-  /* IronGlass branding */
-  border:2px solid rgba(255,124,0,0.55);        /* oranje rand */
-  background:rgba(5,5,5,0.92);                 /* donkere matte achtergrond */
+  background:rgba(5,5,5,0.92);
+  border:2px solid rgba(255,124,0,0.75);
+  border-radius:4px;
   box-shadow:
-    0 0 18px rgba(255,124,0,0.35),             /* glow */
-    0 0 4px rgba(255,124,0,0.25) inset;        /* subtiele inner glow */
+    0 0 18px rgba(255,124,0,0.35),
+    0 0 4px rgba(255,124,0,0.25) inset;
 
-  pointer-events:none;
-  border-radius:4px;                            /* kleine radius zoals hun UI */
   will-change:transform;
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
 }
-.detail-view-square img{ position:absolute; width:300%; height:auto; object-fit:cover; transform-origin:top left; }
-#leftDetail{ margin-left:-130px; } #rightDetail{ margin-left:130px; }
 
-/* oranje rand + inner glow over de volledige hexagon */
-.detail-view-square::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-
-  -webkit-clip-path: inherit;
-  clip-path: inherit;
-
-  border: 2px solid rgba(255,124,0,0.9);
-  box-shadow:
-    0 0 14px rgba(255,124,0,0.7),
-    0 0 4px rgba(255,124,0,0.35) inset;
-}
-
-/* inhoud (zoom), mee-geclipt in de hexagon */
-.detail-view-square img {
-  position: absolute;
-  width: 300%;
-  height: auto;
-  object-fit: cover;
-  transform-origin: top left;
-
-  -webkit-clip-path: inherit;
-  clip-path: inherit;
-}
-
-/* iets dichter bij elkaar */
-#leftDetail  { margin-left: -100px; }
-#rightDetail { margin-left:  100px; }
-
-/* donkere fill + oranje rand + glow, exact als je oude square */
-.detail-view-square::before,
-.detail-view-square::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  clip-path: inherit;           /* zelfde hexagon */
-}
-
-.detail-view-square::before{
-  background:rgba(5,5,5,0.92);
-}
-
-.detail-view-square::after{
-  border:2px solid rgba(255,124,0,0.75);   /* oranje rand */
-  box-shadow:
-    0 0 18px rgba(255,124,0,0.35),
-    0 0 4px  rgba(255,124,0,0.25) inset;
-}
-
-/* image zelf ook hexagon, maar iets groter voor zoom */
 .detail-view-square img{
   position:absolute;
   width:300%;
   height:auto;
   object-fit:cover;
   transform-origin:top left;
-  clip-path: inherit;           /* zelfde hexagon */
 }
 
-/* iets dichter tegen elkaar aan */
-#leftDetail{  margin-left:-110px; }
-#rightDetail{ margin-left: 110px; }
+#leftDetail{ margin-left:-110px; }
+#rightDetail{ margin-left:110px; }
 
-/* pseudo-element tekent de oranje border in dezelfde hex-vorm */
-.detail-view-square::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-
-  -webkit-clip-path: inherit;
-  clip-path: inherit;
-
-  border: 2px solid rgba(255,124,0,0.9);
-  box-shadow:
-    0 0 14px rgba(255,124,0,0.7),
-    0 0 4px rgba(255,124,0,0.35) inset;
+/* ===========================
+   MOBILE EMBED
+   =========================== */
+.lens-frame-outer,
+.lens-frame-outer.mobile-only{
+  display:none !important;
 }
-
-/* dichter bij elkaar */
-#leftDetail {
-  margin-left: -100px;
+@media (max-width:767px){
+  .lens-frame-outer{ display:block !important; }
 }
-#rightDetail {
-  margin-left: 100px;
-}
-
-/* inhoud (zoom) */
-.detail-view-square img {
-  position: absolute;
-  width: 300%;
-  height: auto;
-  object-fit: cover;
-  transform-origin: top left;
-}
-.detail-view-square img{ position:absolute; width:300%; height:auto; object-fit:cover; transform-origin:top left; }
-#leftDetail{ margin-left:-130px; } #rightDetail{ margin-left:130px; }
 
 /* ===========================
    RESPONSIVE
@@ -535,18 +621,32 @@ body.dragging, body.dragging *{ user-select:none !important; -webkit-user-select
   #cameraSelect,#sensorFormatSelect,#focalLength{ min-width:120px; }
   #scaleCtrl input[type="range"]{ width:100px; }
 }
+
 @media (max-width:767px){
   #fullscreenButton,#detailViewToggle{ display:none !important; }
-  .mobile-mode #comparisonWrapper{ width:100vw; }
-  #infoContainer{ max-width:100%; padding:0 16px; gap:16px; font-size:13px; }
-  #lensInfo{ font-size:12px; line-height:1.4; padding:10px 12px; }
+
+  #infoContainer{
+    padding:0 16px;
+    gap:16px;
+    font-size:13px;
+  }
+
+  #lensInfo{
+    font-size:12px;
+    line-height:1.4;
+    padding:10px 12px;
+  }
+
+  /* desktop controls weg, mobile iframe aan (zoals jij al had) */
   .controls.mobile-only{ display:block !important; }
 }
 .controls.mobile-only{ display:none !important; }
 
 /* duplicaat-vangnet */
 .controls.desktop-only:not(:first-of-type),
-.controls.mobile-only:not(:first-of-type){ display:none !important; }
+.controls.mobile-only:not(:first-of-type){
+  display:none !important;
+}
 
 /* ===========================
    PRINT
@@ -560,217 +660,17 @@ body.dragging, body.dragging *{ user-select:none !important; -webkit-user-select
 }
 
 /* ===========================
-   OPTIONAL / MISC
+   TOGGLES / ACTIVE STATE
    =========================== */
-#explanationBox{
-  max-width: 960px;
-  width: 100%;
-  margin: 12px auto 40px;   /* auto = horizontaal centreren */
-  font-size: 13px;
-  color: #aaa;
-  padding: 12px 16px;
-  background: #1a1a1a;
-  border-left: 4px solid orange;
-  border-radius: 6px;
-  line-height: 1.5;
-  box-sizing: border-box;
-}
-/* ====== SxS: echte cover-crop, geen letterbox, 1px middenlijn ====== */
-
-/* verberg single-view lagen in SxS */
-body.sbs-mode #afterWrapper,
-body.sbs-mode #beforeImage,
-body.sbs-mode #slider { display: none !important; }
-body.sbs-mode #fsBars { display: none !important; }
-
-/* SxS-container vult de viewer */
-body.sbs-mode #sbsWrapper{
-  display:flex !important;
-  position:absolute; inset:0;
-  padding:0 !important;            /* geen letter/pillarbox-padding */
-  z-index:3;
-}
-
-/* elke helft */
-body.sbs-mode #sbsWrapper .pane{
-  position:relative;
-  flex:1 1 50%;
-  overflow:hidden;                  /* netjes afsnijden */
-  border:1px solid rgba(255,255,255,.3);
-}
-body.sbs-mode #sbsWrapper .pane:first-child{ border-right:0; }
-body.sbs-mode #sbsWrapper .pane:last-child { border-left:0; }
-
-/* SxS images — zelfde schaal/framing als slider */
-body.sbs-mode #sbsWrapper .pane img{
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  object-fit:cover; object-position:center;
-  transform:scale(calc(var(--sensor-scale)*var(--viewer-scale)));
-  transform-origin:center;
-  will-change:transform;
-}
-/* 1px middenlijntje */
-body.sbs-mode #sbsWrapper::before{
-  content:""; position:absolute; top:0; bottom:0; left:50%;
-  width:1px; background:rgba(255,255,255,.35); z-index:4;
-}
-
-
-
-/* mobiele embed uit op desktop */
-.lens-frame-outer, .lens-frame-outer.mobile-only { display:none !important; }
-@media (max-width:767px){ .lens-frame-outer { display:block !important; } }
-body.sbs-mode #sbsWrapper .pane img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-body.sbs-mode #comparisonWrapper {
-  width: 100%;
-  max-width: none;   /* belangrijk: NIETS limiteren */
-  margin: 0;
-}
-#toolRoot{
-  width:100%;
-}
-
-/* gedeeld frame voor controls + viewer + info */
-.frame-1200{
-  width:min(1200px,96vw);
-  margin:0 auto;
-}
-
-/* alles binnen dat frame exact dezelfde breedte */
-.frame-1200 .controls.desktop-only,
-.frame-1200 #comparisonWrapper,
-.frame-1200 #infoContainer{
-  width:100%;
-  margin-left:0;
-  margin-right:0;
-  box-sizing:border-box;
-}
-/* === FORCE EVERYTHING IN ROW-1 ON ONE LINE === */
-.controls.desktop-only .row-1 {
-  flex-wrap: nowrap;    /* niets mag afbreken */
-  gap: 6px;             /* kleiner tussenruimte */
-}
-
-/* maak knoppen en dropdowns compacter in row-1 */
-.controls.desktop-only .row-1 select,
-.controls.desktop-only .row-1 .control-button,
-.controls.desktop-only .row-1 #scaleCtrl {
-  min-width: auto;
-  padding: 0 8px;
-  font-size: 12px;
-  height: 32px;     /* <-- was 30px */
-  line-height: 1;   /* <-- was 30px */
-}
-
-/* camera + sensor dropdowns iets smaller */
-.controls.desktop-only .row-1 #cameraSelect,
-.controls.desktop-only .row-1 #sensorFormatSelect {
-  min-width: 110px;
-}
-
-/* flare toggle specifiek iets smaller */
-#flareToggle {
-  min-width: 95px !important;
-  padding: 0 8px !important;
-}
-/* === SxS: zelfde oranje style als slider-view === */
-body.sbs-mode #sbsWrapper .pane{
-  border:1px solid rgba(226,107,0,0.38);  /* oranje i.p.v. wit */
-}
-
-body.sbs-mode #sbsWrapper::before{
-  background:var(--ig-accent);            /* oranje middenlijn */
-  box-shadow:0 0 12px rgba(255,124,0,.7);
-}
-
-
-
-/* viewer gewoon 100% van toolRoot */
-body.sbs-mode #comparisonWrapper {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-}
-
-/* buitenrand uit in SxS (heb je al ergens, maar voor de zekerheid) */
-body.sbs-mode #comparisonWrapper::after {
-  display: none !important;
-}
-
-/* oranje pane-randen in SxS */
-body.sbs-mode #sbsWrapper .pane {
-  border: 1px solid rgba(226,107,0,0.38) !important;
-}
-body.sbs-mode #sbsWrapper .pane:first-child { border-right: 0 !important; }
-body.sbs-mode #sbsWrapper .pane:last-child  { border-left: 0 !important; }
-
-/* middenlijn oranje */
-body.sbs-mode #sbsWrapper::before {
-  background: var(--ig-accent) !important;
-  box-shadow: 0 0 14px rgba(255,124,0,0.55) !important;
-}
-#lensInfo{
-  max-width: 1200px;     /* zelfde breedte-range als de viewer */
-  width: 100%;
-  margin: 16px auto 0;   /* centreren t.o.v. de pagina */
-  padding: 0 40px;
-  box-sizing: border-box;
-  text-align: left;      /* tekst zelf mag gewoon links blijven */
-}
-
-/* SxS: zelfde breedte als normaal (1200px frame) */
-body.sbs-mode #toolRoot {
-  width: min(1200px, 96vw);
-  margin: 0 auto;
-}
-
-body.sbs-mode #toolRoot .frame-1200 {
-  width: 100%;
-}
-
-/* Lensnamen in lensInfo oranje */
-#lensInfo b,
-#lensInfo strong {
-  color: var(--ig-accent);
-  font-weight: 700;
-}
-/* 1) In SxS: hele toolRoot breder maken (viewer volgt mee) */
-body.sbs-mode #toolRoot {
-  width: min(1600px, 96vw);   /* maak hier gerust 1800px van als je wilt */
-}
-
-/* 2) Maar: controls-balk zelf blijft "normaal" (±1200px) en gecentreerd */
-body.sbs-mode .controls.desktop-only {
-  max-width: 1200px;          /* niet breder dan dit */
-  margin-left: auto;
-  margin-right: auto;         /* centreren binnen bredere toolRoot */
-}
-
 #bokehToggle.active{
-  outline: 1px solid rgba(255,255,255,.35);
-}
-/* Toggle highlight */
-:root{
-  --tvl-accent: #ff8a00; /* pas aan naar jouw oranje */
+  outline:1px solid rgba(255,255,255,.35);
 }
 
 button.active,
 .toggle.active,
 .controls button.active{
-  border-color: var(--tvl-accent) !important;
-  box-shadow: 0 0 0 1px var(--tvl-accent), 0 0 18px rgba(255,138,0,.25);
+  border-color:var(--tvl-accent) !important;
+  box-shadow:0 0 0 1px var(--tvl-accent), 0 0 18px rgba(255,138,0,.25);
 }
 
-button.active{
-  color: #fff;
-}
-
-.control-button{
-  font-variant-emoji: text;
-}
+button.active{ color:#fff; }
