@@ -386,29 +386,24 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
 }
 
 /* === Init defaults === */
-/* === Init defaults === */
+// 1) default lenzen
 leftSelect.value  = "IronGlass Titan Zoom";
 rightSelect.value = "IronGlass Sovjet Medium Format";
+focalLengthSelect.value = "120mm";     // of "35mm" als je liever hebt
+tStopLeftSelect.value   = "2.8";
+tStopRightSelect.value  = "2.8";
 
-// default focal + T-stop
-focalLengthSelect.value = "120mm";
-if (!focalLengthSelect.value) focalLengthSelect.selectedIndex = 0; // fallback als 120mm niet bestaat
-
-tStopLeftSelect.value  = "2.8";
-tStopRightSelect.value = "2.8";
-syncTStopsOnContextChange();
-
-updateLensInfo();
-updateImages();
-autoScaleNow();
-
-// default camera/sensor
+// 2) default camera + format (belangrijk: eerst camera change, daarna format)
 cameraSelect.value = CAPTURE_CAMERA;
 cameraSelect.dispatchEvent(new Event("change"));
 
-// na de camera-change is de format dropdown opnieuw gevuld
 sensorFormatSelect.value = CAPTURE_FORMAT;
 sensorFormatSelect.dispatchEvent(new Event("change"));
+
+// 3) UI updaten
+updateLensInfo();
+updateImages();
+autoScaleNow();
 
 /* === Resizes + fullscreen === */
 function onFsChange(){
