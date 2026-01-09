@@ -204,7 +204,7 @@ const cameras = {
 };
 
 /* === Lens lijsten, alias-focals, files en teksten === */
-const lenses = ["IronGlass Red P","IronGlass MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
+const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
 
 const notes = {
   "ironglass_red_p_35mm":"37mm","ironglass_red_p_50mm":"58mm","ironglass_mkii_35mm":"37mm","ironglass_zeiss_jena_50mm":"50mm","cooke_panchro_ff_35mm":"32mm","cooke_panchro_ff_50mm":"50mm",
@@ -226,7 +226,7 @@ const lensImageMap = {
 const lensDescriptions = {
   "IronGlass Red P": { text:"Extremely vintage Soviet optics with single coating, heavy character, flare and distortion. Pure, raw, unpolished glass for maximum personality.", url:"https://ironglassadapters.com/rehousing/red-p-limited-edition-soviet-lens-rehousing/" },
   "IronGlass Zeiss Jena": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss-jena-rehousing/" },
-  "IronGlass MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/rehoused-soviet-lenses/mkii/" },
+  "IronGlass Sovjet MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/rehoused-soviet-lenses/mkii/" },
   "IronGlass Titan Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
   "IronGlass Sovjet Medium Format": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
  };
