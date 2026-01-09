@@ -450,7 +450,7 @@ function whenImagesReadyThenReset(){
   const wait=im=> (im.complete && im.naturalWidth>0) ? Promise.resolve() : new Promise((res,rej)=>{ im.onload=res; im.onerror=rej; });
   Promise.all([wait(beforeImgTag),wait(afterImgTag)]).then(()=>{ updateFullscreenBars(); resetSplitToMiddle(); });
 }
-updateImages(); whenImagesReadyThenReset();
+whenImagesReadyThenReset();
 beforeImgTag.addEventListener("load",whenImagesReadyThenReset);
 afterImgTag.addEventListener("load",whenImagesReadyThenReset);
 
