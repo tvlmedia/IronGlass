@@ -901,39 +901,44 @@ function showDetailBoxAt(e, box, img, srcEl, rect, rx, ry, side, zoom = 3.2, siz
 document.addEventListener("mousemove", (e) => {
   if(!detailActive) return;
 
-  // ===== SBS MODE =====
-  if(sbsActive){
-    const L = sbsLeftImg.getBoundingClientRect();
-    const R = sbsRightImg.getBoundingClientRect();
+ // ===== SBS MODE =====
+if(sbsActive){
+  const L = sbsLeftImg.getBoundingClientRect();
+  const R = sbsRightImg.getBoundingClientRect();
 
-    const inL = (e.clientX >= L.left && e.clientX <= L.right && e.clientY >= L.top && e.clientY <= L.bottom);
-    const inR = (e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom);
+  const inL = (e.clientX >= L.left && e.clientX <= L.right && e.clientY >= L.top && e.clientY <= L.bottom);
+  const inR = (e.clientX >= R.left && e.clientX <= R.right && e.clientY >= R.top && e.clientY <= R.bottom);
 
-    if(!inL && !inR){
-      leftDetail.style.display = "none";
-      rightDetail.style.display = "none";
-      return;
-    }
-
-    const rxL = (e.clientX - L.left) / L.width;
-    const ryL = (e.clientY - L.top)  / L.height;
-    const rxR = (e.clientX - R.left) / R.width;
-    const ryR = (e.clientY - R.top)  / R.height;
-
-    if(inL){
-     showDetailBoxAt(e, leftDetail,  leftDetailImg,  sbsLeftImg,  L, rxL, ryL, "left",  3.2, 260, 4);
-    } else {
-      leftDetail.style.display = "none";
-    }
-
-    if(inR){
-      showDetailBoxAt(e, rightDetail, rightDetailImg, sbsRightImg, R, rxR, ryR, "right", 3.2, 260, 4);
-    } else {
-      rightDetail.style.display = "none";
-    }
-
+  if(!inL && !inR){
+    leftDetail.style.display = "none";
+    rightDetail.style.display = "none";
     return;
   }
+
+  // rx/ry uit de pane waar je cursor in zit
+  const rx = inL ? (e.clientX - L.left) / L.width  : (e.clientX - R.left) / R.width;
+  const ry = inL ? (e.clientY - L.top)  / L.height : (e.clientY - R.top)  / R.height;
+
+  // ✅ plaats beide viewers strak tegen elkaar aan (geen gap)
+  const size = 260;
+  const zoom = 3.2;
+  const pad  = 8;
+
+  const groupW = size * 2;                         // totaal 2 boxes breed
+  let groupX = e.clientX - (groupW / 2);           // center op cursor
+  groupX = clamp(groupX, pad, window.innerWidth - groupW - pad);
+
+  // seamX = plek waar de 2 boxes elkaar raken
+  const seamX = groupX + size;
+
+  // fake event zodat showDetailBoxAt exact deze seam gebruikt
+  const ev = { clientX: seamX, clientY: e.clientY };
+
+  showDetailBoxAt(ev, leftDetail,  leftDetailImg,  sbsLeftImg,  L, rx, ry, "left",  zoom, size, 0);
+  showDetailBoxAt(ev, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry, "right", zoom, size, 0);
+
+  return;
+}
 
   // ===== SLIDER MODE (before/after) =====
   // gebruik de echte "usable" area (zonder letterbox/pillarbox)
