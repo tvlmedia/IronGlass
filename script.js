@@ -1000,12 +1000,12 @@ showDetailBoxAt(
 
   const showL = showDetailBoxAt(
     e, leftDetail, leftDetailImg, afterImgTag,
-    rectL, rxL, ryL, "left", 3.2, 260, 24
+    rectL, rxL, ryL, "left", 3.2, 260, 0
   );
 
   const showR = showDetailBoxAt(
     e, rightDetail, rightDetailImg, beforeImgTag,
-    rectR, rxR, ryR, "right", 3.2, 260, 24
+    rectR, rxR, ryR, "right", 3.2, 260, 0
   );
 
  if(!showL) leftDetail.style.display  = "none";
