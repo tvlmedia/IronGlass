@@ -1106,10 +1106,10 @@ function ensureSliderPointerAccess(){
     if(img) img.style.pointerEvents = "none";
   });
 
-  // ✅ wrappers juist WEL events laten doorgeven
-  if(afterWrapper) afterWrapper.style.pointerEvents = "auto";
-  const beforeWrapper = beforeImgTag?.parentElement;
-  if(beforeWrapper) beforeWrapper.style.pointerEvents = "auto";
+  // ✅ wrappers mogen NOOIT events vangen
+if(afterWrapper) afterWrapper.style.pointerEvents = "none";
+const beforeWrapper = beforeImgTag?.parentElement;
+if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
 }
 ensureSliderPointerAccess();
 slider.style.touchAction = "none";
@@ -1151,7 +1151,18 @@ function sliderEnd(e){
   e.preventDefault?.();
 }
 
-slider.addEventListener("pointerdown", sliderStart, { passive:false });
+slider.addEventListener("pointerdown", (e) => {
+  if (sbsActive || isExportingPdf || detailActive) return;
+
+  isDraggingSlider = true;
+  document.body.classList.add("dragging");
+
+  try { slider.setPointerCapture?.(e.pointerId); } catch(_) {}
+
+  updateFullscreenBars();
+  updateSliderPosition(e.clientX);
+  e.preventDefault?.();
+}, { passive:false, capture:true });
 window.addEventListener("pointermove", sliderMove, { passive:false });
 window.addEventListener("pointerup", sliderEnd, { passive:false });
 window.addEventListener("pointercancel", sliderEnd, { passive:false });
