@@ -308,13 +308,58 @@ const lensDescriptions = {
  };
 
 
-function fileTStopFor(lensSlug, uiVal){
-  const actual = TSTOP_FILE_ALIAS[lensSlug]?.[uiVal] || uiVal;
-  return String(actual).replace(".", "_"); // "2.9" -> "2_9"
+function getMeasuredStops(lensSlug, nominalFocal){
+  const fileFocal = aliasFor(lensSlug, nominalFocal); // <-- gebruikt jouw notes mapping
+  return (
+    MEASURED_TSTOPS?.[lensSlug]?.[fileFocal] ||
+    MEASURED_TSTOPS?.[lensSlug]?.[nominalFocal] ||
+    null
+  );
 }
 
-function actualTStopForLabel(lensSlug, uiVal){
-  return TSTOP_FILE_ALIAS[lensSlug]?.[uiVal] || uiVal;
+function pickMeasuredTStop(lensSlug, nominalFocal, uiVal){
+  const stops = getMeasuredStops(lensSlug, nominalFocal);
+  if(!stops || !stops.length) return null;
+
+  const nums = stops
+    .map(s => parseFloat(String(s)))
+    .filter(n => Number.isFinite(n))
+    .sort((a,b) => a-b);
+
+  if(!nums.length) return null;
+
+  // WO = wijdst open (kleinste T)
+  if(uiVal === "wo") return String(nums[0]);
+
+  const target = parseFloat(String(uiVal));
+  if(!Number.isFinite(target)) return String(nums[0]);
+
+  // closest match
+  let best = nums[0];
+  let bestDiff = Math.abs(best - target);
+
+  for(const n of nums){
+    const d = Math.abs(n - target);
+    if(d < bestDiff){
+      best = n;
+      bestDiff = d;
+    }
+  }
+  return String(best);
+}
+
+function actualTStopForLabel(lensSlug, uiVal, nominalFocal){
+  // 1) focal-aware measured pick (MEASURED_TSTOPS)
+  const measured = pickMeasuredTStop(lensSlug, nominalFocal, uiVal);
+  if(measured) return measured;
+
+  // 2) fallback naar je oude set-alias (mag blijven bestaan)
+  return TSTOP_FILE_ALIAS?.[lensSlug]?.[uiVal] || uiVal;
+}
+
+function fileTStopFor(lensSlug, uiVal, nominalFocal){
+  const actual = actualTStopForLabel(lensSlug, uiVal, nominalFocal);
+  return String(actual).replace(/\./g, "_"); // "2.9" -> "2_9"
 }
 
 /* === DOM refs === */
@@ -777,12 +822,13 @@ function updateImages(){
   const uiTL = tStopLeftSelect.value;
 const uiTR = tStopRightSelect.value;
 
-const tL = fileTStopFor(LL, uiTL);
-const tR = fileTStopFor(RR, uiTR);
+const focal = focalLengthSelect.value;
 
-const tLActual = actualTStopForLabel(LL, uiTL);
-const tRActual = actualTStopForLabel(RR, uiTR);
- const focal = focalLengthSelect.value;
+const tL = fileTStopFor(LL, uiTL, focal);
+const tR = fileTStopFor(RR, uiTR, focal);
+
+const tLActual = actualTStopForLabel(LL, uiTL, focal);
+const tRActual = actualTStopForLabel(RR, uiTR, focal);
 const flareMode = flareToggle.dataset.mode || "noflare";
 const sceneMode = bokehToggle?.dataset.mode || "portrait";
 
@@ -790,8 +836,8 @@ const uiTLStr = (uiTL === "wo") ? null : String(uiTL).replace(".", "_");
 const uiTRStr = (uiTR === "wo") ? null : String(uiTR).replace(".", "_");
 
 // fallback alleen als alias iets verandert (bijv. 2.8 -> 2.9)
-const tLFallback = (uiTL !== "wo" && String(tLActual) !== String(uiTL)) ? uiTLStr : null;
-const tRFallback = (uiTR !== "wo" && String(tRActual) !== String(uiTR)) ? uiTRStr : null;
+const tLFallback = null;
+const tRFallback = null;
 
 const leftCandidates  = resolveImageCandidates(LL, focal, tL, flareMode, sceneMode, tLFallback);
 const rightCandidates = resolveImageCandidates(RR, focal, tR, flareMode, sceneMode, tRFallback);
