@@ -905,34 +905,38 @@ function setCalVars(img, dx=0, dy=0, sc=1){
 }
 
 function applyCalibrationTransforms(){
-  const focal = focalLengthSelect?.value || "35mm";
+  const uiFocal = focalLengthSelect?.value || "35mm";
 
   const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
   const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
-  const lbL = comparisonWrapper._lbLeft || 0;
-  const lbR = comparisonWrapper._lbRight || 0;
-  const lbT = comparisonWrapper._lbTop || 0;
-  const lbB = comparisonWrapper._lbBottom || 0;
+  const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
+  const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
-    
+  const apply = (img, cal) => {
+    if(!img) return;
 
-   const apply = (img, cal) => {
-  if(!img) return;
+    const { h: boxH } = getCalBoxFor(img);
+    const autoDy = getAutoReframeYPx(boxH);
 
-  // auto reframe blijft gebaseerd op het zichtbare window (usableH)
-  const { h: boxH } = getCalBoxFor(img);
-  const autoDy = getAutoReframeYPx(boxH);
+    if(!calibrateActive || !cal){
+      setCalVars(img, 0, autoDy, 1);
+      return;
+    }
 
-  // Calibrate UIT → alleen auto reframe
-  if(!calibrateActive || !cal){
-    setCalVars(img, 0, autoDy, 1);
-    return;
-  }
+    const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
+    setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
+  };
 
-  const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
-  setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
-};
+  const leftCal  = getCal(leftSlug,  leftFocal);
+  const rightCal = getCal(rightSlug, rightFocal);
+
+  apply(afterImgTag,  leftCal);
+  apply(beforeImgTag, rightCal);
+
+  apply(sbsLeftImg,  leftCal);
+  apply(sbsRightImg, rightCal);
+}
 
   
   const leftCal  = getCal(leftSlug, focal);
@@ -1074,6 +1078,9 @@ const rf = aliasFor(RR, rightFocal);
 
   const lfDisplay = String(lf).replace(/_m(35|50)$/, "");
   const rfDisplay = String(rf).replace(/_m(35|50)$/, "");
+
+  leftLabel.innerHTML  = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lfDisplay} ${uiTLLabel}${tLNote}</a>`;
+rightLabel.innerHTML = `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rfDisplay} ${uiTRLabel}${tRNote}</a>`;
 
   // ✅ RAW download keys moeten matchen met je “file focal” (aliasFor) + file t-stop
   setDownloadButton(downloadLeftRawButton,  `${LL}_${lf}_t${tL}`);
