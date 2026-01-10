@@ -519,36 +519,55 @@ const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 const AUTO_REFRAME_ENABLED = true;
 
 const AUTO_REFRAME_BY_FOCAL = {
-  // defaults (fallback)
   "default": { startH: 18.0, endH: 7.0, maxY: 0.22, maxX: 0.00 },
 
-  // pas deze waardes aan naar smaak:
   "120mm": { maxY: 0.10, maxX: 0.00 },
   "85mm":  { maxY: 0.12, maxX: 0.00 },
-  "80mm":  { maxY: 0.13, maxX: 0.00 },
-  "65mm":  { maxY: 0.15, maxX: 0.00 },
-  "58mm":  { maxY: 0.17, maxX: 0.00 },
   "50mm":  { maxY: 0.18, maxX: 0.00 },
-  "45mm":  { maxY: 0.20, maxX: 0.00 },
-  "37mm":  { maxY: 0.21, maxX: 0.00 },
   "35mm":  { maxY: 0.22, maxX: 0.00 },
-  "30mm":  { maxY: 0.23, maxX: 0.00 },
-  "29mm":  { maxY: 0.23, maxX: 0.00 },
   "28mm":  { maxY: 0.24, maxX: 0.00 },
   "20mm":  { maxY: 0.26, maxX: 0.00 }
 };
 
-function focalKey(f){
-  // "45mm_m50" -> "45mm"
-  return String(f || "").replace(/_m(35|50)$/, "");
+// Alleen deze focals wil je handmatig tunen:
+const AUTO_REFRAME_ANCHORS = ["20mm","28mm","35mm","50mm","85mm","120mm"];
+
+function baseFocalMm(f){
+  // "45mm_m50" -> 45, "85mm" -> 85
+  const s = String(f || "").replace(/_m(35|50)$/, "");
+  const m = s.match(/(\d+(?:\.\d+)?)\s*mm/i);
+  return m ? parseFloat(m[1]) : NaN;
 }
+
+function nearestAnchorKey(effectiveFocal){
+  const mm = baseFocalMm(effectiveFocal);
+  if(!Number.isFinite(mm)) return "default";
+
+  let best = AUTO_REFRAME_ANCHORS[0];
+  let bestDiff = Infinity;
+
+  for(const a of AUTO_REFRAME_ANCHORS){
+    const amm = baseFocalMm(a);
+    const d = Math.abs(amm - mm);
+
+    // tie-breaker: bij exact gelijk verschil → pak de dichtstbijzijnde "boven" (optioneel)
+    if(d < bestDiff || (d === bestDiff && amm > baseFocalMm(best))){
+      best = a;
+      bestDiff = d;
+    }
+  }
+
+  return best; // bijv. "80mm" -> "85mm", "29mm" -> "28mm", "58mm" -> "50mm"
+}
+
+
 
 function getAutoReframeFracForFocal(effectiveFocal){
   if(!AUTO_REFRAME_ENABLED) return { x:0, y:0, sev:0 };
 
   const { h } = getCurrentWH();
-  const key = focalKey(effectiveFocal);
-  const cfg = { ...AUTO_REFRAME_BY_FOCAL.default, ...(AUTO_REFRAME_BY_FOCAL[key] || {}) };
+  const key = nearestAnchorKey(effectiveFocal);
+const cfg = { ...AUTO_REFRAME_BY_FOCAL.default, ...(AUTO_REFRAME_BY_FOCAL[key] || {}) };
 
   const startH = cfg.startH;
   const endH   = cfg.endH;
