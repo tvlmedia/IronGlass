@@ -752,3 +752,11 @@ body.sbs-mode #rightDetail{
   box-shadow: none !important;
   outline: none !important;
 }
+/* geldt voor alle viewer images (before/after + sbs) */
+#beforeImgTag,
+#afterImgTag,
+#sbsLeftImg,
+#sbsRightImg{
+  transform: translate(var(--cal-tx, 0px), var(--cal-ty, 0px)) scale(var(--cal-scale, 1));
+  transform-origin: center center;
+}
