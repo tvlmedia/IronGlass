@@ -829,12 +829,9 @@ function lensSlugFromLabel(lbl=""){
 
 
 function getCal(lensSlug, focal){
-  return (
-    CALIBRATION?.[lensSlug]?.[focal] ||
-    CALIBRATION?.[lensSlug]?.[aliasFor(lensSlug, focal)] ||
-    null
-  );
+  return CALIBRATION?.[lensSlug]?.[focal] || null;
 }
+
 // Auto scaling voor calibrate
     
   function autoScaleForCalibration(){
@@ -856,17 +853,13 @@ function getCal(lensSlug, focal){
   }
 
   // --- je bestaande code hieronder blijft hetzelfde ---
- const uiFocal = focalLengthSelect?.value || "35mm";
-const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
-const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
+  const focal = focalLengthSelect?.value || "35mm";
+  const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+  const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
-const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
-const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
+  const leftCal  = getCal(leftSlug, focal);
+  const rightCal = getCal(rightSlug, focal);
 
-const leftCal  = getCal(leftSlug,  leftFocal);
-const rightCal = getCal(rightSlug, rightFocal);
-
-    
   updateFullscreenBars();
 
     const requiredScaleFor = (img, cal) => {
@@ -920,17 +913,43 @@ function applyCalibrationTransforms(){
   const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
   const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
-  const leftCal  = getCal(leftSlug,  leftFocal);
-const rightCal = getCal(rightSlug, rightFocal);
+  const apply = (img, cal) => {
+    if(!img) return;
 
-  // after = links, before = rechts
+    const { h: boxH } = getCalBoxFor(img);
+    const autoDy = getAutoReframeYPx(boxH);
+
+    if(!calibrateActive || !cal){
+      setCalVars(img, 0, autoDy, 1);
+      return;
+    }
+
+    const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
+    setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
+  };
+
+  const leftCal  = getCal(leftSlug,  leftFocal);
+  const rightCal = getCal(rightSlug, rightFocal);
+
   apply(afterImgTag,  leftCal);
   apply(beforeImgTag, rightCal);
 
-  // SBS ook
   apply(sbsLeftImg,  leftCal);
   apply(sbsRightImg, rightCal);
 }
+
+  
+  const leftCal  = getCal(leftSlug, focal);
+  const rightCal = getCal(rightSlug, focal);
+
+  // jouw tool: after = links, before = rechts
+  apply(afterImgTag,  leftCal);
+  apply(beforeImgTag, rightCal);
+
+  // SBS images ook
+   apply(sbsLeftImg,  leftCal);
+  apply(sbsRightImg, rightCal);
+} // <-- BELANGRIJK
 
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
@@ -1222,6 +1241,7 @@ function resetUserScale(){
   setUserScaleFromPct(100);
 }
 
+// <-- HIER PLAKKEN (direct boven de input-listener)
 
 
 // <-- EN DEZE REGEL VERVANGT je bestaande input-listener
