@@ -394,6 +394,7 @@ const CAL_Y_INVERT = true; // zet op false als Y de verkeerde kant op gaat
 const CALIBRATION = {
   "ironglass_titan_zoom": {
     "120mm": { scale: 0.96, x: 25.823, y: -70.244 }
+    "120mm": { scale: 0.89, x: 3, y: -35 }
   },
 
   "ironglass_sovjet_medium_format": {
