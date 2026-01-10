@@ -404,14 +404,25 @@ const AUTO_REFRAME = {
 };
 
 function getAutoReframeYFrac(){
-  const { h } = getCurrentWH();
+  const cam = cameraSelect?.value;
+  const cur = getCurrentWH();
+
+  // ✅ Full-width formats => GEEN auto reframe
+  const formats = cameras?.[cam];
+  if(formats){
+    let maxW = 0;
+    Object.values(formats).forEach(v => { if(v?.w) maxW = Math.max(maxW, v.w); });
+
+    if(maxW && cur.w >= maxW * 0.98) return 0;
+  }
+
+  // ✅ Alleen voor echte crop/small-imager situaties
   const t = AUTO_REFRAME.thresholdH;
+  const h = cur?.h;
   if(!h || h >= t) return 0;
 
   const severity = clamp((t - h) / t, 0, 1);
-
-  // zelfde als jouw oude: naar beneden
-  return +severity * AUTO_REFRAME.maxShiftFrac;
+  return severity * AUTO_REFRAME.maxShiftFrac;
 }
 
 function getAutoReframeYPx(usableH){
