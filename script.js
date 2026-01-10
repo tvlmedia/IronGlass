@@ -1096,19 +1096,19 @@ sbsBtn?.addEventListener("click", (e) => {
 function ensureSliderPointerAccess(){
   if(!slider || !comparisonWrapper) return;
 
-  // slider altijd bovenop
   slider.style.zIndex = "999";
   slider.style.pointerEvents = "auto";
+  slider.style.touchAction = "none";
 
-  // images mogen nooit pointer-events "stelen"
+  // images mogen geen events stelen
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
     if(img) img.style.pointerEvents = "none";
   });
 
-  // wrappers ook niet (heel belangrijk bij clipPath)
-  if(afterWrapper) afterWrapper.style.pointerEvents = "none";
+  // ✅ wrappers juist WEL events laten doorgeven
+  if(afterWrapper) afterWrapper.style.pointerEvents = "auto";
   const beforeWrapper = beforeImgTag?.parentElement;
-  if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
+  if(beforeWrapper) beforeWrapper.style.pointerEvents = "auto";
 }
 ensureSliderPointerAccess();
 slider.style.touchAction = "none";
@@ -1154,11 +1154,16 @@ window.addEventListener("pointercancel", sliderEnd, { passive:false });
 
 comparisonWrapper.addEventListener("pointerdown", (e) => {
   if (sbsActive || isExportingPdf || detailActive) return;
-  if (e.target && (e.target.closest?.(".controls"))) return;
+  if (e.target && e.target.closest?.(".controls")) return;
+
+  // drag starten
+  isDraggingSlider = true;
+  document.body.classList.add("dragging");
+  try { comparisonWrapper.setPointerCapture?.(e.pointerId); } catch(_) {}
   updateFullscreenBars();
   updateSliderPosition(e.clientX);
-}, { passive:true });
-
+  e.preventDefault?.();
+}, { passive:false });
 /* === Slider drag (mouse/touch) === */
 // ... jouw recalcLayout + load/error listeners blijven gewoon hieronder staan
 
