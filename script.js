@@ -398,21 +398,6 @@ function getCurrentWH(){
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
-// ===============================
-// ONE TRUE applyCalThenPosition()
-// ===============================
-function applyCalThenPosition(){
-  updateFullscreenBars();
-  resetSplitToMiddle();
-
-  if (calibrateActive) {
-    if (!calibrateUserTouchedScale) autoScaleForCalibration();
-    else applyCalibrationTransforms();
-  } else {
-    applyCalibrationTransforms();
-  }
-}
-
 /* === AUTO VERTICAL REFRAME (small sensor heights) === */
 const AUTO_REFRAME = {
   thresholdH: 16.5,
@@ -450,10 +435,19 @@ function applyCurrentFormat(){
   const scale = Math.abs(BASE_SENSOR.w - w) < 0.1 ? 1 : (BASE_SENSOR.w / w);
   comparisonWrapper.style.setProperty("--sensor-scale", scale.toFixed(4));
 
-  // 1 frame wachten zodat height/usable rect klopt
-  requestAnimationFrame(() => applyCalThenPosition());
-}
+  // ✅ WACHT 1 FRAME zodat de nieuwe hoogte/usable rect echt klopt
+  requestAnimationFrame(() => {
+    updateFullscreenBars();
+    resetSplitToMiddle();
 
+    if (calibrateActive) {
+      if (!calibrateUserTouchedScale) autoScaleForCalibration();
+      else applyCalibrationTransforms();
+    } else {
+      applyCalibrationTransforms();
+    }
+  });
+}
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
 const DEFAULT_T_STOPS = ["wo", "2", "2.8", "4"];
@@ -600,25 +594,36 @@ let calibrateAutoScaled = false;
 
 // Calibration Toggle
   
-let preCalibrateScalePct = 100;
+let preCalibrateScalePct = 100; // onthoud user scale van vóór calibrate
 
 calibrateBtn?.addEventListener("click", () => {
   calibrateActive = !calibrateActive;
+
+  // focus-glow kill
   calibrateBtn.blur();
 
   if (calibrateActive) {
     preCalibrateScalePct = Math.round((userScale || 1) * 100);
     calibrateAutoScaled = false;
   } else {
-    calibrateUserTouchedScale = false;
+    calibrateUserTouchedScale = false; // ✅ optional: reset
     calibrateAutoScaled = false;
-
     if (scaleSlider) scaleSlider.value = String(preCalibrateScalePct);
     setUserScaleFromPct(preCalibrateScalePct);
   }
 
+  // ✅ WACHT op nieuwe layout voordat je bars/calculations doet
   requestAnimationFrame(() => {
-    applyCalThenPosition();
+    updateFullscreenBars();
+    resetSplitToMiddle();
+
+    if (calibrateActive) {
+      if (!calibrateUserTouchedScale) autoScaleForCalibration();
+      else applyCalibrationTransforms();
+    } else {
+      applyCalibrationTransforms();
+    }
+
     updateToggleHighlights();
   });
 });
@@ -959,178 +964,91 @@ function onFsChange(){
   const fs = isWrapperFullscreen();
   setFullscreenImageFit(fs);
 
-  if (fs) {
-    clearInlineHeights();
-    // pulseFsBars?.({duration:1400}); // optioneel
-  } else {
-    const { w, h } = getCurrentWH();
-    comparisonWrapper.style.setProperty("aspect-ratio", "auto");
-    setWrapperSizeByAR(w, h);
-    requestAnimationFrame(() => setWrapperSizeByAR(w, h));
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v, "0px")
-    );
-
-    slider.style.top = "0px";
-    slider.style.height = "100%";
-    slider.style.bottom = "0";
+  if(fs){ clearInlineHeights(); pulseFsBars({duration:1400}); }
+  else { const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
+    slider.style.top="0px"; slider.style.height="100%"; slider.style.bottom="0";
   }
+  updateFullscreenBars();
+requestAnimationFrame(()=>{
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
-  requestAnimationFrame(() => {
-    if (!isWrapperFullscreen()) {
-      const { w, h } = getCurrentWH();
-      setWrapperSizeByAR(w, h);
-    }
-    applyCalThenPosition();
-  });
+  if(calibrateActive){
+  if(!calibrateUserTouchedScale){
+    autoScaleForCalibration();
+  } else {
+    applyCalibrationTransforms();
+  }
+} else {
+  applyCalibrationTransforms();
 }
-
-document.addEventListener("fullscreenchange", onFsChange);
-document.addEventListener("webkitfullscreenchange", onFsChange);
-
-
+});
+  requestAnimationFrame(()=>{ if(!isWrapperFullscreen()){ const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
+}
+document.addEventListener("fullscreenchange",onFsChange);
+document.addEventListener("webkitfullscreenchange",onFsChange);
 window.addEventListener("resize",()=>{
   if(isWrapperFullscreen()){
-   
-  updateFullscreenBars();
-  applyCalThenPosition();
-    
+    updateFullscreenBars();
+    resetSplitToMiddle();
+
+    if(calibrateActive){
+      autoScaleForCalibration();
+    } else {
+      applyCalibrationTransforms();
+    }
   } else {
     const {w,h}=getCurrentWH();
     setWrapperSizeByAR(w,h);
   }
 });
-async function toggleFullscreen(){
-  if(isWrapperFullscreen()){
-    await exitAnyFullscreen();
+function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } updateFullscreenBars(); requestAnimationFrame(()=>{ updateFullscreenBars(); resetSplitToMiddle(); }); })(); }
+fullscreenBtn?.addEventListener("click",toggleFullscreen);
 
-    const { w, h } = getCurrentWH();
-    comparisonWrapper.style.setProperty("aspect-ratio","auto");
-    setWrapperSizeByAR(w,h);
-    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v,"0px")
-    );
-
-    slider.style.top = "0px";
-    slider.style.height = "100%";
-    slider.style.bottom = "0";
-  } else {
-    clearInlineHeights();
-    await enterWrapperFullscreen();
-    pulseFsBars?.({ duration: 1400 }); // <-- voorkomt crash als pulseFsBars niet bestaat
-  }
-
-  updateFullscreenBars();
-  resetSplitToMiddle();
-
-  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
-  else applyCalibrationTransforms();
-
-  updateToggleHighlights();
-}
-
+/* === SxS toggle === */
 function setSideBySide(on,{force=false}={}) {
-  if(isExportingPdf && !force) return;
-
-  const next = !!on;
-  if(!force && sbsActive === next) return;
-  sbsActive = next;
-
-  document.body.classList.toggle("sbs-mode", sbsActive);
-  comparisonWrapper.classList.toggle("sbs-mode", sbsActive);
-
-  const beforeWrapper = beforeImgTag.parentElement;
-
-  if(sbsActive){
-    sbsWrapper.style.display = "flex";
-    beforeWrapper.style.display = "none";
-    afterWrapper.style.display = "none";
-    sbsLeftImg.src  = afterImgTag.src;   // after = links
-    sbsRightImg.src = beforeImgTag.src;  // before = rechts
-    slider.style.display = "none";
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v,"0px")
-    );
-
-    if(isWrapperFullscreen()) clearInlineHeights();
-  } else {
-    sbsWrapper.style.display = "none";
-    beforeWrapper.style.display = "";
-    afterWrapper.style.display = "";
-    slider.style.display = "";
-  }
-
-  const { w, h } = getCurrentWH();
+  if(isExportingPdf && !force) return; const next=!!on; if(!force && sbsActive===next) return; sbsActive=next;
+  document.body.classList.toggle("sbs-mode",sbsActive); comparisonWrapper.classList.toggle("sbs-mode",sbsActive);
+  const beforeWrapper=beforeImgTag.parentElement;
+  if(sbsActive){ sbsWrapper.style.display="flex"; beforeWrapper.style.display="none"; afterWrapper.style.display="none"; sbsLeftImg.src=afterImgTag.src; sbsRightImg.src=beforeImgTag.src; slider.style.display="none"; ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); if(isWrapperFullscreen()) clearInlineHeights();
+  } else { sbsWrapper.style.display="none"; beforeWrapper.style.display=""; afterWrapper.style.display=""; slider.style.display=""; }
+    const {w,h}=getCurrentWH();
   setWrapperSizeByAR(w,h);
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
-  updateFullscreenBars();
-  resetSplitToMiddle();
+    if(!sbsActive){
+    updateFullscreenBars();
+    resetSplitToMiddle();
+  }
 
-  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
-  else applyCalibrationTransforms();
-
+  applyCalibrationTransforms();
   updateToggleHighlights();
 }
 
-// 1x listeners, klaar
-fullscreenBtn?.addEventListener("click", (e) => {
-  e.preventDefault?.();   // handig als het een <a> is
-  toggleFullscreen();
-});
+sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
+toggleBtn?.addEventListener("click",()=>{ 
+  resetUserScale(); // <-- ook hier
 
-sbsBtn?.addEventListener("click", (e) => {
-  e.preventDefault?.();
-  setSideBySide(!sbsActive);
+  const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
+  const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
+  updateLensInfo(); 
+  updateImages(); 
 });
-
 /* === Slider drag (mouse/touch) === */
-let isDragging = false;
-
-if (slider) {
-  slider.style.touchAction = "none"; // voorkomt scroll/zoom interference op mobiel
-
-  slider.addEventListener("pointerdown", (e) => {
-    if (sbsActive || isExportingPdf) return;
-    isDragging = true;
-    document.body.classList.add("dragging");
-    slider.setPointerCapture(e.pointerId);
-    updateSliderPosition(e.clientX); // meteen springen naar pointer
-  });
-
-  slider.addEventListener("pointermove", (e) => {
-    if (!isDragging) return;
-    updateSliderPosition(e.clientX);
-  });
-
-  const endDrag = (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    document.body.classList.remove("dragging");
-    try { slider.releasePointerCapture(e.pointerId); } catch (_) {}
-  };
-
-  slider.addEventListener("pointerup", endDrag);
-  slider.addEventListener("pointercancel", endDrag);
-}
+let isDragging=false;
+slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
+window.addEventListener("mouseup",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
+window.addEventListener("mousemove",e=>{ if(isDragging) updateSliderPosition(e.clientX); });
+slider.addEventListener("touchstart",e=>{ e.preventDefault(); isDragging=true; document.body.classList.add("dragging"); },{passive:false});
+window.addEventListener("touchend",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
+window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
 
 function recalcLayout(){
-  // zorg dat bars/usable rect kloppen en split/slider netjes reset
   updateFullscreenBars();
   resetSplitToMiddle();
-
-  // wrapper height opnieuw berekenen (alleen non-fullscreen)
-  const { w, h } = getCurrentWH();
-  if(!isWrapperFullscreen()){
-    setWrapperSizeByAR(w, h);
-  }
-
-  // daarna calibratie/positionering opnieuw toepassen
-  requestAnimationFrame(() => applyCalThenPosition());
+  if(calibrateActive) autoScaleForCalibration();
+  else applyCalibrationTransforms();
 }
 
 // 1x listeners, klaar
@@ -1148,12 +1066,15 @@ let pendingScaleRAF = null;
 function setUserScaleFromPct(pct){
   userScale = clamp(pct/100, 1.0, 1.3);
   document.documentElement.style.setProperty("--viewer-scale", String(userScale));
-  if (scaleVal) scaleVal.textContent = Math.round(userScale * 100) + "%";
+  if(scaleVal) scaleVal.textContent = Math.round(userScale*100) + "%";
 
-  if (pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
+  // ✅ wacht tot layout geüpdatet is voordat je usableW/H gebruikt
+  if(pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
   pendingScaleRAF = requestAnimationFrame(() => {
     pendingScaleRAF = null;
-    applyCalThenPosition();
+    updateFullscreenBars();
+    resetSplitToMiddle();
+    applyCalibrationTransforms();
   });
 }
 
@@ -1522,8 +1443,8 @@ function resetSplitToMiddle(){
   const lbT  = comparisonWrapper._lbTop    || 0;
   const lbB  = comparisonWrapper._lbBottom || 0;
 
-  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
-const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const usableW = Math.max(1, Math.round(rect.width  - lbL - lbR));
+  const usableH = Math.max(1, Math.round(rect.height - lbT - lbB));
 
   const mid = Math.round(usableW / 2);
 
@@ -1545,8 +1466,8 @@ function updateSliderPosition(clientX){
   const lbT  = comparisonWrapper._lbTop    || 0;
   const lbB  = comparisonWrapper._lbBottom || 0;
 
-  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
-const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const usableW = Math.max(1, Math.round(rect.width - lbL - lbR));
+  const usableH = Math.max(1, Math.round(rect.height - lbT - lbB));
 
   const clamped = clamp(Math.round(clientX - rect.left - lbL), 0, usableW);
 
@@ -1696,37 +1617,23 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 onFsChange();
 setTimeout(updateImages,50);
 
-/* === Force capture camera/format (robust) === */
+/* === Force capture camera/format (after everything is wired) === */
 function forceCaptureCamera(){
   if(!cameraSelect || !sensorFormatSelect) return;
 
-  const cam = CAPTURE_CAMERA;
-  const fmt = CAPTURE_FORMAT;
-
-  // wacht tot camera options bestaan
-  const camExists = [...cameraSelect.options].some(o => o.value === cam);
-  if(!camExists) return requestAnimationFrame(forceCaptureCamera);
-
-  // zet camera (triggert vullen formats)
-  cameraSelect.value = cam;
+  // camera kiezen → vult formats (sync in jouw change-handler)
+  cameraSelect.value = CAPTURE_CAMERA;
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  // wacht tot format options gevuld zijn
-  requestAnimationFrame(() => {
-    const fmtExists = [...sensorFormatSelect.options].some(o => o.value === fmt);
-    if(!fmtExists) return setTimeout(forceCaptureCamera, 50);
+  // format kiezen (kan direct na camera-change, want options zijn dan gevuld)
+  sensorFormatSelect.value = CAPTURE_FORMAT;
+  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-    sensorFormatSelect.value = fmt;
-    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
-
-    // pas daarna calibrate aan
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => enableCalibrate())
-    );
-  });
+  // 1 frame later: calibrate aan (na layout/bars)
+  requestAnimationFrame(() => enableCalibrate());
 }
 
-// run op de momenten die écht zinvol zijn
-window.addEventListener("DOMContentLoaded", forceCaptureCamera);
-window.addEventListener("pageshow", forceCaptureCamera);
-window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
+forceCaptureCamera();
+setTimeout(forceCaptureCamera, 50);
+window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
+window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
