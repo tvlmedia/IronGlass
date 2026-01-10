@@ -689,16 +689,16 @@ function getCal(lensSlug, focal){
 
   updateFullscreenBars();
 
-  const rect = comparisonWrapper.getBoundingClientRect();
-  const usableW = Math.max(1, (comparisonWrapper._usableW ?? rect.width));
-  const usableH = Math.max(1, (comparisonWrapper._usableH ?? rect.height));
+ const rect  = comparisonWrapper.getBoundingClientRect();
+const hostW = Math.max(1, rect.width);
+const hostH = Math.max(1, rect.height);
 
-  const toCssPx = (x=0, y=0) => {
-    const dx = (x / CAL_W) * usableW;
-    let dy = (y / CAL_H) * usableH;
-    if(CAL_Y_INVERT) dy = -dy;
-    return { dx, dy };
-  };
+ const toCssPx = (x=0, y=0) => {
+  const dx = (x / CAL_W) * hostW;
+  let dy   = (y / CAL_H) * hostH;
+  if(CAL_Y_INVERT) dy = -dy;
+  return { dx, dy };
+};
 
   const requiredScaleFor = (cal) => {
     if(!cal) return 1;
@@ -706,8 +706,8 @@ function getCal(lensSlug, focal){
     const base = (cal.scale ?? 1);
     const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
 
-    const needX = 1 + (2 * Math.abs(dx)) / usableW;
-    const needY = 1 + (2 * Math.abs(dy)) / usableH;
+    const needX = 1 + (2 * Math.abs(dx)) / hostW;
+const needY = 1 + (2 * Math.abs(dy)) / hostH;
     const needCover = Math.max(needX, needY, 1);
 
     return needCover / Math.max(0.0001, base);
@@ -749,20 +749,24 @@ function applyCalibrationTransforms(){
   const lbT = comparisonWrapper._lbTop || 0;
   const lbB = comparisonWrapper._lbBottom || 0;
 
-    const rect = comparisonWrapper.getBoundingClientRect();
-  const usableW = Math.max(1, (comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
-  const usableH = Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const rect  = comparisonWrapper.getBoundingClientRect();
 
-  const autoDy = getAutoReframeYPx(usableH);
+  // ✅ Cal-space = volledige viewer (NIET usable window)
+  const hostW = Math.max(1, rect.width);
+  const hostH = Math.max(1, rect.height);
+
+  // ✅ Auto-reframe blijft wel op usable hoogte werken
+  const usableH = Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const autoDy  = getAutoReframeYPx(usableH);
 
   const toCssPx = (x=0, y=0) => {
-    const dx = (x / CAL_W) * usableW;
-    let dy = (y / CAL_H) * usableH;
-    if(CAL_Y_INVERT) dy = -dy;
-    return { dx, dy };
-  };
+  const dx = (x / CAL_W) * hostW;
+  let dy   = (y / CAL_H) * hostH;
+  if(CAL_Y_INVERT) dy = -dy;
+  return { dx, dy };
+};
 
-    const apply = (img, cal) => {
+  const apply = (img, cal) => {
     if(!img) return;
 
     // Calibrate UIT → alleen auto reframe
@@ -781,6 +785,7 @@ function applyCalibrationTransforms(){
     const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
     setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
   };
+
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
 
@@ -789,9 +794,9 @@ function applyCalibrationTransforms(){
   apply(beforeImgTag, rightCal);
 
   // SBS images ook
-   apply(sbsLeftImg,  leftCal);
+  apply(sbsLeftImg,  leftCal);
   apply(sbsRightImg, rightCal);
-} // <-- BELANGRIJK
+}
 
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
