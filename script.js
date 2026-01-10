@@ -400,47 +400,18 @@ const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 /* === AUTO VERTICAL REFRAME (small sensor heights) === */
 const AUTO_REFRAME = {
   thresholdH: 16.5,
-  maxShiftFrac: 0.75,   // 75% (zoals je huidige gedrag)
-  fullWidthMinW: 32     // ✅ alleen LF/FF-ish camera's mogen "full width => no reframe"
+  maxShiftFrac: 0.75  // 75% (zoals je huidige gedrag)
 };
 
 function getAutoReframeYFrac(){
-  const cam = cameraSelect?.value;
-  const cur = getCurrentWH();
-  if(!cur?.w || !cur?.h) return 0;
+  const { h } = getCurrentWH();
+  const t = AUTO_REFRAME.thresholdH;
+  if(!h || h >= t) return 0;
 
-  const formats = cameras?.[cam];
-  if(formats){
-    let maxW = 0;
+  const severity = clamp((t - h) / t, 0, 1);
 
-    // maxW bepalen op NON-anamorphic formats
-    Object.entries(formats).forEach(([k, v]) => {
-      const label = String(v?.label || k || "").toLowerCase();
-      const isAna =
-        label.includes(" ana") ||
-        label.includes("anamorphic") ||
-        label.endsWith("ana");
-
-      if(!isAna && v?.w) maxW = Math.max(maxW, v.w);
-    });
-
-    const isFullWidth = maxW && cur.w >= maxW * 0.98;
-    const isBigSensor = maxW >= (AUTO_REFRAME.fullWidthMinW || 32);
-
-    // full width + big sensor => geen reframe
-    if(isFullWidth && isBigSensor) return 0;
-  }
-
-  // ✅ BELANGRIJK: werk met effectieve hoogte na width-match
-  const baseW = BASE_SENSOR.w;
-  const baseH = BASE_SENSOR.h;
-
-  const effH = cur.h * (baseW / cur.w);
-
-  // alleen reframen als je effectief duidelijk “korter” bent dan baseline
-  const severity = clamp((baseH - effH) / baseH, 0, 1);
-
-  return severity * AUTO_REFRAME.maxShiftFrac;
+  // zelfde als jouw oude: naar beneden
+  return +severity * AUTO_REFRAME.maxShiftFrac;
 }
 
 function getAutoReframeYPx(usableH){
@@ -529,36 +500,6 @@ const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper
 // Resolve timeline / clip space (jouw max ranges)
 const CAL_W = 3840;
 const CAL_H = 2880;
-
-function getUsableWH(){
-  const rect = comparisonWrapper.getBoundingClientRect();
-  return {
-    w: Math.max(1, comparisonWrapper._usableW ?? rect.width),
-    h: Math.max(1, comparisonWrapper._usableH ?? rect.height),
-  };
-}
-
-function getCalScaleForImg(imgEl){
-  const { w: usedW, h: usedH } = getUsableWH();
-  const fit = (imgEl ? getComputedStyle(imgEl).objectFit : "cover") || "cover";
-
-  const sx = usedW / CAL_W;
-  const sy = usedH / CAL_H;
-
-  if (fit === "contain") return Math.min(sx, sy);
-  if (fit === "cover")   return Math.max(sx, sy);
-
-  // fallback: jouw tool werkt “breedte-matchend”
-  return sx;
-}
-
-function calToCssPx(imgEl, x = 0, y = 0){
-  const s = getCalScaleForImg(imgEl);
-  const dx = x * s;
-  let dy = y * s;
-  if (CAL_Y_INVERT) dy = -dy;
-  return { dx, dy, s };
-}
 
 // In Resolve is Y meestal "omhoog = +", in CSS is "omlaag = +"
 const CAL_Y_INVERT = true; // zet op false als Y de verkeerde kant op gaat
@@ -733,11 +674,12 @@ function getCal(lensSlug, focal){
       setUserScaleFromPct(pct);
     }
 
-    // ✅ ook zonder autoscale moet calibrate wél apply’en
+    // ✅ BELANGRIJK: ook zonder autoscale moet calibrate wél apply’en
     applyCalibrationTransforms();
     return;
   }
 
+  // --- je bestaande code hieronder blijft hetzelfde ---
   const focal = focalLengthSelect?.value || "35mm";
   const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
   const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
@@ -747,17 +689,13 @@ function getCal(lensSlug, focal){
 
   updateFullscreenBars();
 
-  // ✅ usable window (na letterbox/pillarbox)
-  const { w: usedW, h: usedH } = getUsableWH();
-
-  // autoscale is bedoeld om “cover” safe te maken → neem cover-scale
-  const sx = usedW / CAL_W;
-  const sy = usedH / CAL_H;
-  const sCover = Math.max(sx, sy);
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const usableW = Math.max(1, (comparisonWrapper._usableW ?? rect.width));
+  const usableH = Math.max(1, (comparisonWrapper._usableH ?? rect.height));
 
   const toCssPx = (x=0, y=0) => {
-    const dx = x * sCover;
-    let dy   = y * sCover;
+    const dx = (x / CAL_W) * usableW;
+    let dy = (y / CAL_H) * usableH;
     if(CAL_Y_INVERT) dy = -dy;
     return { dx, dy };
   };
@@ -768,11 +706,10 @@ function getCal(lensSlug, focal){
     const base = (cal.scale ?? 1);
     const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
 
-    const needX = 1 + (2 * Math.abs(dx)) / usedW;
-    const needY = 1 + (2 * Math.abs(dy)) / usedH;
+    const needX = 1 + (2 * Math.abs(dx)) / usableW;
+    const needY = 1 + (2 * Math.abs(dy)) / usableH;
     const needCover = Math.max(needX, needY, 1);
 
-    // required viewer-scale factor (bovenop jouw cal.scale)
     return needCover / Math.max(0.0001, base);
   };
 
@@ -782,7 +719,7 @@ function getCal(lensSlug, focal){
     requiredScaleFor(rightCal)
   );
 
-  required *= 1.005; // kleine safety
+  required *= 1.005;
 
   const pct = clamp(Math.ceil(required * 100), 100, 130);
 
@@ -791,6 +728,7 @@ function getCal(lensSlug, focal){
 
   calibrateAutoScaled = (pct > 100);
 
+  // ✅ extra zekerheid: transforms meteen toepassen
   applyCalibrationTransforms();
 }
 
@@ -811,19 +749,20 @@ function applyCalibrationTransforms(){
   const lbT = comparisonWrapper._lbTop || 0;
   const lbB = comparisonWrapper._lbBottom || 0;
 
-  const rect  = comparisonWrapper.getBoundingClientRect();
-
-  // ✅ Cal-space = volledige viewer (NIET usable window)
-  const hostW = Math.max(1, rect.width);
-  const hostH = Math.max(1, rect.height);
-
-  // ✅ Auto-reframe blijft wel op usable hoogte werken
+    const rect = comparisonWrapper.getBoundingClientRect();
+  const usableW = Math.max(1, (comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
   const usableH = Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
-  const autoDy  = getAutoReframeYPx(usableH);
 
- 
+  const autoDy = getAutoReframeYPx(usableH);
 
-  const apply = (img, cal) => {
+  const toCssPx = (x=0, y=0) => {
+    const dx = (x / CAL_W) * usableW;
+    let dy = (y / CAL_H) * usableH;
+    if(CAL_Y_INVERT) dy = -dy;
+    return { dx, dy };
+  };
+
+    const apply = (img, cal) => {
     if(!img) return;
 
     // Calibrate UIT → alleen auto reframe
@@ -839,10 +778,9 @@ function applyCalibrationTransforms(){
     }
 
     // Calibrate AAN + cal-entry → cal + auto reframe
-    const { dx, dy } = calToCssPx(img, cal.x ?? 0, cal.y ?? 0);
+    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
     setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
   };
-
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
 
@@ -851,9 +789,9 @@ function applyCalibrationTransforms(){
   apply(beforeImgTag, rightCal);
 
   // SBS images ook
-  apply(sbsLeftImg,  leftCal);
+   apply(sbsLeftImg,  leftCal);
   apply(sbsRightImg, rightCal);
-}
+} // <-- BELANGRIJK
 
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
