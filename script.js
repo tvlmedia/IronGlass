@@ -1118,6 +1118,21 @@ if (slider) {
   slider.addEventListener("pointercancel", endDrag);
 }
 
+function recalcLayout(){
+  // zorg dat bars/usable rect kloppen en split/slider netjes reset
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  // wrapper height opnieuw berekenen (alleen non-fullscreen)
+  const { w, h } = getCurrentWH();
+  if(!isWrapperFullscreen()){
+    setWrapperSizeByAR(w, h);
+  }
+
+  // daarna calibratie/positionering opnieuw toepassen
+  requestAnimationFrame(() => applyCalThenPosition());
+}
+
 // 1x listeners, klaar
 beforeImgTag.addEventListener("load", recalcLayout);
 afterImgTag.addEventListener("load", recalcLayout);
@@ -1681,23 +1696,37 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 onFsChange();
 setTimeout(updateImages,50);
 
-/* === Force capture camera/format (after everything is wired) === */
+/* === Force capture camera/format (robust) === */
 function forceCaptureCamera(){
   if(!cameraSelect || !sensorFormatSelect) return;
 
-  // camera kiezen → vult formats (sync in jouw change-handler)
-  cameraSelect.value = CAPTURE_CAMERA;
+  const cam = CAPTURE_CAMERA;
+  const fmt = CAPTURE_FORMAT;
+
+  // wacht tot camera options bestaan
+  const camExists = [...cameraSelect.options].some(o => o.value === cam);
+  if(!camExists) return requestAnimationFrame(forceCaptureCamera);
+
+  // zet camera (triggert vullen formats)
+  cameraSelect.value = cam;
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  // format kiezen (kan direct na camera-change, want options zijn dan gevuld)
-  sensorFormatSelect.value = CAPTURE_FORMAT;
-  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+  // wacht tot format options gevuld zijn
+  requestAnimationFrame(() => {
+    const fmtExists = [...sensorFormatSelect.options].some(o => o.value === fmt);
+    if(!fmtExists) return setTimeout(forceCaptureCamera, 50);
 
-  // 1 frame later: calibrate aan (na layout/bars)
-  requestAnimationFrame(() => enableCalibrate());
+    sensorFormatSelect.value = fmt;
+    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+
+    // pas daarna calibrate aan
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => enableCalibrate())
+    );
+  });
 }
 
-forceCaptureCamera();
-setTimeout(forceCaptureCamera, 50);
-window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
-window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
+// run op de momenten die écht zinvol zijn
+window.addEventListener("DOMContentLoaded", forceCaptureCamera);
+window.addEventListener("pageshow", forceCaptureCamera);
+window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
