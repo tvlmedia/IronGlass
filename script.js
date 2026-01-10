@@ -661,7 +661,7 @@ function getCal(lensSlug, focal){
 
 // Auto scaling voor calibrate
     
-   function autoScaleForCalibration(){
+  function autoScaleForCalibration(){
 
   // ✅ Alleen autoscale op de whitelist (GFX + specifieke modes)
   if(!shouldAutoScaleForCalibration()){
@@ -673,7 +673,10 @@ function getCal(lensSlug, focal){
       if(scaleSlider) scaleSlider.value = String(pct);
       setUserScaleFromPct(pct);
     }
-    return; // geen auto-zoom op andere camera/sensor modes
+
+    // ✅ BELANGRIJK: ook zonder autoscale moet calibrate wél apply’en
+    applyCalibrationTransforms();
+    return;
   }
 
   // --- je bestaande code hieronder blijft hetzelfde ---
@@ -723,7 +726,10 @@ function getCal(lensSlug, focal){
   if(scaleSlider) scaleSlider.value = String(pct);
   setUserScaleFromPct(pct);
 
-  calibrateAutoScaled = (pct > 100); // ✅ onthoud dat autoscale actief was
+  calibrateAutoScaled = (pct > 100);
+
+  // ✅ extra zekerheid: transforms meteen toepassen
+  applyCalibrationTransforms();
 }
 
 function setCalVars(img, dx=0, dy=0, sc=1){
