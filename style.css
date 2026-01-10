@@ -757,3 +757,15 @@ body.sbs-mode #rightDetail{
   box-shadow: none !important;
   outline: none !important;
 }
+.mfAltWrap{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 10px;
+}
+.mfAltLabel{
+  opacity: .85;
+  font-size: 12px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
