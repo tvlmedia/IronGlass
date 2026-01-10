@@ -1074,6 +1074,7 @@ tStopLeftSelect.value   = "2.8";
 tStopRightSelect.value  = "2.8";
 
 updateLensInfo();
+updateMfAltUI();   // ✅ HIER
 updateImages();
 
 /* === Resizes + fullscreen === */
@@ -1145,10 +1146,13 @@ function setSideBySide(on,{force=false}={}) {
 
 sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
 toggleBtn?.addEventListener("click",()=>{ 
-  resetUserScale(); // <-- ook hier
+  resetUserScale();
 
   const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
   const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
+
+  updateMfAltUI();   // ✅ voeg toe
+
   updateLensInfo(); 
   updateImages(); 
 });
@@ -1228,7 +1232,8 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 
 [leftSelect,rightSelect].forEach(el =>
   el.addEventListener("change",()=>{ 
-    calibrateUserTouchedScale = false;   // ✅ reset bij context change
+    updateMfAltUI();              // ✅ HIER
+    calibrateUserTouchedScale = false;
     resetUserScale();
     syncTStopsOnContextChange(); 
     updateLensInfo(); 
@@ -1239,13 +1244,13 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 [focalLengthSelect,tStopLeftSelect,tStopRightSelect].forEach(el =>
   el.addEventListener("change",()=>{
     if(el === focalLengthSelect){
-      calibrateUserTouchedScale = false; // ✅ reset bij andere focal
+      updateMfAltUI();            // ✅ HIER
+      calibrateUserTouchedScale = false;
       syncTStopsOnContextChange();
     }
     updateImages();
   })
 );
-
 // ===== DETAIL (zoom) viewer =====
 let detailActive = false;
 
