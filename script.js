@@ -385,6 +385,7 @@ const focalLengthSelect=q("focalLength"), beforeImgTag=q("beforeImgTag"), afterI
 const leftLabel=q("leftLabel"), rightLabel=q("rightLabel"), downloadLeftRawButton=q("downloadLeftRawButton"), downloadRightRawButton=q("downloadRightRawButton");
 const flareToggle=q("flareToggle"), scaleSlider=q("scaleSlider"), scaleVal=q("scaleVal"), lensInfoDiv=q("lensInfo");
 const bokehToggle = q("bokehToggle");
+const reframeBtn = q("reframeToggle");
 const calibrateBtn = q("calibrateToggle");
 let calibrateActive = false;
 let calibrateUserTouchedScale = false;
@@ -509,25 +510,79 @@ function getCurrentWH(){
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
-/* === AUTO VERTICAL REFRAME (small sensor heights) === */
-const AUTO_REFRAME = {
-  thresholdH: 16.5,
-  maxShiftFrac: 0.75  // 75% (zoals je huidige gedrag)
+/* === AUTO REFAME (viewer + PDF) – per focal, afhankelijk van sensor hoogte ===
+   - startH: vanaf welke sensorhoogte hij begint te shiften
+   - endH:   bij welke hoogte hij max shift bereikt
+   - maxY:   max shift als fractie van beeldhoogte (0.25 = 25% van de zichtbare hoogte)
+   - maxX:   idem maar horizontaal (meestal klein houden, bv 0.03)
+*/
+const AUTO_REFRAME_ENABLED = true;
+
+const AUTO_REFRAME_BY_FOCAL = {
+  // defaults (fallback)
+  "default": { startH: 18.0, endH: 7.0, maxY: 0.22, maxX: 0.00 },
+
+  // pas deze waardes aan naar smaak:
+  "120mm": { maxY: 0.10, maxX: 0.00 },
+  "85mm":  { maxY: 0.12, maxX: 0.00 },
+  "80mm":  { maxY: 0.13, maxX: 0.00 },
+  "65mm":  { maxY: 0.15, maxX: 0.00 },
+  "58mm":  { maxY: 0.17, maxX: 0.00 },
+  "50mm":  { maxY: 0.18, maxX: 0.00 },
+  "45mm":  { maxY: 0.20, maxX: 0.00 },
+  "37mm":  { maxY: 0.21, maxX: 0.00 },
+  "35mm":  { maxY: 0.22, maxX: 0.00 },
+  "30mm":  { maxY: 0.23, maxX: 0.00 },
+  "29mm":  { maxY: 0.23, maxX: 0.00 },
+  "28mm":  { maxY: 0.24, maxX: 0.00 },
+  "20mm":  { maxY: 0.26, maxX: 0.00 }
 };
 
-function getAutoReframeYFrac(){
-  const { h } = getCurrentWH();
-  const t = AUTO_REFRAME.thresholdH;
-  if(!h || h >= t) return 0;
-
-  const severity = clamp((t - h) / t, 0, 1);
-
-  // zelfde als jouw oude: naar beneden
-  return +severity * AUTO_REFRAME.maxShiftFrac;
+function focalKey(f){
+  // "45mm_m50" -> "45mm"
+  return String(f || "").replace(/_m(35|50)$/, "");
 }
 
-function getAutoReframeYPx(usableH){
-  return Math.round(getAutoReframeYFrac() * usableH);
+function getAutoReframeFracForFocal(effectiveFocal){
+  if(!AUTO_REFRAME_ENABLED) return { x:0, y:0, sev:0 };
+
+  const { h } = getCurrentWH();
+  const key = focalKey(effectiveFocal);
+  const cfg = { ...AUTO_REFRAME_BY_FOCAL.default, ...(AUTO_REFRAME_BY_FOCAL[key] || {}) };
+
+  const startH = cfg.startH;
+  const endH   = cfg.endH;
+
+  if(!h || h >= startH) return { x:0, y:0, sev:0 };
+
+  // severity 0..1 (lineair)
+  const sev = clamp((startH - h) / Math.max(0.0001, (startH - endH)), 0, 1);
+
+  return {
+    x: sev * (cfg.maxX || 0),
+    y: sev * (cfg.maxY || 0),
+    sev
+  };
+}
+
+// Viewer px-shift op basis van “usable window” (dus inclusief letterbox/pillarbox correct)
+function getAutoReframePx(imgEl, effectiveFocal){
+  if(!AUTO_REFRAME_ENABLED) return { ax:0, ay:0, sev:0 };
+
+  const { w: boxW, h: boxH } = getCalBoxFor(imgEl);
+  const frac = getAutoReframeFracForFocal(effectiveFocal);
+
+  // positief = naar rechts/beneden in CSS pixels
+  return {
+    ax: Math.round(frac.x * boxW),
+    ay: Math.round(frac.y * boxH),
+    sev: frac.sev
+  };
+}
+
+// PDF gebruikt fractie van export-H (renderToSensorAR doet oy += yFrac * H)
+function getAutoReframeYFracForPdf(effectiveFocal){
+  return getAutoReframeFracForFocal(effectiveFocal).y || 0;
 }
 
 /* === Camera/format selects === */
@@ -987,26 +1042,34 @@ function applyCalibrationTransforms(){
   const rightCal = getCal(rightSlug, rightFocal);
 
   // ✅ helper die je miste
-  const apply = (img, cal) => {
-    if(!img) return;
+ const apply = (img, cal, effectiveFocal) => {
+  if(!img) return;
 
-    // Calibrate uit of geen data → reset
-    if(!calibrateActive || !cal){
-      setCalVars(img, 0, 0, 1);
-      return;
-    }
+  // 1) basis: geen calibratie
+  let dx = 0, dy = 0, sc = 1;
 
-    const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
-    setCalVars(img, dx, dy, (cal.scale ?? 1));
-  };
+  // 2) alleen als calibrate aan + er is cal-data -> neem gecalibreerde offsets
+  if(calibrateActive && cal){
+    const p = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
+    dx = p.dx;
+    dy = p.dy;
+    sc = (cal.scale ?? 1);
+  }
+
+  // 3) ✅ ALTIJD auto-reframe erbovenop (dus werkt ook als calibrate uit staat)
+  const auto = getAutoReframePx(img, effectiveFocal);
+  dx += auto.ax;
+  dy += auto.ay;
+
+  setCalVars(img, dx, dy, sc);
+};
 
   // after = links, before = rechts
-  apply(afterImgTag,  leftCal);
-  apply(beforeImgTag, rightCal);
-
+  apply(afterImgTag,  leftCal,  leftFocal);
+apply(beforeImgTag, rightCal, rightFocal);
   // SBS ook
-  apply(sbsLeftImg,  leftCal);
-  apply(sbsRightImg, rightCal);
+  apply(sbsLeftImg,  leftCal,  leftFocal);
+apply(sbsRightImg, rightCal, rightFocal);
 }
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
@@ -1811,11 +1874,18 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
     const leftText=leftLabel.textContent, rightText=rightLabel.textContent, leftName=leftSelect.value, rightName=rightSelect.value, focal=focalLengthSelect.value;
     const tLeft=String(tStopLeftSelect.value).replace(/\./g,"_"), tRight=String(tStopRightSelect.value).replace(/\./g,"_");
     const logo=await loadHTMLImage("https://tvlmedia.github.io/IronGlass/LOGOVOORPDF.png"), sensorText=getSensorText();
-       const yFrac = getAutoReframeYFrac();
+      const uiFocal = focalLengthSelect?.value || "35mm";
+const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
-    const li=await loadHTMLImage(afterImgTag.src), ri=await loadHTMLImage(beforeImgTag.src);
-    const leftSensor  = await renderToSensorAR(li, targetAR, exportH, zoom*userScale, yFrac);
-    const rightSensor = await renderToSensorAR(ri, targetAR, exportH, zoom*userScale, yFrac);
+const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
+const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
+
+const yFracL = getAutoReframeYFracForPdf(leftFocal);
+const yFracR = getAutoReframeYFracForPdf(rightFocal);
+
+const leftSensor  = await renderToSensorAR(li, targetAR, exportH, zoom*userScale, yFracL);
+const rightSensor = await renderToSensorAR(ri, targetAR, exportH, zoom*userScale, yFracR);
     const splitData=await buildSplitFromSensor(leftSensor.dataURL,rightSensor.dataURL,leftSensor.W,leftSensor.H);
 
     // p1 split
