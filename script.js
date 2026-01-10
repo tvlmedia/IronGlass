@@ -383,6 +383,9 @@ const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
 const BASE_SENSOR = cameras[CAPTURE_CAMERA][CAPTURE_FORMAT];
 let sbsActive=false, isExportingPdf=false, userScale=1;
 
+// ✅ zet deze HIER (en verwijder de latere "let detailActive = false;" verderop)
+let detailActive = false;
+
 /* === Helpers === */
 const isWrapperFullscreen=()=> (document.fullscreenElement||document.webkitFullscreenElement)===comparisonWrapper;
 const enterWrapperFullscreen=()=> comparisonWrapper.requestFullscreen?.()||comparisonWrapper.webkitRequestFullscreen?.();
@@ -1108,6 +1111,56 @@ function ensureSliderPointerAccess(){
   if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
 }
 ensureSliderPointerAccess();
+slider.style.touchAction = "none";
+
+// ===============================
+// SLIDER DRAG (POINTER EVENTS)
+// ===============================
+let isDraggingSlider = false;
+
+function sliderStart(e){
+  if (sbsActive) return;               // in SBS geen slider
+  if (isExportingPdf) return;
+  if (detailActive) return;
+
+  isDraggingSlider = true;
+  document.body.classList.add("dragging");
+
+  try { slider.setPointerCapture?.(e.pointerId); } catch(_) {}
+
+  updateFullscreenBars();
+  updateSliderPosition(e.clientX);
+  e.preventDefault?.();
+}
+
+function sliderMove(e){
+  if (!isDraggingSlider) return;
+  updateSliderPosition(e.clientX);
+  e.preventDefault?.();
+}
+
+function sliderEnd(e){
+  if (!isDraggingSlider) return;
+  isDraggingSlider = false;
+  document.body.classList.remove("dragging");
+  try { slider.releasePointerCapture?.(e.pointerId); } catch(_) {}
+  e.preventDefault?.();
+}
+
+slider.addEventListener("pointerdown", sliderStart, { passive:false });
+window.addEventListener("pointermove", sliderMove, { passive:false });
+window.addEventListener("pointerup", sliderEnd, { passive:false });
+window.addEventListener("pointercancel", sliderEnd, { passive:false });
+
+comparisonWrapper.addEventListener("pointerdown", (e) => {
+  if (sbsActive || isExportingPdf || detailActive) return;
+  if (e.target && (e.target.closest?.(".controls"))) return;
+  updateFullscreenBars();
+  updateSliderPosition(e.clientX);
+}, { passive:true });
+
+/* === Slider drag (mouse/touch) === */
+// ... jouw recalcLayout + load/error listeners blijven gewoon hieronder staan
 
 /* === Slider drag (mouse/touch) === */
 // Slider drag
@@ -1202,7 +1255,7 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 );
 
 // ===== DETAIL (zoom) viewer =====
-let detailActive = false;
+
 
 const leftDetailImg  = leftDetail?.querySelector("img");
 const rightDetailImg = rightDetail?.querySelector("img");
