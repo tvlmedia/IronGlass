@@ -383,10 +383,6 @@ const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
 const BASE_SENSOR = cameras[CAPTURE_CAMERA][CAPTURE_FORMAT];
 let sbsActive=false, isExportingPdf=false, userScale=1;
 
-// ✅ zet deze HIER (en verwijder de latere "let detailActive = false;" verderop)
-let detailActive = false;
-syncDetailOverlayPointerEvents();
-
 /* === Helpers === */
 const isWrapperFullscreen=()=> (document.fullscreenElement||document.webkitFullscreenElement)===comparisonWrapper;
 const enterWrapperFullscreen=()=> comparisonWrapper.requestFullscreen?.()||comparisonWrapper.webkitRequestFullscreen?.();
@@ -636,15 +632,13 @@ function enableCalibrate(){
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
+  const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
+  const pos = "center center";
+
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
     if(!img) return;
-    if(isFs){
-      img.style.objectFit = "contain";
-      img.style.objectPosition = "center center";
-    } else {
-      img.style.removeProperty("object-fit");
-      img.style.removeProperty("object-position");
-    }
+    img.style.objectFit = fit;
+    img.style.objectPosition = pos;
   });
 }
 // --- Toggle Highlight ---
@@ -1007,186 +1001,72 @@ window.addEventListener("resize",()=>{
     setWrapperSizeByAR(w,h);
   }
 });
-async function toggleFullscreen(){
-  if(isWrapperFullscreen()){
-    await exitAnyFullscreen();
-
-    const { w, h } = getCurrentWH();
-    comparisonWrapper.style.setProperty("aspect-ratio","auto");
-    setWrapperSizeByAR(w,h);
-    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v,"0px")
-    );
-
-    slider.style.top = "0px";
-    slider.style.height = "100%";
-    slider.style.bottom = "0";
-  } else {
-    clearInlineHeights();
-    await enterWrapperFullscreen();
-    pulseFsBars?.({ duration: 1400 }); // <-- voorkomt crash als pulseFsBars niet bestaat
-  }
-
+function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } 
+                                      
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
-  else applyCalibrationTransforms();
-
-  updateToggleHighlights();
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 
+/* === SxS toggle === */
 function setSideBySide(on,{force=false}={}) {
-  if(isExportingPdf && !force) return;
-
-  const next = !!on;
-  if(!force && sbsActive === next) return;
-  sbsActive = next;
-
-  document.body.classList.toggle("sbs-mode", sbsActive);
-  comparisonWrapper.classList.toggle("sbs-mode", sbsActive);
-
-  const beforeWrapper = beforeImgTag.parentElement;
-
-  if(sbsActive){
-    sbsWrapper.style.display = "flex";
-    beforeWrapper.style.display = "none";
-    afterWrapper.style.display = "none";
-    sbsLeftImg.src  = afterImgTag.src;   // after = links
-    sbsRightImg.src = beforeImgTag.src;  // before = rechts
-    slider.style.display = "none";
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v,"0px")
-    );
-
-    if(isWrapperFullscreen()) clearInlineHeights();
-  } else {
-    sbsWrapper.style.display = "none";
-    beforeWrapper.style.display = "";
-    afterWrapper.style.display = "";
-    slider.style.display = "";
-  }
-
-  const { w, h } = getCurrentWH();
+  if(isExportingPdf && !force) return; const next=!!on; if(!force && sbsActive===next) return; sbsActive=next;
+  document.body.classList.toggle("sbs-mode",sbsActive); comparisonWrapper.classList.toggle("sbs-mode",sbsActive);
+  const beforeWrapper=beforeImgTag.parentElement;
+  if(sbsActive){ sbsWrapper.style.display="flex"; beforeWrapper.style.display="none"; afterWrapper.style.display="none"; sbsLeftImg.src=afterImgTag.src; sbsRightImg.src=beforeImgTag.src; slider.style.display="none"; ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); if(isWrapperFullscreen()) clearInlineHeights();
+  } else { sbsWrapper.style.display="none"; beforeWrapper.style.display=""; afterWrapper.style.display=""; slider.style.display=""; }
+    const {w,h}=getCurrentWH();
   setWrapperSizeByAR(w,h);
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
+    if(!sbsActive){
+    
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
-  else applyCalibrationTransforms();
-
-  updateToggleHighlights();
-}
-
-// 1x listeners, klaar
-fullscreenBtn?.addEventListener("click", (e) => {
-  e.preventDefault?.();   // handig als het een <a> is
-  toggleFullscreen();
-});
-
-sbsBtn?.addEventListener("click", (e) => {
-  e.preventDefault?.();
-  setSideBySide(!sbsActive);
-});
-// === SLIDER HOTFIX: voorkom dat images/overlays de slider blokkeren ===
-function ensureSliderPointerAccess(){
-  if(!slider || !comparisonWrapper) return;
-
-  // slider moet altijd clickable blijven
-  slider.style.zIndex = "999";
-  slider.style.pointerEvents = "auto";
-  slider.style.touchAction = "none";
-
-  // alleen de IMG's mogen geen events pakken
-  [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
-    if(img) img.style.pointerEvents = "none";
-  });
-
-  // ❌ NIET DOEN (dit kan je slider killen als die erin zit)
-  // if(afterWrapper) afterWrapper.style.pointerEvents = "none";
-  // const beforeWrapper = beforeImgTag?.parentElement;
-  // if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
-}
-ensureSliderPointerAccess();
-// ===============================
-// SLIDER DRAG (POINTER EVENTS)
-// ===============================
-let isDraggingSlider = false;
-
-function sliderStart(e){
-  if (sbsActive) return;
-  if (isExportingPdf) return;
-  if (detailActive) return;
-
-  e.stopPropagation(); // ✅ voorkomt dubbel starten via comparisonWrapper
-
-  isDraggingSlider = true;
-  document.body.classList.add("dragging");
-
-  try { slider.setPointerCapture?.(e.pointerId); } catch(_) {}
-
-  updateFullscreenBars();
-  updateSliderPosition(e.clientX);
-  e.preventDefault?.();
-}
-
-function sliderMove(e){
-  if (!isDraggingSlider) return;
-  updateSliderPosition(e.clientX);
-  e.preventDefault?.();
-}
-
-function sliderEnd(e){
-  if (!isDraggingSlider) return;
-  isDraggingSlider = false;
-  document.body.classList.remove("dragging");
-  try { slider.releasePointerCapture?.(e.pointerId); } catch(_) {}
-  try { comparisonWrapper.releasePointerCapture?.(e.pointerId); } catch(_) {}
-  e.preventDefault?.();
-}
-
-slider.addEventListener("pointerdown", sliderStart, { passive:false, capture:true });
-window.addEventListener("pointermove", sliderMove, { passive:false });
-window.addEventListener("pointerup", sliderEnd, { passive:false });
-window.addEventListener("pointercancel", sliderEnd, { passive:false });
-
-comparisonWrapper.addEventListener("pointerdown", (e) => {
-  if (sbsActive || isExportingPdf || detailActive) return;
-  if (e.target === slider || e.target?.closest?.("#slider")) return; // ✅
-  if (e.target && e.target.closest?.(".controls")) return;
-
-  isDraggingSlider = true;
-  document.body.classList.add("dragging");
-
-  try { comparisonWrapper.setPointerCapture?.(e.pointerId); } catch(_) {}
-
-  updateFullscreenBars();
-  updateSliderPosition(e.clientX);
-  e.preventDefault?.();
-}, { passive:false, capture:true });
-/* === Slider drag (mouse/touch) === */
-// ... jouw recalcLayout + load/error listeners blijven gewoon hieronder staan
-
-/* === Slider drag (mouse/touch) === */
-// Slider drag
-function recalcLayout(){
-  // zorg dat bars/usable rect kloppen en split/slider netjes reset
-  updateFullscreenBars();
-  resetSplitToMiddle();
-
-  // wrapper height opnieuw berekenen (alleen non-fullscreen)
-  const { w, h } = getCurrentWH();
-  if(!isWrapperFullscreen()){
-    setWrapperSizeByAR(w, h);
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
   }
+}
 
-  // daarna calibratie/positionering opnieuw toepassen
-  requestAnimationFrame(() => applyCalThenPosition());
+sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
+toggleBtn?.addEventListener("click",()=>{ 
+  resetUserScale(); // <-- ook hier
+
+  const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
+  const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
+  updateLensInfo(); 
+  updateImages(); 
+});
+/* === Slider drag (mouse/touch) === */
+let isDragging=false;
+slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
+window.addEventListener("mouseup",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
+window.addEventListener("mousemove",e=>{ if(isDragging) updateSliderPosition(e.clientX); });
+slider.addEventListener("touchstart",e=>{ e.preventDefault(); isDragging=true; document.body.classList.add("dragging"); },{passive:false});
+window.addEventListener("touchend",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
+window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
+
+function recalcLayout(){
+ 
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 
 // 1x listeners, klaar
@@ -1265,19 +1145,13 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 );
 
 // ===== DETAIL (zoom) viewer =====
-
+let detailActive = false;
 
 const leftDetailImg  = leftDetail?.querySelector("img");
 const rightDetailImg = rightDetail?.querySelector("img");
 
-function syncDetailOverlayPointerEvents(){
-  if(!detailOverlay) return;
-  detailOverlay.style.pointerEvents = detailActive ? "auto" : "none";
-}
-
 detailToggleButton?.addEventListener("click", () => {
-  if(!detailOverlay || !leftDetail || !rightDetail) return;
-
+  if(!detailOverlay || !leftDetail || !rightDetail) return; // ✅ guard
   detailActive = !detailActive;
   detailOverlay.classList.toggle("active", detailActive);
 
@@ -1285,8 +1159,6 @@ detailToggleButton?.addEventListener("click", () => {
     leftDetail.style.display = "none";
     rightDetail.style.display = "none";
   }
-
-  syncDetailOverlayPointerEvents(); // ✅ HIER
   updateToggleHighlights();
 });
 
@@ -1306,8 +1178,6 @@ document.addEventListener("keydown", (e) => {
     detailToggleButton?.classList.remove("active");
     leftDetail && (leftDetail.style.display = "none");
     rightDetail && (rightDetail.style.display = "none");
-
-    syncDetailOverlayPointerEvents(); // ✅
     updateToggleHighlights();
   }
 });
@@ -1605,7 +1475,6 @@ const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.heigh
 }
 
 function updateSliderPosition(clientX){
-  if(typeof comparisonWrapper._usableW === "undefined") updateFullscreenBars();
   const rect = comparisonWrapper.getBoundingClientRect();
   const lbL  = comparisonWrapper._lbLeft   || 0;
   const lbR  = comparisonWrapper._lbRight  || 0;
@@ -1763,134 +1632,23 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 onFsChange();
 setTimeout(updateImages,50);
 
-/* === Force capture camera/format (robust) === */
+/* === Force capture camera/format (after everything is wired) === */
 function forceCaptureCamera(){
   if(!cameraSelect || !sensorFormatSelect) return;
 
-  const cam = CAPTURE_CAMERA;
-  const fmt = CAPTURE_FORMAT;
-
-  // wacht tot camera options bestaan
-  const camExists = [...cameraSelect.options].some(o => o.value === cam);
-  if(!camExists) return requestAnimationFrame(forceCaptureCamera);
-
-  // zet camera (triggert vullen formats)
-  cameraSelect.value = cam;
+  // camera kiezen → vult formats (sync in jouw change-handler)
+  cameraSelect.value = CAPTURE_CAMERA;
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  // wacht tot format options gevuld zijn
-  requestAnimationFrame(() => {
-    const fmtExists = [...sensorFormatSelect.options].some(o => o.value === fmt);
-    if(!fmtExists) return setTimeout(forceCaptureCamera, 50);
+  // format kiezen (kan direct na camera-change, want options zijn dan gevuld)
+  sensorFormatSelect.value = CAPTURE_FORMAT;
+  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-    sensorFormatSelect.value = fmt;
-    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
-
-    // pas daarna calibrate aan
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => enableCalibrate())
-    );
-  });
+  // 1 frame later: calibrate aan (na layout/bars)
+  requestAnimationFrame(() => enableCalibrate());
 }
 
-// run op de momenten die écht zinvol zijn
-window.addEventListener("DOMContentLoaded", forceCaptureCamera);
-window.addEventListener("pageshow", forceCaptureCamera);
-window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
-
-/* ===============================
-   SLIDER FIX v2 (HARD OVERRIDE)
-   Plak helemaal onderaan script.js
-   =============================== */
-(function sliderFixV2(){
-  if(!window.PointerEvent) return;
-
-  const sliderEl = document.getElementById("slider");
-  const wrapEl   = document.getElementById("comparisonWrapper");
-  const afterWrap = document.getElementById("afterWrapper");
-
-  if(!sliderEl || !wrapEl || !afterWrap) return;
-
-  // Force: slider altijd "bovenop" + interactief
-  sliderEl.style.pointerEvents = "auto";
-  sliderEl.style.touchAction = "none";
-  sliderEl.style.zIndex = "100000";
-
-  // Force: viewer mag pointer-events ontvangen
-  wrapEl.style.touchAction = "none";
-
-  let dragging = false;
-  let activePointerId = null;
-
-  const canDrag = () => {
-    // gebruik jouw globals als ze bestaan
-    if (typeof sbsActive !== "undefined" && sbsActive) return false;
-    if (typeof isExportingPdf !== "undefined" && isExportingPdf) return false;
-    if (typeof detailActive !== "undefined" && detailActive) return false;
-    return true;
-  };
-
-  function startDrag(e){
-    if(!canDrag()) return;
-
-    dragging = true;
-    activePointerId = e.pointerId ?? null;
-
-    document.body.classList.add("dragging");
-
-    // capture op wrapper is het meest stabiel
-    try { wrapEl.setPointerCapture?.(e.pointerId); } catch(_){}
-
-    // jouw functies bestaan al in je file:
-    try { updateFullscreenBars(); } catch(_){}
-    try { updateSliderPosition(e.clientX); } catch(_){}
-
-    e.preventDefault?.();
-    e.stopImmediatePropagation?.();
-  }
-
-  function moveDrag(e){
-    if(!dragging) return;
-    if(activePointerId !== null && e.pointerId !== activePointerId) return;
-
-    try { updateSliderPosition(e.clientX); } catch(_){}
-
-    e.preventDefault?.();
-    e.stopImmediatePropagation?.();
-  }
-
-  function endDrag(e){
-    if(!dragging) return;
-
-    dragging = false;
-    activePointerId = null;
-    document.body.classList.remove("dragging");
-
-    try { wrapEl.releasePointerCapture?.(e.pointerId); } catch(_){}
-
-    e.preventDefault?.();
-    e.stopImmediatePropagation?.();
-  }
-
-  // 1) Pak slider altijd als je erop klikt
-  sliderEl.addEventListener("pointerdown", startDrag, { capture:true, passive:false });
-
-  // 2) Pak óók drag als je ergens in de viewer klikt (maar NIET op controls)
-  document.addEventListener("pointerdown", (e) => {
-    if(!canDrag()) return;
-    if(!wrapEl.contains(e.target)) return;
-
-    // niet starten als je op controls klikt
-    if(e.target.closest?.(".controls")) return;
-
-    startDrag(e);
-  }, { capture:true, passive:false });
-
-  document.addEventListener("pointermove", moveDrag, { capture:true, passive:false });
-  document.addEventListener("pointerup", endDrag, { capture:true, passive:false });
-  document.addEventListener("pointercancel", endDrag, { capture:true, passive:false });
-
-  // kleine safety: na layout updates slider weer correct zetten
-  try { updateFullscreenBars(); } catch(_){}
-  try { resetSplitToMiddle(); } catch(_){}
-})();
+forceCaptureCamera();
+setTimeout(forceCaptureCamera, 50);
+window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
+window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
