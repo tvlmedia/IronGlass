@@ -240,7 +240,8 @@ const MEASURED_TSTOPS = {
     "90mm":  ["4"],
     "80mm":  ["4", "2.9"],
     "65mm":  ["4", "3.8"],
-    "45mm":  ["4", "3.9"],
+   "45mm_m35": ["4", "3.9"],
+"45mm_m50": ["4", "3.9"],
     "35mm":  ["4", "2.9"],
     "30mm":  ["4", "3.8"]
   },
@@ -417,14 +418,21 @@ const mfAltState = { left: null, right: null };
 
 function getEffectiveFocal(lensSlug, uiFocal, side /* "left"|"right" */){
   const opts = ALT_FOCAL_OPTIONS?.[lensSlug]?.[uiFocal];
+  let picked = uiFocal;
+
   if(opts && opts.length > 1){
     const chosen = mfAltState?.[side];
-    if(chosen && opts.includes(chosen)) return chosen;
-    return opts[0]; // default = eerste optie
+    picked = (chosen && opts.includes(chosen)) ? chosen : opts[0];
   }
-  return uiFocal;
-}
 
+  // ✅ Special-case: Sovjet MF 45mm heeft 2 takes (m35/m50)
+  if(lensSlug === "ironglass_sovjet_medium_format" && picked === "45mm"){
+    if(uiFocal === "50mm") return "45mm_m50";
+    if(uiFocal === "35mm") return "45mm_m35";
+  }
+
+  return picked;
+}
 function fillAltSelect(sel, options, preferred){
   sel.innerHTML = "";
   options.forEach(v => sel.add(new Option(v, v)));
@@ -663,7 +671,7 @@ const CALIBRATION = {
     "85mm":  { scale: 0.89, x: 3.000,  y: 35.000 },
     "50mm":  { scale: 0.96, x: -3.965,  y: -27.412 },
     "35mm":  { scale: 0.900, x: -13.930,  y: -77.447 },
-    "35mm":  { scale: 0.925, x: 2.000,  y: -37.000 }
+    "28mm":  { scale: 0.925, x: 2.000,  y: -37.000 }
   },
 
   "ironglass_sovjet_medium_format": {
@@ -671,8 +679,8 @@ const CALIBRATION = {
     "90mm":  { scale: 0.88, x: 14.000, y: 29.000 },
     "80mm":  { scale: 0.97, x: 28.780, y: 0.000 },
     "65mm":  { scale: 0.78,  x: 27.377, y: -10.412 },
-    "45mm":  { scale: 1.120, x: 0.000,  y: -27.000 },
-    "45mm":  { scale: 0.780, x: -5.000, y: -65.000 },
+    "45mm_m50": { scale: 1.120, x: 0.000,  y: -27.000 },
+    "45mm_m35": { scale: 0.780, x: -5.000, y: -65.000 },
     "35mm":  { scale: 1.050, x: 0.000, y: -19.447 },
     "30mm":  { scale: 0.920, x: -8.000, y: -35.000 }
   },
@@ -1052,8 +1060,8 @@ function updateImages(){
   setImageWithFallback(afterImgTag,  leftCandidates);
 
   // ✅ labels + links
-  const lf = aliasFor(LL, leftFocal);
-  const rf = aliasFor(RR, rightFocal);
+ const lf = aliasFor(LL, leftFocal);
+const rf = aliasFor(RR, rightFocal);
 
   const lu = lensDescriptions[leftSelect.value]?.url  || "#";
   const ru = lensDescriptions[rightSelect.value]?.url || "#";
@@ -1064,8 +1072,8 @@ function updateImages(){
   const uiTLLabel = (uiTL === "wo") ? "WO" : `T${uiTL}`;
   const uiTRLabel = (uiTR === "wo") ? "WO" : `T${uiTR}`;
 
-  leftLabel.innerHTML  = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lf} ${uiTLLabel}${tLNote}</a>`;
-  rightLabel.innerHTML = `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rf} ${uiTRLabel}${tRNote}</a>`;
+  const lfDisplay = String(lf).replace(/_m(35|50)$/, "");
+  const rfDisplay = String(rf).replace(/_m(35|50)$/, "");
 
   // ✅ RAW download keys moeten matchen met je “file focal” (aliasFor) + file t-stop
   setDownloadButton(downloadLeftRawButton,  `${LL}_${lf}_t${tL}`);
