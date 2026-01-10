@@ -1025,59 +1025,72 @@ function updateImages(){
 
   const uiFocal = focalLengthSelect.value;
 
+  // ✅ MF-alt kan links/rechts een andere “echte” focal kiezen
   const leftFocal  = getEffectiveFocal(LL, uiFocal, "left");
   const rightFocal = getEffectiveFocal(RR, uiFocal, "right");
 
-const tL = fileTStopFor(LL, uiTL, focal);
-const tR = fileTStopFor(RR, uiTR, focal);
+  // ✅ T-stops berekenen per kant (focal-aware)
+  const tL = fileTStopFor(LL, uiTL, leftFocal);
+  const tR = fileTStopFor(RR, uiTR, rightFocal);
 
-const tLActual = actualTStopForLabel(LL, uiTL, focal);
-const tRActual = actualTStopForLabel(RR, uiTR, focal);
-const flareMode = flareToggle.dataset.mode || "noflare";
-const sceneMode = bokehToggle?.dataset.mode || "portrait";
+  const tLActual = actualTStopForLabel(LL, uiTL, leftFocal);
+  const tRActual = actualTStopForLabel(RR, uiTR, rightFocal);
 
-const uiTLStr = (uiTL === "wo") ? null : String(uiTL).replace(".", "_");
-const uiTRStr = (uiTR === "wo") ? null : String(uiTR).replace(".", "_");
+  const flareMode = flareToggle.dataset.mode || "noflare";
+  const sceneMode = bokehToggle?.dataset.mode || "portrait";
 
-// fallback alleen als alias iets verandert (bijv. 2.8 -> 2.9)
-const tLFallback = (uiTL === "wo") ? null : String((TSTOP_FILE_ALIAS?.[LL]?.[uiTL] ?? uiTL)).replace(/\./g, "_");
-const tRFallback = (uiTR === "wo") ? null : String((TSTOP_FILE_ALIAS?.[RR]?.[uiTR] ?? uiTR)).replace(/\./g, "_");
+  // fallback alleen als je “oude alias table” iets anders zou kiezen
+  const tLFallback = (uiTL === "wo")
+    ? null
+    : String((TSTOP_FILE_ALIAS?.[LL]?.[uiTL] ?? uiTL)).replace(/\./g, "_");
 
-const leftCandidates  = resolveImageCandidates(LL, focal, tL, flareMode, sceneMode, tLFallback);
-const rightCandidates = resolveImageCandidates(RR, focal, tR, flareMode, sceneMode, tRFallback);
+  const tRFallback = (uiTR === "wo")
+    ? null
+    : String((TSTOP_FILE_ALIAS?.[RR]?.[uiTR] ?? uiTR)).replace(/\./g, "_");
 
-// jouw tool: before = rechts, after = links
-setImageWithFallback(beforeImgTag, rightCandidates);
-setImageWithFallback(afterImgTag,  leftCandidates);
-  const lf=aliasFor(LL,focal), rf=aliasFor(RR,focal);
-  const lu=lensDescriptions[leftSelect.value]?.url||"#", ru=lensDescriptions[rightSelect.value]?.url||"#";
-  const tLNote = (String(tLActual) !== String(uiTL)) ? ` (eig. T${tLActual})` : "";
-const tRNote = (String(tRActual) !== String(uiTR)) ? ` (eig. T${tRActual})` : "";
+  const leftCandidates  = resolveImageCandidates(LL, leftFocal,  tL, flareMode, sceneMode, tLFallback);
+  const rightCandidates = resolveImageCandidates(RR, rightFocal, tR, flareMode, sceneMode, tRFallback);
 
-const uiTLLabel = (uiTL === "wo") ? "WO" : `T${uiTL}`;
-const uiTRLabel = (uiTR === "wo") ? "WO" : `T${uiTR}`;
+  // jouw tool: before = rechts, after = links
+  setImageWithFallback(beforeImgTag, rightCandidates);
+  setImageWithFallback(afterImgTag,  leftCandidates);
 
-leftLabel.innerHTML = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lf} ${uiTLLabel}${tLNote}</a>`;
-rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rf} ${uiTRLabel}${tRNote}</a>`;
+  // ✅ labels + links
+  const lf = aliasFor(LL, leftFocal);
+  const rf = aliasFor(RR, rightFocal);
+
+  const lu = lensDescriptions[leftSelect.value]?.url  || "#";
+  const ru = lensDescriptions[rightSelect.value]?.url || "#";
+
+  const tLNote = (uiTL !== "wo" && String(tLActual) !== String(uiTL)) ? ` (eig. T${tLActual})` : "";
+  const tRNote = (uiTR !== "wo" && String(tRActual) !== String(uiTR)) ? ` (eig. T${tRActual})` : "";
+
+  const uiTLLabel = (uiTL === "wo") ? "WO" : `T${uiTL}`;
+  const uiTRLabel = (uiTR === "wo") ? "WO" : `T${uiTR}`;
+
+  leftLabel.innerHTML  = `Lens: <a href="${lu}" target="_blank" rel="noopener noreferrer">${leftSelect.value} ${lf} ${uiTLLabel}${tLNote}</a>`;
+  rightLabel.innerHTML = `Lens: <a href="${ru}" target="_blank" rel="noopener noreferrer">${rightSelect.value} ${rf} ${uiTRLabel}${tRNote}</a>`;
+
+  // ✅ RAW download keys moeten matchen met je “file focal” (aliasFor) + file t-stop
   setDownloadButton(downloadLeftRawButton,  `${LL}_${lf}_t${tL}`);
   setDownloadButton(downloadRightRawButton, `${RR}_${rf}_t${tR}`);
 
- if(sbsActive){
-  setImageWithFallback(sbsLeftImg,  leftCandidates);
-  setImageWithFallback(sbsRightImg, rightCandidates);
-}
- resetSplitToMiddle();
+  // SBS ook updaten
+  if(sbsActive){
+    setImageWithFallback(sbsLeftImg,  leftCandidates);
+    setImageWithFallback(sbsRightImg, rightCandidates);
+  }
 
-if(calibrateActive){
-  if(!calibrateUserTouchedScale){
-    autoScaleForCalibration();
+  updateMfAltUI();        // ✅ keep UI in sync
+  resetSplitToMiddle();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
   } else {
     applyCalibrationTransforms();
   }
-} else {
-  applyCalibrationTransforms();
 }
-} // <-- sluit updateImages() hier af
 
 /* === Init defaults === */
 leftSelect.value  = "IronGlass Titan Zoom";
