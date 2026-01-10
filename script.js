@@ -426,6 +426,7 @@ sensorFormatSelect.addEventListener("change", applyCurrentFormat);
 
 function applyCurrentFormat(){
   const { w, h } = getCurrentWH();
+
   comparisonWrapper.style.removeProperty("--sensor-scale");
   setWrapperSizeByAR(w, h);
   document.body.classList.add("sensor-mode");
@@ -433,18 +434,18 @@ function applyCurrentFormat(){
   const scale = Math.abs(BASE_SENSOR.w - w) < 0.1 ? 1 : (BASE_SENSOR.w / w);
   comparisonWrapper.style.setProperty("--sensor-scale", scale.toFixed(4));
 
-  updateFullscreenBars();
-  resetSplitToMiddle();
+  // ✅ WACHT 1 FRAME zodat de nieuwe hoogte/usable rect echt klopt
+  requestAnimationFrame(() => {
+    updateFullscreenBars();
+    resetSplitToMiddle();
 
- if(calibrateActive){
-  if(!calibrateUserTouchedScale){
-    autoScaleForCalibration();
-  } else {
-    applyCalibrationTransforms();
-  }
-} else {
-  applyCalibrationTransforms();
-}
+    if (calibrateActive) {
+      if (!calibrateUserTouchedScale) autoScaleForCalibration();
+      else applyCalibrationTransforms();
+    } else {
+      applyCalibrationTransforms();
+    }
+  });
 }
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
