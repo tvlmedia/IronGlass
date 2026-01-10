@@ -780,3 +780,19 @@ body.sbs-mode #rightDetail{
 
 #detailOverlay { pointer-events:none; }
 #detailOverlay.active { pointer-events:auto; }
+
+/* ==== HARD SLIDER FIX ==== */
+#comparisonWrapper{
+  touch-action: none;          /* belangrijk voor pointer events */
+}
+
+#beforeImage,
+#afterWrapper,
+#fsBars{
+  pointer-events: none !important;   /* deze lagen mogen niks vangen */
+}
+
+#slider{
+  pointer-events: auto !important;   /* slider moet ALTIJD events krijgen */
+  z-index: 10000 !important;         /* boven alles */
+}
