@@ -368,8 +368,8 @@ button.active,
 
   /* ✅ FIX: 1 transform chain (geen overwrite) */
   transform:
-    translate(var(--cal-tx), var(--cal-ty))
-    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
+  scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)))
+  translate(var(--cal-tx), var(--cal-ty));
   transform-origin:center;
   will-change:transform;
 }
@@ -506,8 +506,8 @@ body.sbs-mode #sbsWrapper .pane img{
   --cal-scale: 1;
 
   transform:
-    translate(var(--cal-tx), var(--cal-ty))
-    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
+  scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)))
+  translate(var(--cal-tx), var(--cal-ty));
   transform-origin:center;
   will-change:transform;
 }
