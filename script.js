@@ -1001,52 +1001,93 @@ window.addEventListener("resize",()=>{
     setWrapperSizeByAR(w,h);
   }
 });
-function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } 
-                                      
+async function toggleFullscreen(){
+  if(isWrapperFullscreen()){
+    await exitAnyFullscreen();
+
+    const { w, h } = getCurrentWH();
+    comparisonWrapper.style.setProperty("aspect-ratio","auto");
+    setWrapperSizeByAR(w,h);
+    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
+      comparisonWrapper.style.setProperty(v,"0px")
+    );
+
+    slider.style.top = "0px";
+    slider.style.height = "100%";
+    slider.style.bottom = "0";
+  } else {
+    clearInlineHeights();
+    await enterWrapperFullscreen();
+    pulseFsBars?.({ duration: 1400 }); // <-- voorkomt crash als pulseFsBars niet bestaat
+  }
+
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  if(calibrateActive){
-    if(!calibrateUserTouchedScale) autoScaleForCalibration();
-    else applyCalibrationTransforms();
-  } else {
-    applyCalibrationTransforms();
-  }
+  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
+  else applyCalibrationTransforms();
+
+  updateToggleHighlights();
 }
 
-/* === SxS toggle === */
 function setSideBySide(on,{force=false}={}) {
-  if(isExportingPdf && !force) return; const next=!!on; if(!force && sbsActive===next) return; sbsActive=next;
-  document.body.classList.toggle("sbs-mode",sbsActive); comparisonWrapper.classList.toggle("sbs-mode",sbsActive);
-  const beforeWrapper=beforeImgTag.parentElement;
-  if(sbsActive){ sbsWrapper.style.display="flex"; beforeWrapper.style.display="none"; afterWrapper.style.display="none"; sbsLeftImg.src=afterImgTag.src; sbsRightImg.src=beforeImgTag.src; slider.style.display="none"; ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); if(isWrapperFullscreen()) clearInlineHeights();
-  } else { sbsWrapper.style.display="none"; beforeWrapper.style.display=""; afterWrapper.style.display=""; slider.style.display=""; }
-    const {w,h}=getCurrentWH();
+  if(isExportingPdf && !force) return;
+
+  const next = !!on;
+  if(!force && sbsActive === next) return;
+  sbsActive = next;
+
+  document.body.classList.toggle("sbs-mode", sbsActive);
+  comparisonWrapper.classList.toggle("sbs-mode", sbsActive);
+
+  const beforeWrapper = beforeImgTag.parentElement;
+
+  if(sbsActive){
+    sbsWrapper.style.display = "flex";
+    beforeWrapper.style.display = "none";
+    afterWrapper.style.display = "none";
+    sbsLeftImg.src  = afterImgTag.src;   // after = links
+    sbsRightImg.src = beforeImgTag.src;  // before = rechts
+    slider.style.display = "none";
+
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
+      comparisonWrapper.style.setProperty(v,"0px")
+    );
+
+    if(isWrapperFullscreen()) clearInlineHeights();
+  } else {
+    sbsWrapper.style.display = "none";
+    beforeWrapper.style.display = "";
+    afterWrapper.style.display = "";
+    slider.style.display = "";
+  }
+
+  const { w, h } = getCurrentWH();
   setWrapperSizeByAR(w,h);
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
-    if(!sbsActive){
-    
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  if(calibrateActive){
-    if(!calibrateUserTouchedScale) autoScaleForCalibration();
-    else applyCalibrationTransforms();
-  } else {
-    applyCalibrationTransforms();
-  }
+  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
+  else applyCalibrationTransforms();
+
+  updateToggleHighlights();
 }
 
-sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
-toggleBtn?.addEventListener("click",()=>{ 
-  resetUserScale(); // <-- ook hier
-
-  const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
-  const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
-  updateLensInfo(); 
-  updateImages(); 
+// 1x listeners, klaar
+fullscreenBtn?.addEventListener("click", (e) => {
+  e.preventDefault?.();   // handig als het een <a> is
+  toggleFullscreen();
 });
+
+sbsBtn?.addEventListener("click", (e) => {
+  e.preventDefault?.();
+  setSideBySide(!sbsActive);
+});
+
 /* === Slider drag (mouse/touch) === */
 let isDragging=false;
 slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
