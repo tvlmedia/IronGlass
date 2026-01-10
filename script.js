@@ -231,9 +231,11 @@ const TSTOP_FILE_ALIAS = {
   },
 
   "ironglass_zeiss_jena": {
-    "wo": "1.9",
-    "2.8":"2.9"
-  },
+  "wo": "1.9",
+  "2":  "1.9",   // ✅ T2 gebruikt dezelfde files als T1.9
+  "2.8":"2.8",   // ✅ zet dit recht (je hebt echte t2_8 files)
+  "4":  "4"
+},
 
   "ironglass_titan_zoom": {
     "wo": "2.9",
