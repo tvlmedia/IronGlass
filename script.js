@@ -496,6 +496,51 @@ flareToggle.addEventListener("click", ()=>{
 const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
 
+
+function getCalBoxFor(img){
+  // In SBS is elke pane een eigen “viewport”
+  if(sbsActive && img){
+    const r = img.getBoundingClientRect();
+    return { w: Math.max(1, r.width), h: Math.max(1, r.height) };
+  }
+
+  // Slider-mode: gebruik “usable window” (excl. letter/pillarbox)
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const lbL = comparisonWrapper._lbLeft || 0;
+  const lbR = comparisonWrapper._lbRight || 0;
+  const lbT = comparisonWrapper._lbTop || 0;
+  const lbB = comparisonWrapper._lbBottom || 0;
+
+  return {
+    w: Math.max(1, (comparisonWrapper._usableW ?? (rect.width  - lbL - lbR))),
+    h: Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)))
+  };
+}
+
+function calScaleFor(img){
+  const fit = (img ? getComputedStyle(img).objectFit : "cover") || "cover";
+  const { w, h } = getCalBoxFor(img);
+
+  const sx = w / CAL_W;
+  const sy = h / CAL_H;
+
+  // object-fit gedrag
+  const s = (fit === "contain") ? Math.min(sx, sy) : Math.max(sx, sy);
+
+  return { s, w, h };
+}
+
+function toCssPxFor(img, x=0, y=0){
+  const { s } = calScaleFor(img);
+
+  let dx = x * s;
+  let dy = y * s;
+
+  if(CAL_Y_INVERT) dy = -dy;
+
+  return { dx, dy };
+}
+
 // === CALIBRATION (per lens/focal) ===
 // Resolve timeline / clip space (jouw max ranges)
 const CAL_W = 3840;
@@ -762,25 +807,24 @@ function applyCalibrationTransforms(){
     return { dx, dy };
   };
 
-    const apply = (img, cal) => {
-    if(!img) return;
+   const apply = (img, cal) => {
+  if(!img) return;
 
-    // Calibrate UIT → alleen auto reframe
-    if(!calibrateActive){
-      setCalVars(img, 0, autoDy, 1);
-      return;
-    }
+  // auto reframe blijft gebaseerd op het zichtbare window (usableH)
+  const { h: boxH } = getCalBoxFor(img);
+  const autoDy = getAutoReframeYPx(boxH);
 
-    // Calibrate AAN maar geen cal-entry → alleen auto reframe
-    if(!cal){
-      setCalVars(img, 0, autoDy, 1);
-      return;
-    }
+  // Calibrate UIT → alleen auto reframe
+  if(!calibrateActive || !cal){
+    setCalVars(img, 0, autoDy, 1);
+    return;
+  }
 
-    // Calibrate AAN + cal-entry → cal + auto reframe
-    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
-    setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
-  };
+  const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
+  setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
+};
+
+  
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
 
