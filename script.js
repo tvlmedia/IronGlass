@@ -207,17 +207,47 @@ const cameras = {
 const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
 
 const notes = {
-  // 120mm UI → pak 135mm files
   "ironglass_sovjet_mkii_120mm": "135mm",
 
-  // 85mm UI → pak de echte file-focal
+  // UI 85mm -> file 80/90mm (kies 1)
   "ironglass_zeiss_jena_85mm": "80mm",
 
-  // Medium Format: kies welke jij als “85mm slot” wil gebruiken:
-  // optie A (meest logisch als je 90mm wil tonen bij 85mm)
+  // kies één van deze twee:
   "ironglass_sovjet_medium_format_85mm": "80mm",
-  // optie B (als je liever de 80mm pakt, gebruik dan deze i.p.v. 90mm)
   // "ironglass_sovjet_medium_format_85mm": "80mm",
+};
+
+const TSTOP_FILE_ALIAS = {
+  "ironglass_red_p": {
+    "wo": "2.1",
+    "2":  "2.1",
+    "2.8":"2.1",
+    "4":  "2.1"
+  },
+
+  "ironglass_sovjet_mkii": {
+    "wo": "1.6",
+    "2.8":"2.9"
+  },
+
+  "ironglass_zeiss_jena": {
+    "wo": "1.9",
+    "2.8":"2.9"
+  },
+
+  "ironglass_titan_zoom": {
+    "wo": "2.9",
+    "2":  "2.9",
+    "2.8":"2.9",
+    "4":  "4"     // ✅ als jij ook echte t4 files hebt
+  },
+
+  "ironglass_sovjet_medium_format": {
+    "wo": "2.9",
+    "2":  "2.9",
+    "2.8":"2.9",
+    "4":  "4"     // ✅ DIT is de belangrijkste fix
+  }
 };
 
 const lensImageMap = {
@@ -231,39 +261,6 @@ const lensDescriptions = {
   "IronGlass Sovjet Medium Format": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
  };
 
-// UI T2.8 moet voor sommige lenzen naar file T2.9 mappen
-const TSTOP_FILE_ALIAS = {
-  "ironglass_red_p": {
-    "wo": "2.1",
-    "2":  "2.1",
-    "2.8":"2.1",   // als jij voor Red P alleen t2_1 hebt
-    "4":  "2.1"    // idem (optioneel)
-  },
-
-  "ironglass_sovjet_mkii": {
-    "wo": "1.6",
-    "2.8":"2.9"    // als jouw MKII files t2_9 zijn
-  },
-
-  "ironglass_zeiss_jena": {
-    "wo": "1.9",
-    "2.8":"2.9"    // ← dit is waarschijnlijk jouw bug in de screenshot
-  },
-
-  "ironglass_titan_zoom": {
-    "wo": "2.9",
-    "2":  "2.9",
-    "2.8":"2.9",
-    "4":  "2.9"
-  },
-
-  "ironglass_sovjet_medium_format": {
-    "wo": "2.9",
-    "2":  "2.9",
-    "2.8":"2.9",
-    "4":  "2.9"
-  }
-};
 
 function fileTStopFor(lensSlug, uiVal){
   const actual = TSTOP_FILE_ALIAS[lensSlug]?.[uiVal] || uiVal;
