@@ -303,7 +303,7 @@ const lensDescriptions = {
   "IronGlass Red P": { text:"Extremely vintage Soviet optics with single coating, heavy character, flare and distortion. Pure, raw, unpolished glass for maximum personality.", url:"https://ironglassadapters.com/rehousing/red-p-limited-edition-soviet-lens-rehousing/" },
   "IronGlass Zeiss Jena": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss-jena-rehousing/" },
   "IronGlass Sovjet MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/rehoused-soviet-lenses/mkii/" },
-  "IronGlass Titan Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
+  "IronGlass Test Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
   "IronGlass Sovjet Medium Format": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
  };
 
@@ -632,15 +632,13 @@ function enableCalibrate(){
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
+  const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
+  const pos = "center center";
+
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
     if(!img) return;
-    if(isFs){
-      img.style.objectFit = "contain";
-      img.style.objectPosition = "center center";
-    } else {
-      img.style.removeProperty("object-fit");
-      img.style.removeProperty("object-position");
-    }
+    img.style.objectFit = fit;
+    img.style.objectPosition = pos;
   });
 }
 // --- Toggle Highlight ---
@@ -1089,41 +1087,27 @@ sbsBtn?.addEventListener("click", (e) => {
   e.preventDefault?.();
   setSideBySide(!sbsActive);
 });
-// === SLIDER HOTFIX: voorkom dat images/overlays de slider blokkeren ===
-function ensureSliderPointerAccess(){
-  if(!slider || !comparisonWrapper) return;
-
-  // slider altijd bovenop
-  slider.style.zIndex = "999";
-  slider.style.pointerEvents = "auto";
-
-  // images mogen nooit pointer-events "stelen"
-  [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
-    if(img) img.style.pointerEvents = "none";
-  });
-
-  // wrappers ook niet (heel belangrijk bij clipPath)
-  if(afterWrapper) afterWrapper.style.pointerEvents = "none";
-  const beforeWrapper = beforeImgTag?.parentElement;
-  if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
-}
-ensureSliderPointerAccess();
 
 /* === Slider drag (mouse/touch) === */
-// Slider drag
+let isDragging=false;
+slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
+window.addEventListener("mouseup",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
+window.addEventListener("mousemove",e=>{ if(isDragging) updateSliderPosition(e.clientX); });
+slider.addEventListener("touchstart",e=>{ e.preventDefault(); isDragging=true; document.body.classList.add("dragging"); },{passive:false});
+window.addEventListener("touchend",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
+window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
+
 function recalcLayout(){
-  // zorg dat bars/usable rect kloppen en split/slider netjes reset
+ 
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  // wrapper height opnieuw berekenen (alleen non-fullscreen)
-  const { w, h } = getCurrentWH();
-  if(!isWrapperFullscreen()){
-    setWrapperSizeByAR(w, h);
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
   }
-
-  // daarna calibratie/positionering opnieuw toepassen
-  requestAnimationFrame(() => applyCalThenPosition());
 }
 
 // 1x listeners, klaar
@@ -1532,7 +1516,6 @@ const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.heigh
 }
 
 function updateSliderPosition(clientX){
-  if(typeof comparisonWrapper._usableW === "undefined") updateFullscreenBars();
   const rect = comparisonWrapper.getBoundingClientRect();
   const lbL  = comparisonWrapper._lbLeft   || 0;
   const lbR  = comparisonWrapper._lbRight  || 0;
@@ -1690,37 +1673,23 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 onFsChange();
 setTimeout(updateImages,50);
 
-/* === Force capture camera/format (robust) === */
+/* === Force capture camera/format (after everything is wired) === */
 function forceCaptureCamera(){
   if(!cameraSelect || !sensorFormatSelect) return;
 
-  const cam = CAPTURE_CAMERA;
-  const fmt = CAPTURE_FORMAT;
-
-  // wacht tot camera options bestaan
-  const camExists = [...cameraSelect.options].some(o => o.value === cam);
-  if(!camExists) return requestAnimationFrame(forceCaptureCamera);
-
-  // zet camera (triggert vullen formats)
-  cameraSelect.value = cam;
+  // camera kiezen → vult formats (sync in jouw change-handler)
+  cameraSelect.value = CAPTURE_CAMERA;
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  // wacht tot format options gevuld zijn
-  requestAnimationFrame(() => {
-    const fmtExists = [...sensorFormatSelect.options].some(o => o.value === fmt);
-    if(!fmtExists) return setTimeout(forceCaptureCamera, 50);
+  // format kiezen (kan direct na camera-change, want options zijn dan gevuld)
+  sensorFormatSelect.value = CAPTURE_FORMAT;
+  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-    sensorFormatSelect.value = fmt;
-    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
-
-    // pas daarna calibrate aan
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => enableCalibrate())
-    );
-  });
+  // 1 frame later: calibrate aan (na layout/bars)
+  requestAnimationFrame(() => enableCalibrate());
 }
 
-// run op de momenten die écht zinvol zijn
-window.addEventListener("DOMContentLoaded", forceCaptureCamera);
-window.addEventListener("pageshow", forceCaptureCamera);
-window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
+forceCaptureCamera();
+setTimeout(forceCaptureCamera, 50);
+window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
+window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
