@@ -366,10 +366,10 @@ button.active,
   --cal-ty: 0px;
   --cal-scale: 1;
 
-  /* ✅ FIX: 1 transform chain (geen overwrite) */
+  /* ✅ FIX: translate BEFORE scale (so translate is NOT scaled) */
   transform:
-  scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)))
-  translate(var(--cal-tx), var(--cal-ty));
+    translate(var(--cal-tx), var(--cal-ty))
+    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
   transform-origin:center;
   will-change:transform;
 }
@@ -505,9 +505,10 @@ body.sbs-mode #sbsWrapper .pane img{
   --cal-ty: 0px;
   --cal-scale: 1;
 
+  /* ✅ same fix here */
   transform:
-  scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)))
-  translate(var(--cal-tx), var(--cal-ty));
+    translate(var(--cal-tx), var(--cal-ty))
+    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
   transform-origin:center;
   will-change:transform;
 }
