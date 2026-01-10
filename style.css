@@ -796,3 +796,5 @@ body.sbs-mode #rightDetail{
   pointer-events: auto !important;   /* slider moet ALTIJD events krijgen */
   z-index: 10000 !important;         /* boven alles */
 }
+#detailOverlay { pointer-events: none; }
+#detailOverlay.active { pointer-events: auto; }
