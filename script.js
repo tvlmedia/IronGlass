@@ -577,7 +577,90 @@ fillTStops(tStopLeftSelect);
 fillTStops(tStopRightSelect);
 tStopLeftSelect.value  = "wo";
 tStopRightSelect.value = "wo";
-function syncTStopsOnContextChange(){ const t=tStopLeftSelect.value||"2.8"; tStopLeftSelect.value=t; tStopRightSelect.value=t; }
+// ===== Dynamic T-stop dropdowns (per lens + (effective) focal) =====
+
+// Bouw opties: altijd "wo", daarna measured stops (ascending). Anders default.
+function getAvailableTStopsFor(lensSlug, effectiveFocal){
+  const stops = getMeasuredStops(lensSlug, effectiveFocal);
+  if(stops && stops.length){
+    const unique = Array.from(new Set(stops.map(s => String(s).trim()).filter(Boolean)));
+    unique.sort((a,b) => parseFloat(a) - parseFloat(b));
+    return ["wo", ...unique];
+  }
+  return DEFAULT_T_STOPS.slice();
+}
+
+function pickClosestTStopOption(options, preferred){
+  if(options.includes(preferred)) return preferred;
+
+  // WO fallback
+  if(preferred === "wo") return options.includes("wo") ? "wo" : (options[0] || "wo");
+
+  const p = parseFloat(String(preferred));
+  if(!Number.isFinite(p)){
+    return options.includes("wo") ? "wo" : (options[0] || "wo");
+  }
+
+  const nums = options
+    .filter(v => v !== "wo")
+    .map(v => ({ v, n: parseFloat(String(v)) }))
+    .filter(o => Number.isFinite(o.n));
+
+  if(!nums.length) return options.includes("wo") ? "wo" : (options[0] || "wo");
+
+  let best = nums[0];
+  let bestDiff = Math.abs(best.n - p);
+
+  for(const o of nums){
+    const d = Math.abs(o.n - p);
+    if(d < bestDiff){
+      best = o;
+      bestDiff = d;
+    }
+  }
+  return best.v;
+}
+
+function updateTStopSelectForSide(side /* "left"|"right" */){
+  const sel     = (side === "left") ? tStopLeftSelect : tStopRightSelect;
+  const lensLbl = (side === "left") ? leftSelect.value : rightSelect.value;
+
+  const lensSlug = lensSlugFromLabel(lensLbl);
+  const uiFocal  = focalLengthSelect?.value || "50mm";
+
+  // MF-alt moet al in mfAltState zitten → daarom dit via getEffectiveFocal
+  const effectiveFocal = getEffectiveFocal(lensSlug, uiFocal, side);
+
+  const prev = sel.value || "wo";
+  const opts = getAvailableTStopsFor(lensSlug, effectiveFocal);
+
+  fillTStops(sel, opts);
+  sel.value = pickClosestTStopOption(opts, prev);
+
+  return { opts };
+}
+
+// Call this AFTER updateMfAltUI()
+function updateTStopDropdowns(){
+  const leftInfo  = updateTStopSelectForSide("left");
+  const rightInfo = updateTStopSelectForSide("right");
+
+  // Houd ze (zoveel mogelijk) synced zoals je tool gewend is:
+  // Right probeert Left te volgen, anders kiest 'ie closest (of WO).
+  const desired = tStopLeftSelect.value || "wo";
+  if(!rightInfo.opts.includes(desired)){
+    tStopRightSelect.value = pickClosestTStopOption(rightInfo.opts, desired);
+  } else {
+    tStopRightSelect.value = desired;
+  }
+}
+
+// Oude naam laten bestaan (je listeners gebruiken 'm al)
+function syncTStopsOnContextChange(){
+  // mfAltState moet actueel zijn voordat we dropdowns vullen
+  updateMfAltUI();
+  updateTStopDropdowns();
+}
 
 // === Bokeh toggle (zonder ON/OFF tekst) ===
 bokehToggle.dataset.mode = bokehToggle.dataset.mode || "portrait";
@@ -1020,14 +1103,19 @@ function updateImages(){
   const LL = leftSelect.value.toLowerCase().replace(/\s+/g,"_");
   const RR = rightSelect.value.toLowerCase().replace(/\s+/g,"_");
 
-  const uiTL = tStopLeftSelect.value;
-  const uiTR = tStopRightSelect.value;
-  const uiFocal = focalLengthSelect.value;
+   const uiFocal = focalLengthSelect.value;
 
-  // ✅ 1) EERST de MF-alt UI/state updaten (zet mfAltState correct)
+  // ✅ 1) EERST MF-alt state updaten
   updateMfAltUI();
 
-  // ✅ 2) DAN pas de effective focal bepalen
+  // ✅ 2) DAN: T-stop dropdowns vullen op basis van lens + (effective) focal
+  updateTStopDropdowns();
+
+  // ✅ 3) NU pas uiTL/uiTR lezen (want dropdown kan veranderd zijn)
+  const uiTL = tStopLeftSelect.value;
+  const uiTR = tStopRightSelect.value;
+
+  // ✅ 4) effective focal bepalen
   const leftFocal  = getEffectiveFocal(LL, uiFocal, "left");
   const rightFocal = getEffectiveFocal(RR, uiFocal, "right");
 
