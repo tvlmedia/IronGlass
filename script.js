@@ -206,19 +206,21 @@ const cameras = {
 /* === Lens lijsten, alias-focals, files en teksten === */
 const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
 
+/* === UI focal -> file focal overrides (alleen échte uitzonderingen) === */
 const notes = {
+  // MKII: jij hebt 135mm files, UI toont 120mm
   "ironglass_sovjet_mkii_120mm": "135mm",
 
-  // UI 85mm -> file 80/90mm (kies 1)
+  // Als je UI nog 85mm aanbiedt voor Jena/MF maar je wil hem altijd naar 80mm sturen:
+  // (mag blijven, maar als je nearest-focal gebruikt kan dit er uiteindelijk uit)
   "ironglass_zeiss_jena_85mm": "80mm",
-
-  // kies één van deze twee:
-  "ironglass_sovjet_medium_format_85mm": "80mm",
-  // "ironglass_sovjet_medium_format_85mm": "80mm",
+  "ironglass_sovjet_medium_format_85mm": "80mm"
 };
 
+/* === Measured / available real T-stops per lensSlug + FILE focal === */
 const MEASURED_TSTOPS = {
   "ironglass_titan_zoom": {
+    // jij hebt o.a. 50mm t2_9 / t4, en eerder had je ook 120/85 etc.
     "120mm": ["4", "2.9"],
     "85mm":  ["4", "2.9"],
     "50mm":  ["4", "2.9"],
@@ -227,6 +229,7 @@ const MEASURED_TSTOPS = {
   },
 
   "ironglass_sovjet_medium_format": {
+    // jouw nieuwe files: 45mm t3_9/t4 en 65mm t3_8/t4 (en eventueel andere later)
     "120mm": ["4", "2.9"],
     "90mm":  ["4"],
     "80mm":  ["4", "2.9"],
@@ -237,6 +240,7 @@ const MEASURED_TSTOPS = {
   },
 
   "ironglass_zeiss_jena": {
+    // jouw nieuwe files: 50mm t1_9 / t2_8 / t4
     "120mm": ["4", "2.9"],
     "80mm":  ["4", "2.8", "1.9"],
     "50mm":  ["4", "2.8", "1.9"],
@@ -246,56 +250,62 @@ const MEASURED_TSTOPS = {
   },
 
   "ironglass_sovjet_mkii": {
+    // jouw nieuwe files: 58mm t2_1 / t2_9 / t4  (dus 2.9 toevoegen!)
     "135mm": ["4", "2.9"],
     "85mm":  ["4", "2.8", "2", "1.6"],
-    "58mm":  ["4", "2.8", "2.1"],
+    "58mm":  ["4", "2.9", "2.8", "2.1"],
     "37mm":  ["4", "2.9"],
     "28mm":  ["4", "3.6"],
     "20mm":  ["4", "3.6"]
   },
 
   "ironglass_red_p": {
+    // jouw nieuwe files: 58mm t2_1 / t2_8 / t4
     "85mm":  ["4", "2.8", "2.1"],
     "58mm":  ["4", "2.8", "2.1"],
     "37mm":  ["4", "2.9"]
   }
 };
 
+/* === UI T-stop -> FILE T-stop alias (alleen als UI waarde geen eigen files heeft) ===
+   Let op: jouw fileTStopFor() maakt 2.9 => "2_9" etc.
+*/
 const TSTOP_FILE_ALIAS = {
   "ironglass_red_p": {
+    // files: t2_1, t2_8, t4
     "wo": "2.1",
     "2":  "2.1",
-    "2.8":"2.1",
-    "4":  "2.1"
+    "2.8":"2.8",
+    "4":  "4"
   },
 
   "ironglass_sovjet_mkii": {
-    "wo": "1.6",
-    "2.8":"2.9"
+    // files: t2_1, t2_9, t4  (geen echte 2.8 files -> map naar 2.9)
+    "wo": "2.1",
+    "2":  "2.1",
+    "2.8":"2.9",
+    "4":  "4"
   },
 
   "ironglass_zeiss_jena": {
-  "wo": "1.9",
-  "2":  "1.9",   // ✅ T2 gebruikt dezelfde files als T1.9
-  "2.8":"2.8",   // ✅ zet dit recht (je hebt echte t2_8 files)
-  "4":  "4"
-},
-
-  "ironglass_titan_zoom": {
-    "wo": "2.9",
-    "2":  "2.9",
-    "2.8":"2.9",
-    "4":  "4"     // ✅ als jij ook echte t4 files hebt
+    // files: t1_9, t2_8, t4
+    "wo": "1.9",
+    "2":  "1.9",
+    "2.8":"2.8",
+    "4":  "4"
   },
 
-  "ironglass_sovjet_medium_format": {
+  "ironglass_titan_zoom": {
+    // files: t2_9, t4
     "wo": "2.9",
     "2":  "2.9",
     "2.8":"2.9",
-    "4":  "4"     // ✅ DIT is de belangrijkste fix
+    "4":  "4"
   }
-};
 
+  // ❗ Sovjet Medium Format bewust NIET hard aliasen naar 2.9,
+  // want 45/65 hebben t3_9/t3_8. Laat measured (focal-aware) dit bepalen.
+};
 const lensImageMap = {
 };
 
