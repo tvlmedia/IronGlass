@@ -216,8 +216,8 @@ const notes = {
   // Als je UI nog 85mm aanbiedt voor Jena/MF maar je wil hem altijd naar 80mm sturen:
   // (mag blijven, maar als je nearest-focal gebruikt kan dit er uiteindelijk uit)
   "ironglass_zeiss_jena_85mm": "80mm",
-  "ironglass_sovjet_medium_format_85mm": "80mm"
-  "ironglass_sovjet_medium_format_50mm": "65mm"
+  "ironglass_sovjet_medium_format_85mm": "80mm",
+  "ironglass_sovjet_medium_format_50mm": "65mm",
   "ironglass_sovjet_medium_format_50mm": "45mm"
 };
 
