@@ -1087,36 +1087,28 @@ sbsBtn?.addEventListener("click", (e) => {
   e.preventDefault?.();
   setSideBySide(!sbsActive);
 });
+// === SLIDER HOTFIX: voorkom dat images/overlays de slider blokkeren ===
+function ensureSliderPointerAccess(){
+  if(!slider || !comparisonWrapper) return;
+
+  // slider altijd bovenop
+  slider.style.zIndex = "999";
+  slider.style.pointerEvents = "auto";
+
+  // images mogen nooit pointer-events "stelen"
+  [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
+    if(img) img.style.pointerEvents = "none";
+  });
+
+  // wrappers ook niet (heel belangrijk bij clipPath)
+  if(afterWrapper) afterWrapper.style.pointerEvents = "none";
+  const beforeWrapper = beforeImgTag?.parentElement;
+  if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
+}
+ensureSliderPointerAccess();
 
 /* === Slider drag (mouse/touch) === */
-let isDragging = false;
-
-if (slider) {
-  slider.style.touchAction = "none"; // voorkomt scroll/zoom interference op mobiel
-
-  slider.addEventListener("pointerdown", (e) => {
-    if (sbsActive || isExportingPdf) return;
-    isDragging = true;
-    document.body.classList.add("dragging");
-    slider.setPointerCapture(e.pointerId);
-    updateSliderPosition(e.clientX); // meteen springen naar pointer
-  });
-
-  slider.addEventListener("pointermove", (e) => {
-    if (!isDragging) return;
-    updateSliderPosition(e.clientX);
-  });
-
-  const endDrag = (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    document.body.classList.remove("dragging");
-    try { slider.releasePointerCapture(e.pointerId); } catch (_) {}
-  };
-
-  slider.addEventListener("pointerup", endDrag);
-  slider.addEventListener("pointercancel", endDrag);
-}
+Slider drag
 
 function recalcLayout(){
   // zorg dat bars/usable rect kloppen en split/slider netjes reset
@@ -1539,6 +1531,7 @@ const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.heigh
 }
 
 function updateSliderPosition(clientX){
+  if(typeof comparisonWrapper._usableW === "undefined") updateFullscreenBars();
   const rect = comparisonWrapper.getBoundingClientRect();
   const lbL  = comparisonWrapper._lbLeft   || 0;
   const lbR  = comparisonWrapper._lbRight  || 0;
