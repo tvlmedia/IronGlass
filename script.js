@@ -400,7 +400,8 @@ const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 /* === AUTO VERTICAL REFRAME (small sensor heights) === */
 const AUTO_REFRAME = {
   thresholdH: 16.5,
-  maxShiftFrac: 0.75  // 75% (zoals je huidige gedrag)
+  maxShiftFrac: 0.75,   // 75% (zoals je huidige gedrag)
+  fullWidthMinW: 32     // ✅ alleen LF/FF-ish camera's mogen "full width => no reframe"
 };
 
 function getAutoReframeYFrac(){
@@ -408,23 +409,29 @@ function getAutoReframeYFrac(){
   const cur = getCurrentWH();
   if(!cur?.w) return 0;
 
-  // ✅ Full-width (non-anamorphic) formats => GEEN auto reframe
   const formats = cameras?.[cam];
   if(formats){
     let maxW = 0;
 
+    // ✅ bepaal max width op NON-anamorphic formats
     Object.entries(formats).forEach(([k, v]) => {
       const label = String(v?.label || k || "").toLowerCase();
-      const isAna = label.includes(" ana") || label.includes("anamorphic") || label.endsWith("ana");
+      const isAna =
+        label.includes(" ana") ||
+        label.includes("anamorphic") ||
+        label.endsWith("ana");
 
       if(!isAna && v?.w) maxW = Math.max(maxW, v.w);
     });
 
-    // ~98% van max width beschouwen we als “full width”
-    if(maxW && cur.w >= maxW * 0.98) return 0;
+    const isFullWidth = maxW && cur.w >= maxW * 0.98;
+    const isBigSensor = maxW >= (AUTO_REFRAME.fullWidthMinW || 32);
+
+    // ✅ Alleen bij grote sensors: full width => GEEN auto reframe
+    if(isFullWidth && isBigSensor) return 0;
   }
 
-  // ✅ Alleen voor echte crop/small-imager situaties
+  // ✅ Alleen voor echte crop/small-height situaties
   const t = AUTO_REFRAME.thresholdH;
   const h = cur?.h;
   if(!h || h >= t) return 0;
