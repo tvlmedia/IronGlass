@@ -439,11 +439,15 @@ function applyCurrentFormat(){
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  if(calibrateActive){
+ if(calibrateActive){
+  if(!calibrateUserTouchedScale){
     autoScaleForCalibration();
   } else {
     applyCalibrationTransforms();
   }
+} else {
+  applyCalibrationTransforms();
+}
 }
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
@@ -862,8 +866,8 @@ const uiTLStr = (uiTL === "wo") ? null : String(uiTL).replace(".", "_");
 const uiTRStr = (uiTR === "wo") ? null : String(uiTR).replace(".", "_");
 
 // fallback alleen als alias iets verandert (bijv. 2.8 -> 2.9)
-const tLFallback = null;
-const tRFallback = null;
+const tLFallback = (uiTL === "wo") ? null : String(uiTL).replace(/\./g, "_");
+const tRFallback = (uiTR === "wo") ? null : String(uiTR).replace(/\./g, "_");
 
 const leftCandidates  = resolveImageCandidates(LL, focal, tL, flareMode, sceneMode, tLFallback);
 const rightCandidates = resolveImageCandidates(RR, focal, tR, flareMode, sceneMode, tRFallback);
@@ -891,7 +895,11 @@ rightLabel.innerHTML= `Lens: <a href="${ru}" target="_blank" rel="noopener noref
  resetSplitToMiddle();
 
 if(calibrateActive){
-  autoScaleForCalibration();
+  if(!calibrateUserTouchedScale){
+    autoScaleForCalibration();
+  } else {
+    applyCalibrationTransforms();
+  }
 } else {
   applyCalibrationTransforms();
 }
@@ -923,10 +931,14 @@ requestAnimationFrame(()=>{
   resetSplitToMiddle();
 
   if(calibrateActive){
+  if(!calibrateUserTouchedScale){
     autoScaleForCalibration();
   } else {
     applyCalibrationTransforms();
   }
+} else {
+  applyCalibrationTransforms();
+}
 });
   requestAnimationFrame(()=>{ if(!isWrapperFullscreen()){ const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
 }
@@ -1047,7 +1059,8 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 
 [leftSelect,rightSelect].forEach(el =>
   el.addEventListener("change",()=>{ 
-    resetUserScale();                 // <-- reset scaling naar 100%
+    calibrateUserTouchedScale = false;   // ✅ reset bij context change
+    resetUserScale();
     syncTStopsOnContextChange(); 
     updateLensInfo(); 
     updateImages(); 
@@ -1055,7 +1068,13 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 );
 
 [focalLengthSelect,tStopLeftSelect,tStopRightSelect].forEach(el =>
-  el.addEventListener("change",()=>{ if(el===focalLengthSelect) syncTStopsOnContextChange(); updateImages(); })
+  el.addEventListener("change",()=>{
+    if(el === focalLengthSelect){
+      calibrateUserTouchedScale = false; // ✅ reset bij andere focal
+      syncTStopsOnContextChange();
+    }
+    updateImages();
+  })
 );
 
 // ===== DETAIL (zoom) viewer =====
