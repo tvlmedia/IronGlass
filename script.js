@@ -728,9 +728,11 @@ function applyCalibrationTransforms(){
   const lbT = comparisonWrapper._lbTop || 0;
   const lbB = comparisonWrapper._lbBottom || 0;
 
-  const rect = comparisonWrapper.getBoundingClientRect();
+    const rect = comparisonWrapper.getBoundingClientRect();
   const usableW = Math.max(1, (comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
   const usableH = Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+
+  const autoDy = getAutoReframeYPx(usableH);
 
   const toCssPx = (x=0, y=0) => {
     const dx = (x / CAL_W) * usableW;
@@ -739,25 +741,25 @@ function applyCalibrationTransforms(){
     return { dx, dy };
   };
 
-  const apply = (img, cal) => {
-  if(!img) return;
+    const apply = (img, cal) => {
+    if(!img) return;
 
-  // Calibrate UIT → reset naar defaults
-  if(!calibrateActive){
-    setCalVars(img, 0, 0, 1);
-    return;
-  }
+    // Calibrate UIT → alleen auto reframe
+    if(!calibrateActive){
+      setCalVars(img, 0, autoDy, 1);
+      return;
+    }
 
-  // Calibrate AAN maar geen cal-entry → alleen defaults (sensor/viewer blijven via CSS)
-  if(!cal){
-    setCalVars(img, 0, 0, 1);
-    return;
-  }
+    // Calibrate AAN maar geen cal-entry → alleen auto reframe
+    if(!cal){
+      setCalVars(img, 0, autoDy, 1);
+      return;
+    }
 
-  // Calibrate AAN + cal-entry → alleen "extra" translate + cal.scale
-  const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
-  setCalVars(img, dx, dy, (cal.scale ?? 1));
-};
+    // Calibrate AAN + cal-entry → cal + auto reframe
+    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+    setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
+  };
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
 
@@ -1408,7 +1410,12 @@ async function renderToSensorAR(imgOrURL, targetAR, outH, scale=1, yFrac=0){
   const cvs=document.createElement("canvas"); cvs.width=W; cvs.height=H; const ctx=cvs.getContext("2d",{alpha:false}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
   const srcAR=(img.naturalWidth||img.width)/(img.naturalHeight||img.height); let dW,dH,ox,oy;
   if(srcAR<targetAR){ dW=W; dH=W/srcAR; ox=0; oy=(H-dH)/2; } else { dH=H; dW=H*srcAR; oy=0; ox=(W-dW)/2; }
-  if(scale!==1){ const oW=dW,oH=dH; dW=oW*scale; dH=oH*scale; ox-=(dW-oW)/2; oy-=(dH-oH)/2; }
+   if(scale!==1){ const oW=dW,oH=dH; dW=oW*scale; dH=oH*scale; ox-=(dW-oW)/2; oy-=(dH-oH)/2; }
+
+  if(yFrac){
+    oy += (yFrac * H);
+  }
+
   ctx.drawImage(img,Math.round(ox),Math.round(oy),Math.round(dW),Math.round(dH));
   return { dataURL:cvs.toDataURL("image/jpeg",1.0), W, H };
 }
@@ -1460,8 +1467,11 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
     const leftText=leftLabel.textContent, rightText=rightLabel.textContent, leftName=leftSelect.value, rightName=rightSelect.value, focal=focalLengthSelect.value;
     const tLeft=String(tStopLeftSelect.value).replace(/\./g,"_"), tRight=String(tStopRightSelect.value).replace(/\./g,"_");
     const logo=await loadHTMLImage("https://tvlmedia.github.io/IronGlass/LOGOVOORPDF.png"), sensorText=getSensorText();
+       const yFrac = getAutoReframeYFrac();
+
     const li=await loadHTMLImage(afterImgTag.src), ri=await loadHTMLImage(beforeImgTag.src);
-    const leftSensor=await renderToSensorAR(li,targetAR,exportH,zoom*userScale), rightSensor=await renderToSensorAR(ri,targetAR,exportH,zoom*userScale);
+    const leftSensor  = await renderToSensorAR(li, targetAR, exportH, zoom*userScale, yFrac);
+    const rightSensor = await renderToSensorAR(ri, targetAR, exportH, zoom*userScale, yFrac);
     const splitData=await buildSplitFromSensor(leftSensor.dataURL,rightSensor.dataURL,leftSensor.W,leftSensor.H);
 
     // p1 split
