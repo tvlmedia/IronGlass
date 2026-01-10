@@ -394,6 +394,90 @@ let calibrateActive = false;
 let calibrateUserTouchedScale = false;
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
+
+const mfAltLeftWrap  = q("mfAltLeftWrap");
+const mfAltRightWrap = q("mfAltRightWrap");
+const mfAltLeftSel   = q("mfAltLeft");
+const mfAltRightSel  = q("mfAltRight");
+
+// Per lensSlug + UI focal: welke "gefilmde" focals bestaan er als alternatief?
+// (dit is alleen UI; resolver gebruiken we in stap 3)
+const ALT_FOCAL_OPTIONS = {
+  "ironglass_sovjet_medium_format": {
+    // Als user 80 of 90 kiest: laat ze wisselen
+    "80mm": ["80mm","90mm"],
+    "90mm": ["90mm","80mm"],
+
+    // Dit is jouw “UI 50mm slot” -> soms 65 / soms 45
+    "50mm": ["65mm","45mm"],
+
+    // Soms 45 of 35 (als je dat wil kunnen switchen)
+    "45mm": ["45mm","35mm"],
+    "35mm": ["35mm","45mm"],
+
+    // (optioneel) als je 65 ook wil kunnen switchen:
+    "65mm": ["65mm","45mm"]
+  }
+};
+
+// State: wat user kiest per kant
+const mfAltState = { left: null, right: null };
+
+function fillAltSelect(sel, options, preferred){
+  sel.innerHTML = "";
+  options.forEach(v => sel.add(new Option(v, v)));
+
+  // preferred proberen te zetten
+  if(preferred && options.includes(preferred)){
+    sel.value = preferred;
+  } else {
+    sel.value = options[0];
+  }
+}
+
+function updateMfAltUI(){
+  const focal = focalLengthSelect?.value || "50mm";
+
+  const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+  const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
+
+  // LEFT
+  const leftOpts = ALT_FOCAL_OPTIONS?.[leftSlug]?.[focal];
+  if(mfAltLeftWrap && mfAltLeftSel){
+    if(leftOpts && leftOpts.length > 1){
+      mfAltLeftWrap.style.display = "inline-flex";
+      fillAltSelect(mfAltLeftSel, leftOpts, mfAltState.left);
+      mfAltState.left = mfAltLeftSel.value;
+    } else {
+      mfAltLeftWrap.style.display = "none";
+      mfAltState.left = null;
+    }
+  }
+
+  // RIGHT
+  const rightOpts = ALT_FOCAL_OPTIONS?.[rightSlug]?.[focal];
+  if(mfAltRightWrap && mfAltRightSel){
+    if(rightOpts && rightOpts.length > 1){
+      mfAltRightWrap.style.display = "inline-flex";
+      fillAltSelect(mfAltRightSel, rightOpts, mfAltState.right);
+      mfAltState.right = mfAltRightSel.value;
+    } else {
+      mfAltRightWrap.style.display = "none";
+      mfAltState.right = null;
+    }
+  }
+}
+
+// listeners (nog zonder invloed op images!)
+mfAltLeftSel?.addEventListener("change", () => {
+  mfAltState.left = mfAltLeftSel.value;
+  // straks in stap 3: updateImages();
+});
+mfAltRightSel?.addEventListener("change", () => {
+  mfAltState.right = mfAltRightSel.value;
+  // straks in stap 3: updateImages();
+});
+
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
 const { jsPDF } = window.jspdf || {};
 const CAPTURE_CAMERA = "Fujifilm GFX Eterna";
