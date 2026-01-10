@@ -397,6 +397,30 @@ function getCurrentWH(){
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
+/* === AUTO VERTICAL REFRAME (small sensor heights) === */
+const AUTO_REFRAME = {
+  thresholdH: 16.5,   // mm: hieronder gaan we compenseren
+  maxShiftPct: 0.08   // max 8% van beeldhoogte verschuiven (tweak naar smaak)
+};
+
+// fractie van beeldhoogte (negatief = beeld omhoog in CSS-translateY)
+function getAutoReframeYFrac(){
+  const { h } = getCurrentWH();
+  const t = AUTO_REFRAME.thresholdH;
+
+  if(!h || h >= t) return 0;
+
+  // hoe kleiner de sensorhoogte, hoe meer shift (0..1)
+  const severity = clamp((t - h) / t, 0, 1);
+
+  // jouw wens: "iets naar boven positionen"
+  return -severity * AUTO_REFRAME.maxShiftPct;
+}
+
+function getAutoReframeYPx(usableH){
+  return Math.round(getAutoReframeYFrac() * usableH);
+}
+
 /* === Camera/format selects === */
 cameraSelect.innerHTML=""; Object.keys(cameras).forEach(cam=>cameraSelect.add(new Option(cam,cam)));
 cameraSelect.addEventListener("change",()=>{ sensorFormatSelect.innerHTML=""; const cam=cameraSelect.value; if(!cam){ sensorFormatSelect.disabled=true; document.body.classList.remove("sensor-mode"); clearInlineHeights(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); return; } Object.entries(cameras[cam]).forEach(([k,v])=>sensorFormatSelect.add(new Option(v.label||k,k))); sensorFormatSelect.disabled=false; sensorFormatSelect.dispatchEvent(new Event("change")); });
@@ -1379,7 +1403,7 @@ function autoScaleNow(){ if(!isScaleAllowedBySensor()) return applyScalePercent(
 
 /* === PDF export (4 pagina’s) === */
 function loadHTMLImage(src){ return new Promise((res,rej)=>{ const im=new Image(); im.crossOrigin="anonymous"; im.onload=()=>res(im); im.onerror=rej; im.src=src; }); }
-async function renderToSensorAR(imgOrURL, targetAR, outH, scale=1){
+async function renderToSensorAR(imgOrURL, targetAR, outH, scale=1, yFrac=0){
   const img=typeof imgOrURL==="string"?await loadHTMLImage(imgOrURL):imgOrURL, H=outH, W=Math.round(H*targetAR);
   const cvs=document.createElement("canvas"); cvs.width=W; cvs.height=H; const ctx=cvs.getContext("2d",{alpha:false}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
   const srcAR=(img.naturalWidth||img.width)/(img.naturalHeight||img.height); let dW,dH,ox,oy;
