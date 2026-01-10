@@ -1,7 +1,7 @@
 /* ===== LENS COMPARISON TOOL – COMPACT, COMPLETE ===== */
 if (window.innerWidth < 768) document.body.classList.add("mobile-mode");
 
-/* === SENSOR DATA (mm) – Venice 6K 3:2 is baseline === */
+/* === SENSOR DATA (mm) – Fuji GFX Eterna 4K OG is baseline === */
 const cameras = {
   "ARRI Alexa Mini LF": {
     "Open Gate": { w: 36.696, h: 25.542, label: "Open Gate" },
