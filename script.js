@@ -1556,24 +1556,18 @@ setTimeout(updateImages,50);
 
 /* === Force capture camera/format (after everything is wired) === */
 function forceCaptureCamera(){
-  if(![...cameraSelect.options].some(o => o.value === CAPTURE_CAMERA)){
-    console.warn("CAPTURE_CAMERA not found:", CAPTURE_CAMERA);
-    return;
-  }
+  if(!cameraSelect || !sensorFormatSelect) return;
 
+  // camera kiezen → vult formats (sync in jouw change-handler)
   cameraSelect.value = CAPTURE_CAMERA;
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  requestAnimationFrame(() => {
+  // format kiezen (kan direct na camera-change, want options zijn dan gevuld)
   sensorFormatSelect.value = CAPTURE_FORMAT;
   sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-requestAnimationFrame(() => {
-  sensorFormatSelect.value = CAPTURE_FORMAT;
-  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles: true }));
-
+  // 1 frame later: calibrate aan (na layout/bars)
   requestAnimationFrame(() => enableCalibrate());
-});
 }
 
 forceCaptureCamera();
