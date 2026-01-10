@@ -181,7 +181,7 @@ const cameras = {
   },
   "Fujifilm GFX Eterna": {
   "Open Gate 4:3 4K (3840x2880)": { w: 43.631, h: 32.712, label: "Open Gate 4:3 4K" },
-
+  "4K 16:9 (3840x2160)": { w: 43.631, h: 24.542, label: "4K 16:9" },
   "GF Cine 5.8K (5824x2436)": { w: 43.800, h: 18.319, label: "GF Cine 5.8K" },
   "Premista 5.4K (5440x2868)": { w: 40.909, h: 21.571, label: "Premista 5.4K" },
   "35mm 4.8K (4776x3184)": { w: 35.919, h: 23.940, label: "35mm 4.8K" },
