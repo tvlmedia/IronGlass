@@ -372,6 +372,7 @@ const flareToggle=q("flareToggle"), scaleSlider=q("scaleSlider"), scaleVal=q("sc
 const bokehToggle = q("bokehToggle");
 const calibrateBtn = q("calibrateToggle");
 let calibrateActive = false;
+let calibrateUserTouchedScale = false;
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
@@ -396,6 +397,21 @@ function getCurrentWH(){
 }
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+
+// ===============================
+// ONE TRUE applyCalThenPosition()
+// ===============================
+function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if (calibrateActive) {
+    if (!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
 
 /* === AUTO VERTICAL REFRAME (small sensor heights) === */
 const AUTO_REFRAME = {
@@ -434,19 +450,10 @@ function applyCurrentFormat(){
   const scale = Math.abs(BASE_SENSOR.w - w) < 0.1 ? 1 : (BASE_SENSOR.w / w);
   comparisonWrapper.style.setProperty("--sensor-scale", scale.toFixed(4));
 
-  // ✅ WACHT 1 FRAME zodat de nieuwe hoogte/usable rect echt klopt
-  requestAnimationFrame(() => {
-    updateFullscreenBars();
-    resetSplitToMiddle();
-
-    if (calibrateActive) {
-      if (!calibrateUserTouchedScale) autoScaleForCalibration();
-      else applyCalibrationTransforms();
-    } else {
-      applyCalibrationTransforms();
-    }
-  });
+  // 1 frame wachten zodat height/usable rect klopt
+  requestAnimationFrame(() => applyCalThenPosition());
 }
+
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
 const DEFAULT_T_STOPS = ["wo", "2", "2.8", "4"];
@@ -495,6 +502,51 @@ flareToggle.addEventListener("click", ()=>{
 /* === Side-by-side wrapper === */
 const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
 const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
+
+
+function getCalBoxFor(img){
+  // In SBS is elke pane een eigen “viewport”
+  if(sbsActive && img){
+    const r = img.getBoundingClientRect();
+    return { w: Math.max(1, r.width), h: Math.max(1, r.height) };
+  }
+
+  // Slider-mode: gebruik “usable window” (excl. letter/pillarbox)
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const lbL = comparisonWrapper._lbLeft || 0;
+  const lbR = comparisonWrapper._lbRight || 0;
+  const lbT = comparisonWrapper._lbTop || 0;
+  const lbB = comparisonWrapper._lbBottom || 0;
+
+  return {
+    w: Math.max(1, (comparisonWrapper._usableW ?? (rect.width  - lbL - lbR))),
+    h: Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)))
+  };
+}
+
+function calScaleFor(img){
+  const fit = (img ? getComputedStyle(img).objectFit : "cover") || "cover";
+  const { w, h } = getCalBoxFor(img);
+
+  const sx = w / CAL_W;
+  const sy = h / CAL_H;
+
+  // object-fit gedrag
+  const s = (fit === "contain") ? Math.min(sx, sy) : Math.max(sx, sy);
+
+  return { s, w, h };
+}
+
+function toCssPxFor(img, x=0, y=0){
+  const { s } = calScaleFor(img);
+
+  let dx = x * s;
+  let dy = y * s;
+
+  if(CAL_Y_INVERT) dy = -dy;
+
+  return { dx, dy };
+}
 
 // === CALIBRATION (per lens/focal) ===
 // Resolve timeline / clip space (jouw max ranges)
@@ -548,36 +600,25 @@ let calibrateAutoScaled = false;
 
 // Calibration Toggle
   
-let preCalibrateScalePct = 100; // onthoud user scale van vóór calibrate
+let preCalibrateScalePct = 100;
 
 calibrateBtn?.addEventListener("click", () => {
   calibrateActive = !calibrateActive;
-
-  // focus-glow kill
   calibrateBtn.blur();
 
   if (calibrateActive) {
     preCalibrateScalePct = Math.round((userScale || 1) * 100);
     calibrateAutoScaled = false;
   } else {
-    calibrateUserTouchedScale = false; // ✅ optional: reset
+    calibrateUserTouchedScale = false;
     calibrateAutoScaled = false;
+
     if (scaleSlider) scaleSlider.value = String(preCalibrateScalePct);
     setUserScaleFromPct(preCalibrateScalePct);
   }
 
-  // ✅ WACHT op nieuwe layout voordat je bars/calculations doet
   requestAnimationFrame(() => {
-    updateFullscreenBars();
-    resetSplitToMiddle();
-
-    if (calibrateActive) {
-      if (!calibrateUserTouchedScale) autoScaleForCalibration();
-      else applyCalibrationTransforms();
-    } else {
-      applyCalibrationTransforms();
-    }
-
+    applyCalThenPosition();
     updateToggleHighlights();
   });
 });
@@ -689,34 +730,27 @@ function getCal(lensSlug, focal){
 
   updateFullscreenBars();
 
-  const rect = comparisonWrapper.getBoundingClientRect();
-  const usableW = Math.max(1, (comparisonWrapper._usableW ?? rect.width));
-  const usableH = Math.max(1, (comparisonWrapper._usableH ?? rect.height));
-
-  const toCssPx = (x=0, y=0) => {
-    const dx = (x / CAL_W) * usableW;
-    let dy = (y / CAL_H) * usableH;
-    if(CAL_Y_INVERT) dy = -dy;
-    return { dx, dy };
-  };
-
-  const requiredScaleFor = (cal) => {
+    const requiredScaleFor = (img, cal) => {
     if(!cal) return 1;
 
     const base = (cal.scale ?? 1);
-    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+    const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
+    const { w: boxW, h: boxH } = getCalBoxFor(img);
 
-    const needX = 1 + (2 * Math.abs(dx)) / usableW;
-    const needY = 1 + (2 * Math.abs(dy)) / usableH;
+    const needX = 1 + (2 * Math.abs(dx)) / boxW;
+    const needY = 1 + (2 * Math.abs(dy)) / boxH;
     const needCover = Math.max(needX, needY, 1);
 
     return needCover / Math.max(0.0001, base);
   };
 
+    const leftImg  = sbsActive ? sbsLeftImg  : afterImgTag;   // after = links
+  const rightImg = sbsActive ? sbsRightImg : beforeImgTag;  // before = rechts
+
   let required = Math.max(
     1,
-    requiredScaleFor(leftCal),
-    requiredScaleFor(rightCal)
+    requiredScaleFor(leftImg,  leftCal),
+    requiredScaleFor(rightImg, rightCal)
   );
 
   required *= 1.005;
@@ -749,38 +783,26 @@ function applyCalibrationTransforms(){
   const lbT = comparisonWrapper._lbTop || 0;
   const lbB = comparisonWrapper._lbBottom || 0;
 
-    const rect = comparisonWrapper.getBoundingClientRect();
-  const usableW = Math.max(1, (comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
-  const usableH = Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+    
 
-  const autoDy = getAutoReframeYPx(usableH);
+   const apply = (img, cal) => {
+  if(!img) return;
 
-  const toCssPx = (x=0, y=0) => {
-    const dx = (x / CAL_W) * usableW;
-    let dy = (y / CAL_H) * usableH;
-    if(CAL_Y_INVERT) dy = -dy;
-    return { dx, dy };
-  };
+  // auto reframe blijft gebaseerd op het zichtbare window (usableH)
+  const { h: boxH } = getCalBoxFor(img);
+  const autoDy = getAutoReframeYPx(boxH);
 
-    const apply = (img, cal) => {
-    if(!img) return;
+  // Calibrate UIT → alleen auto reframe
+  if(!calibrateActive || !cal){
+    setCalVars(img, 0, autoDy, 1);
+    return;
+  }
 
-    // Calibrate UIT → alleen auto reframe
-    if(!calibrateActive){
-      setCalVars(img, 0, autoDy, 1);
-      return;
-    }
+  const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
+  setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
+};
 
-    // Calibrate AAN maar geen cal-entry → alleen auto reframe
-    if(!cal){
-      setCalVars(img, 0, autoDy, 1);
-      return;
-    }
-
-    // Calibrate AAN + cal-entry → cal + auto reframe
-    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
-    setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
-  };
+  
   const leftCal  = getCal(leftSlug, focal);
   const rightCal = getCal(rightSlug, focal);
 
@@ -883,8 +905,8 @@ const uiTLStr = (uiTL === "wo") ? null : String(uiTL).replace(".", "_");
 const uiTRStr = (uiTR === "wo") ? null : String(uiTR).replace(".", "_");
 
 // fallback alleen als alias iets verandert (bijv. 2.8 -> 2.9)
-const tLFallback = (uiTL === "wo") ? null : String(uiTL).replace(/\./g, "_");
-const tRFallback = (uiTR === "wo") ? null : String(uiTR).replace(/\./g, "_");
+const tLFallback = (uiTL === "wo") ? null : String((TSTOP_FILE_ALIAS?.[LL]?.[uiTL] ?? uiTL)).replace(/\./g, "_");
+const tRFallback = (uiTR === "wo") ? null : String((TSTOP_FILE_ALIAS?.[RR]?.[uiTR] ?? uiTR)).replace(/\./g, "_");
 
 const leftCandidates  = resolveImageCandidates(LL, focal, tL, flareMode, sceneMode, tLFallback);
 const rightCandidates = resolveImageCandidates(RR, focal, tR, flareMode, sceneMode, tRFallback);
@@ -937,91 +959,178 @@ function onFsChange(){
   const fs = isWrapperFullscreen();
   setFullscreenImageFit(fs);
 
-  if(fs){ clearInlineHeights(); pulseFsBars({duration:1400}); }
-  else { const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
-    slider.style.top="0px"; slider.style.height="100%"; slider.style.bottom="0";
-  }
-  updateFullscreenBars();
-requestAnimationFrame(()=>{
-  updateFullscreenBars();
-  resetSplitToMiddle();
-
-  if(calibrateActive){
-  if(!calibrateUserTouchedScale){
-    autoScaleForCalibration();
+  if (fs) {
+    clearInlineHeights();
+    // pulseFsBars?.({duration:1400}); // optioneel
   } else {
-    applyCalibrationTransforms();
+    const { w, h } = getCurrentWH();
+    comparisonWrapper.style.setProperty("aspect-ratio", "auto");
+    setWrapperSizeByAR(w, h);
+    requestAnimationFrame(() => setWrapperSizeByAR(w, h));
+
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
+      comparisonWrapper.style.setProperty(v, "0px")
+    );
+
+    slider.style.top = "0px";
+    slider.style.height = "100%";
+    slider.style.bottom = "0";
   }
-} else {
-  applyCalibrationTransforms();
+
+  requestAnimationFrame(() => {
+    if (!isWrapperFullscreen()) {
+      const { w, h } = getCurrentWH();
+      setWrapperSizeByAR(w, h);
+    }
+    applyCalThenPosition();
+  });
 }
-});
-  requestAnimationFrame(()=>{ if(!isWrapperFullscreen()){ const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
-}
-document.addEventListener("fullscreenchange",onFsChange);
-document.addEventListener("webkitfullscreenchange",onFsChange);
+
+document.addEventListener("fullscreenchange", onFsChange);
+document.addEventListener("webkitfullscreenchange", onFsChange);
+
+
 window.addEventListener("resize",()=>{
   if(isWrapperFullscreen()){
-    updateFullscreenBars();
-    resetSplitToMiddle();
-
-    if(calibrateActive){
-      autoScaleForCalibration();
-    } else {
-      applyCalibrationTransforms();
-    }
+   
+  updateFullscreenBars();
+  applyCalThenPosition();
+    
   } else {
     const {w,h}=getCurrentWH();
     setWrapperSizeByAR(w,h);
   }
 });
-function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } updateFullscreenBars(); requestAnimationFrame(()=>{ updateFullscreenBars(); resetSplitToMiddle(); }); })(); }
-fullscreenBtn?.addEventListener("click",toggleFullscreen);
+async function toggleFullscreen(){
+  if(isWrapperFullscreen()){
+    await exitAnyFullscreen();
 
-/* === SxS toggle === */
-function setSideBySide(on,{force=false}={}) {
-  if(isExportingPdf && !force) return; const next=!!on; if(!force && sbsActive===next) return; sbsActive=next;
-  document.body.classList.toggle("sbs-mode",sbsActive); comparisonWrapper.classList.toggle("sbs-mode",sbsActive);
-  const beforeWrapper=beforeImgTag.parentElement;
-  if(sbsActive){ sbsWrapper.style.display="flex"; beforeWrapper.style.display="none"; afterWrapper.style.display="none"; sbsLeftImg.src=afterImgTag.src; sbsRightImg.src=beforeImgTag.src; slider.style.display="none"; ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); if(isWrapperFullscreen()) clearInlineHeights();
-  } else { sbsWrapper.style.display="none"; beforeWrapper.style.display=""; afterWrapper.style.display=""; slider.style.display=""; }
-    const {w,h}=getCurrentWH();
-  setWrapperSizeByAR(w,h);
-  requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+    const { w, h } = getCurrentWH();
+    comparisonWrapper.style.setProperty("aspect-ratio","auto");
+    setWrapperSizeByAR(w,h);
+    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
-    if(!sbsActive){
-    updateFullscreenBars();
-    resetSplitToMiddle();
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
+      comparisonWrapper.style.setProperty(v,"0px")
+    );
+
+    slider.style.top = "0px";
+    slider.style.height = "100%";
+    slider.style.bottom = "0";
+  } else {
+    clearInlineHeights();
+    await enterWrapperFullscreen();
+    pulseFsBars?.({ duration: 1400 }); // <-- voorkomt crash als pulseFsBars niet bestaat
   }
 
-  applyCalibrationTransforms();
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
+  else applyCalibrationTransforms();
+
   updateToggleHighlights();
 }
 
-sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
-toggleBtn?.addEventListener("click",()=>{ 
-  resetUserScale(); // <-- ook hier
+function setSideBySide(on,{force=false}={}) {
+  if(isExportingPdf && !force) return;
 
-  const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
-  const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
-  updateLensInfo(); 
-  updateImages(); 
-});
-/* === Slider drag (mouse/touch) === */
-let isDragging=false;
-slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
-window.addEventListener("mouseup",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
-window.addEventListener("mousemove",e=>{ if(isDragging) updateSliderPosition(e.clientX); });
-slider.addEventListener("touchstart",e=>{ e.preventDefault(); isDragging=true; document.body.classList.add("dragging"); },{passive:false});
-window.addEventListener("touchend",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
-window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
+  const next = !!on;
+  if(!force && sbsActive === next) return;
+  sbsActive = next;
 
-function recalcLayout(){
+  document.body.classList.toggle("sbs-mode", sbsActive);
+  comparisonWrapper.classList.toggle("sbs-mode", sbsActive);
+
+  const beforeWrapper = beforeImgTag.parentElement;
+
+  if(sbsActive){
+    sbsWrapper.style.display = "flex";
+    beforeWrapper.style.display = "none";
+    afterWrapper.style.display = "none";
+    sbsLeftImg.src  = afterImgTag.src;   // after = links
+    sbsRightImg.src = beforeImgTag.src;  // before = rechts
+    slider.style.display = "none";
+
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
+      comparisonWrapper.style.setProperty(v,"0px")
+    );
+
+    if(isWrapperFullscreen()) clearInlineHeights();
+  } else {
+    sbsWrapper.style.display = "none";
+    beforeWrapper.style.display = "";
+    afterWrapper.style.display = "";
+    slider.style.display = "";
+  }
+
+  const { w, h } = getCurrentWH();
+  setWrapperSizeByAR(w,h);
+  requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+
   updateFullscreenBars();
   resetSplitToMiddle();
-  if(calibrateActive) autoScaleForCalibration();
+
+  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
   else applyCalibrationTransforms();
+
+  updateToggleHighlights();
+}
+
+// 1x listeners, klaar
+fullscreenBtn?.addEventListener("click", (e) => {
+  e.preventDefault?.();   // handig als het een <a> is
+  toggleFullscreen();
+});
+
+sbsBtn?.addEventListener("click", (e) => {
+  e.preventDefault?.();
+  setSideBySide(!sbsActive);
+});
+
+/* === Slider drag (mouse/touch) === */
+let isDragging = false;
+
+if (slider) {
+  slider.style.touchAction = "none"; // voorkomt scroll/zoom interference op mobiel
+
+  slider.addEventListener("pointerdown", (e) => {
+    if (sbsActive || isExportingPdf) return;
+    isDragging = true;
+    document.body.classList.add("dragging");
+    slider.setPointerCapture(e.pointerId);
+    updateSliderPosition(e.clientX); // meteen springen naar pointer
+  });
+
+  slider.addEventListener("pointermove", (e) => {
+    if (!isDragging) return;
+    updateSliderPosition(e.clientX);
+  });
+
+  const endDrag = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    document.body.classList.remove("dragging");
+    try { slider.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+
+  slider.addEventListener("pointerup", endDrag);
+  slider.addEventListener("pointercancel", endDrag);
+}
+
+function recalcLayout(){
+  // zorg dat bars/usable rect kloppen en split/slider netjes reset
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  // wrapper height opnieuw berekenen (alleen non-fullscreen)
+  const { w, h } = getCurrentWH();
+  if(!isWrapperFullscreen()){
+    setWrapperSizeByAR(w, h);
+  }
+
+  // daarna calibratie/positionering opnieuw toepassen
+  requestAnimationFrame(() => applyCalThenPosition());
 }
 
 // 1x listeners, klaar
@@ -1039,15 +1148,12 @@ let pendingScaleRAF = null;
 function setUserScaleFromPct(pct){
   userScale = clamp(pct/100, 1.0, 1.3);
   document.documentElement.style.setProperty("--viewer-scale", String(userScale));
-  if(scaleVal) scaleVal.textContent = Math.round(userScale*100) + "%";
+  if (scaleVal) scaleVal.textContent = Math.round(userScale * 100) + "%";
 
-  // ✅ wacht tot layout geüpdatet is voordat je usableW/H gebruikt
-  if(pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
+  if (pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
   pendingScaleRAF = requestAnimationFrame(() => {
     pendingScaleRAF = null;
-    updateFullscreenBars();
-    resetSplitToMiddle();
-    applyCalibrationTransforms();
+    applyCalThenPosition();
   });
 }
 
@@ -1057,7 +1163,7 @@ function resetUserScale(){
 }
 
 // <-- HIER PLAKKEN (direct boven de input-listener)
-let calibrateUserTouchedScale = false;
+
 
 // <-- EN DEZE REGEL VERVANGT je bestaande input-listener
 scaleSlider?.addEventListener("input", (e) => {
@@ -1409,24 +1515,54 @@ comparisonWrapper._usableH = r.height;    return; }
 }
 function resetSplitToMiddle(){
   if(sbsActive) return;
-  const rect=comparisonWrapper.getBoundingClientRect(), lbL=comparisonWrapper._lbLeft||0, lbR=comparisonWrapper._lbRight||0, usable=Math.max(1,Math.round(rect.width-lbL-lbR));
-  const mid=Math.round(usable/2), inset=`inset(0 ${lbR+(usable-mid)}px 0 ${lbL}px)`;
-  afterWrapper.style.clipPath=inset; afterWrapper.style.webkitClipPath=inset;
-  slider.style.left=(lbL+mid)+"px";
-  const lbT=comparisonWrapper._lbTop||0, lbB=comparisonWrapper._lbBottom||0, usableH=Math.max(1,Math.round(rect.height-lbT-lbB));
-  slider.style.top=lbT+"px"; slider.style.height=usableH+"px"; slider.style.bottom="auto";
-}
-function updateSliderPosition(clientX){
-  const rect=comparisonWrapper.getBoundingClientRect(), lbL=comparisonWrapper._lbLeft||0, lbR=comparisonWrapper._lbRight||0, usable=Math.max(1,Math.round(rect.width-lbL-lbR));
-  const clamped=clamp(Math.round(clientX-rect.left-lbL),0,usable), leftInset=lbL, rightInset=lbR+(usable-clamped);
-  const inset=`inset(0 ${Math.max(0,rightInset-1)}px 0 ${leftInset}px)`; afterWrapper.style.clipPath=inset; afterWrapper.style.webkitClipPath=inset;
-  slider.style.left=(lbL+clamped)+"px";
-  const lbT=comparisonWrapper._lbTop||0, lbB=comparisonWrapper._lbBottom||0, usableH=Math.max(1,Math.round(rect.height-lbT-lbB));
-  slider.style.top=lbT+"px"; slider.style.height=usableH+"px"; slider.style.bottom="auto";
-}
-function pulseFsBars({duration=1400}={}){ const start=performance.now(); (function tick(now){ if(!isWrapperFullscreen()) return; updateFullscreenBars(); resetSplitToMiddle(); if(now-start<duration) requestAnimationFrame(tick); })(start); }
-function getCurrentSplitFraction(){ const rect=comparisonWrapper.getBoundingClientRect(), lbL=comparisonWrapper._lbLeft||0, lbR=comparisonWrapper._lbRight||0, usable=Math.max(1,Math.round(rect.width-lbL-lbR)); const s=slider.getBoundingClientRect(); const x=(s.left+s.width/2)-rect.left-lbL; return clamp(x/usable,0,1); }
 
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const lbL  = comparisonWrapper._lbLeft   || 0;
+  const lbR  = comparisonWrapper._lbRight  || 0;
+  const lbT  = comparisonWrapper._lbTop    || 0;
+  const lbB  = comparisonWrapper._lbBottom || 0;
+
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
+const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+
+  const mid = Math.round(usableW / 2);
+
+  // ✅ clip ook verticaal binnen usable window
+  const inset = `inset(${lbT}px ${lbR + (usableW - mid)}px ${lbB}px ${lbL}px)`;
+  afterWrapper.style.clipPath = inset;
+  afterWrapper.style.webkitClipPath = inset;
+
+  slider.style.left   = (lbL + mid) + "px";
+  slider.style.top    = lbT + "px";
+  slider.style.height = usableH + "px";
+  slider.style.bottom = "auto";
+}
+
+function updateSliderPosition(clientX){
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const lbL  = comparisonWrapper._lbLeft   || 0;
+  const lbR  = comparisonWrapper._lbRight  || 0;
+  const lbT  = comparisonWrapper._lbTop    || 0;
+  const lbB  = comparisonWrapper._lbBottom || 0;
+
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
+const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+
+  const clamped = clamp(Math.round(clientX - rect.left - lbL), 0, usableW);
+
+  const leftInset  = lbL;
+  const rightInset = lbR + (usableW - clamped);
+
+  // ✅ clip ook verticaal + behoud jouw 1px seam-fix
+  const inset = `inset(${lbT}px ${Math.max(0, rightInset - 1)}px ${lbB}px ${leftInset}px)`;
+  afterWrapper.style.clipPath = inset;
+  afterWrapper.style.webkitClipPath = inset;
+
+  slider.style.left   = (lbL + clamped) + "px";
+  slider.style.top    = lbT + "px";
+  slider.style.height = usableH + "px";
+  slider.style.bottom = "auto";
+}
 /* === Autoscale per lens/focal (100–130%) === */
 const LENS_SCALE_TABLE={
   "35mm":{ panchro:100,"red p":116,mkii:117,jena:112,vespid:109,arles:110,"lomo standard speed":110 },
@@ -1560,23 +1696,37 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 onFsChange();
 setTimeout(updateImages,50);
 
-/* === Force capture camera/format (after everything is wired) === */
+/* === Force capture camera/format (robust) === */
 function forceCaptureCamera(){
   if(!cameraSelect || !sensorFormatSelect) return;
 
-  // camera kiezen → vult formats (sync in jouw change-handler)
-  cameraSelect.value = CAPTURE_CAMERA;
+  const cam = CAPTURE_CAMERA;
+  const fmt = CAPTURE_FORMAT;
+
+  // wacht tot camera options bestaan
+  const camExists = [...cameraSelect.options].some(o => o.value === cam);
+  if(!camExists) return requestAnimationFrame(forceCaptureCamera);
+
+  // zet camera (triggert vullen formats)
+  cameraSelect.value = cam;
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  // format kiezen (kan direct na camera-change, want options zijn dan gevuld)
-  sensorFormatSelect.value = CAPTURE_FORMAT;
-  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+  // wacht tot format options gevuld zijn
+  requestAnimationFrame(() => {
+    const fmtExists = [...sensorFormatSelect.options].some(o => o.value === fmt);
+    if(!fmtExists) return setTimeout(forceCaptureCamera, 50);
 
-  // 1 frame later: calibrate aan (na layout/bars)
-  requestAnimationFrame(() => enableCalibrate());
+    sensorFormatSelect.value = fmt;
+    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+
+    // pas daarna calibrate aan
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => enableCalibrate())
+    );
+  });
 }
 
-forceCaptureCamera();
-setTimeout(forceCaptureCamera, 50);
-window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
-window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
+// run op de momenten die écht zinvol zijn
+window.addEventListener("DOMContentLoaded", forceCaptureCamera);
+window.addEventListener("pageshow", forceCaptureCamera);
+window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
