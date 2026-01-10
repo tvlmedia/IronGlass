@@ -393,18 +393,24 @@ const CAL_Y_INVERT = true; // zet op false als Y de verkeerde kant op gaat
 // per lensSlug + focal: { scale, x, y }  (x/y = Resolve Position waarden)
 const CALIBRATION = {
   "ironglass_titan_zoom": {
-    "120mm": { scale: 0.96, x: 25.823, y: -70.244 }
-    "120mm": { scale: 0.89, x: 3, y: -35 }
+    "120mm": { scale: 0.96, x: 25.823, y: -70.244 },
+    "85mm":  { scale: 0.89, x: 3.000,  y: -35.000 }
   },
 
   "ironglass_sovjet_medium_format": {
-    "120mm": { scale: 0.95, x: 40.668, y: -18.485 }
+    "120mm": { scale: 0.95, x: 40.668, y: -18.485 },
+    "90mm":  { scale: 0.88, x: 14.000, y: 29.000 },
+    "80mm":  { scale: 0.97, x: 28.780, y: 0.000 }
   },
 
   "ironglass_sovjet_mkii": {
-    "120mm": { scale: 0.85, x: 7.394, y: 18.485 }
-  }
+    "120mm": { scale: 0.85, x: 7.394, y: 18.485 },
+    "85mm":  { scale: 0.95, x: 1.000, y: 65.349 }
+  },
 
+  "ironglass_red_p": {
+    "85mm": { scale: 0.93, x: 0.930, y: 73.349 }
+  }
 };
 
 // === Calibrate autoscale whitelist ===
