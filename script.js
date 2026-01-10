@@ -219,9 +219,11 @@ const notes = {
   // (mag blijven, maar als je nearest-focal gebruikt kan dit er uiteindelijk uit)
   "ironglass_zeiss_jena_85mm": "80mm",
   "ironglass_titan_zoom_35mm": "37mm",
+  "ironglass_titan_zoom_28mm": "29mm",
   "ironglass_sovjet_medium_format_85mm": "80mm",
   "ironglass_sovjet_medium_format_50mm": "65mm",
-  "ironglass_sovjet_medium_format_50mm": "45mm"
+  "ironglass_sovjet_medium_format_50mm": "45mm",
+  "ironglass_sovjet_medium_format_28mm": "30mm"
 };
 
 /* === Measured / available real T-stops per lensSlug + FILE focal === */
