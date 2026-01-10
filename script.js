@@ -383,6 +383,10 @@ const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
 const BASE_SENSOR = cameras[CAPTURE_CAMERA][CAPTURE_FORMAT];
 let sbsActive=false, isExportingPdf=false, userScale=1;
 
+// ✅ zet deze HIER (en verwijder de latere "let detailActive = false;" verderop)
+let detailActive = false;
+syncDetailOverlayPointerEvents();
+
 /* === Helpers === */
 const isWrapperFullscreen=()=> (document.fullscreenElement||document.webkitFullscreenElement)===comparisonWrapper;
 const enterWrapperFullscreen=()=> comparisonWrapper.requestFullscreen?.()||comparisonWrapper.webkitRequestFullscreen?.();
@@ -632,13 +636,15 @@ function enableCalibrate(){
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
-  const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
-  const pos = "center center";
-
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
     if(!img) return;
-    img.style.objectFit = fit;
-    img.style.objectPosition = pos;
+    if(isFs){
+      img.style.objectFit = "contain";
+      img.style.objectPosition = "center center";
+    } else {
+      img.style.removeProperty("object-fit");
+      img.style.removeProperty("object-position");
+    }
   });
 }
 // --- Toggle Highlight ---
@@ -1087,35 +1093,100 @@ sbsBtn?.addEventListener("click", (e) => {
   e.preventDefault?.();
   setSideBySide(!sbsActive);
 });
+// === SLIDER HOTFIX: voorkom dat images/overlays de slider blokkeren ===
+function ensureSliderPointerAccess(){
+  if(!slider || !comparisonWrapper) return;
+
+  // slider moet altijd clickable blijven
+  slider.style.zIndex = "999";
+  slider.style.pointerEvents = "auto";
+  slider.style.touchAction = "none";
+
+  // alleen de IMG's mogen geen events pakken
+  [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
+    if(img) img.style.pointerEvents = "none";
+  });
+
+  // ❌ NIET DOEN (dit kan je slider killen als die erin zit)
+  // if(afterWrapper) afterWrapper.style.pointerEvents = "none";
+  // const beforeWrapper = beforeImgTag?.parentElement;
+  // if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
+}
+ensureSliderPointerAccess();
+// ===============================
+// SLIDER DRAG (POINTER EVENTS)
+// ===============================
+let isDraggingSlider = false;
+
+function sliderStart(e){
+  if (sbsActive) return;
+  if (isExportingPdf) return;
+  if (detailActive) return;
+
+  e.stopPropagation(); // ✅ voorkomt dubbel starten via comparisonWrapper
+
+  isDraggingSlider = true;
+  document.body.classList.add("dragging");
+
+  try { slider.setPointerCapture?.(e.pointerId); } catch(_) {}
+
+  updateFullscreenBars();
+  updateSliderPosition(e.clientX);
+  e.preventDefault?.();
+}
+
+function sliderMove(e){
+  if (!isDraggingSlider) return;
+  updateSliderPosition(e.clientX);
+  e.preventDefault?.();
+}
+
+function sliderEnd(e){
+  if (!isDraggingSlider) return;
+  isDraggingSlider = false;
+  document.body.classList.remove("dragging");
+  try { slider.releasePointerCapture?.(e.pointerId); } catch(_) {}
+  try { comparisonWrapper.releasePointerCapture?.(e.pointerId); } catch(_) {}
+  e.preventDefault?.();
+}
+
+slider.addEventListener("pointerdown", sliderStart, { passive:false, capture:true });
+window.addEventListener("pointermove", sliderMove, { passive:false });
+window.addEventListener("pointerup", sliderEnd, { passive:false });
+window.addEventListener("pointercancel", sliderEnd, { passive:false });
+
+comparisonWrapper.addEventListener("pointerdown", (e) => {
+  if (sbsActive || isExportingPdf || detailActive) return;
+  if (e.target === slider || e.target?.closest?.("#slider")) return; // ✅
+  if (e.target && e.target.closest?.(".controls")) return;
+
+  isDraggingSlider = true;
+  document.body.classList.add("dragging");
+
+  try { comparisonWrapper.setPointerCapture?.(e.pointerId); } catch(_) {}
+
+  updateFullscreenBars();
+  updateSliderPosition(e.clientX);
+  e.preventDefault?.();
+}, { passive:false, capture:true });
+/* === Slider drag (mouse/touch) === */
+// ... jouw recalcLayout + load/error listeners blijven gewoon hieronder staan
 
 /* === Slider drag (mouse/touch) === */
-let isDragging = false;
+// Slider drag
+function recalcLayout(){
+  // zorg dat bars/usable rect kloppen en split/slider netjes reset
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
-if (slider) {
-  slider.style.touchAction = "none"; // voorkomt scroll/zoom interference op mobiel
+  // wrapper height opnieuw berekenen (alleen non-fullscreen)
+  const { w, h } = getCurrentWH();
+  if(!isWrapperFullscreen()){
+    setWrapperSizeByAR(w, h);
+  }
 
-  slider.addEventListener("pointerdown", (e) => {
-    if (sbsActive || isExportingPdf) return;
-    isDragging = true;
-    document.body.classList.add("dragging");
-    slider.setPointerCapture(e.pointerId);
-    updateSliderPosition(e.clientX); // meteen springen naar pointer
-  });
-
-  slider.addEventListener("pointermove", (e) => {
-    if (!isDragging) return;
-    updateSliderPosition(e.clientX);
-  });
-
-  const endDrag = (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    document.body.classList.remove("dragging");
-    try { slider.releasePointerCapture(e.pointerId); } catch (_) {}
-  };
-
-  slider.addEventListener("pointerup", endDrag);
-  slider.addEventListener("pointercancel", endDrag);
+  // daarna calibratie/positionering opnieuw toepassen
+  requestAnimationFrame(() => applyCalThenPosition());
 }
 
 // 1x listeners, klaar
@@ -1194,13 +1265,19 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 );
 
 // ===== DETAIL (zoom) viewer =====
-let detailActive = false;
+
 
 const leftDetailImg  = leftDetail?.querySelector("img");
 const rightDetailImg = rightDetail?.querySelector("img");
 
+function syncDetailOverlayPointerEvents(){
+  if(!detailOverlay) return;
+  detailOverlay.style.pointerEvents = detailActive ? "auto" : "none";
+}
+
 detailToggleButton?.addEventListener("click", () => {
-  if(!detailOverlay || !leftDetail || !rightDetail) return; // ✅ guard
+  if(!detailOverlay || !leftDetail || !rightDetail) return;
+
   detailActive = !detailActive;
   detailOverlay.classList.toggle("active", detailActive);
 
@@ -1208,6 +1285,8 @@ detailToggleButton?.addEventListener("click", () => {
     leftDetail.style.display = "none";
     rightDetail.style.display = "none";
   }
+
+  syncDetailOverlayPointerEvents(); // ✅ HIER
   updateToggleHighlights();
 });
 
@@ -1227,6 +1306,8 @@ document.addEventListener("keydown", (e) => {
     detailToggleButton?.classList.remove("active");
     leftDetail && (leftDetail.style.display = "none");
     rightDetail && (rightDetail.style.display = "none");
+
+    syncDetailOverlayPointerEvents(); // ✅
     updateToggleHighlights();
   }
 });
@@ -1524,6 +1605,7 @@ const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.heigh
 }
 
 function updateSliderPosition(clientX){
+  if(typeof comparisonWrapper._usableW === "undefined") updateFullscreenBars();
   const rect = comparisonWrapper.getBoundingClientRect();
   const lbL  = comparisonWrapper._lbLeft   || 0;
   const lbR  = comparisonWrapper._lbRight  || 0;
@@ -1681,23 +1763,134 @@ q("downloadPdfButton")?.addEventListener("click",async()=>{
 onFsChange();
 setTimeout(updateImages,50);
 
-/* === Force capture camera/format (after everything is wired) === */
+/* === Force capture camera/format (robust) === */
 function forceCaptureCamera(){
   if(!cameraSelect || !sensorFormatSelect) return;
 
-  // camera kiezen → vult formats (sync in jouw change-handler)
-  cameraSelect.value = CAPTURE_CAMERA;
+  const cam = CAPTURE_CAMERA;
+  const fmt = CAPTURE_FORMAT;
+
+  // wacht tot camera options bestaan
+  const camExists = [...cameraSelect.options].some(o => o.value === cam);
+  if(!camExists) return requestAnimationFrame(forceCaptureCamera);
+
+  // zet camera (triggert vullen formats)
+  cameraSelect.value = cam;
   cameraSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  // format kiezen (kan direct na camera-change, want options zijn dan gevuld)
-  sensorFormatSelect.value = CAPTURE_FORMAT;
-  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+  // wacht tot format options gevuld zijn
+  requestAnimationFrame(() => {
+    const fmtExists = [...sensorFormatSelect.options].some(o => o.value === fmt);
+    if(!fmtExists) return setTimeout(forceCaptureCamera, 50);
 
-  // 1 frame later: calibrate aan (na layout/bars)
-  requestAnimationFrame(() => enableCalibrate());
+    sensorFormatSelect.value = fmt;
+    sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
+
+    // pas daarna calibrate aan
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => enableCalibrate())
+    );
+  });
 }
 
-forceCaptureCamera();
-setTimeout(forceCaptureCamera, 50);
-window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
-window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
+// run op de momenten die écht zinvol zijn
+window.addEventListener("DOMContentLoaded", forceCaptureCamera);
+window.addEventListener("pageshow", forceCaptureCamera);
+window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
+
+/* ===============================
+   SLIDER FIX v2 (HARD OVERRIDE)
+   Plak helemaal onderaan script.js
+   =============================== */
+(function sliderFixV2(){
+  if(!window.PointerEvent) return;
+
+  const sliderEl = document.getElementById("slider");
+  const wrapEl   = document.getElementById("comparisonWrapper");
+  const afterWrap = document.getElementById("afterWrapper");
+
+  if(!sliderEl || !wrapEl || !afterWrap) return;
+
+  // Force: slider altijd "bovenop" + interactief
+  sliderEl.style.pointerEvents = "auto";
+  sliderEl.style.touchAction = "none";
+  sliderEl.style.zIndex = "100000";
+
+  // Force: viewer mag pointer-events ontvangen
+  wrapEl.style.touchAction = "none";
+
+  let dragging = false;
+  let activePointerId = null;
+
+  const canDrag = () => {
+    // gebruik jouw globals als ze bestaan
+    if (typeof sbsActive !== "undefined" && sbsActive) return false;
+    if (typeof isExportingPdf !== "undefined" && isExportingPdf) return false;
+    if (typeof detailActive !== "undefined" && detailActive) return false;
+    return true;
+  };
+
+  function startDrag(e){
+    if(!canDrag()) return;
+
+    dragging = true;
+    activePointerId = e.pointerId ?? null;
+
+    document.body.classList.add("dragging");
+
+    // capture op wrapper is het meest stabiel
+    try { wrapEl.setPointerCapture?.(e.pointerId); } catch(_){}
+
+    // jouw functies bestaan al in je file:
+    try { updateFullscreenBars(); } catch(_){}
+    try { updateSliderPosition(e.clientX); } catch(_){}
+
+    e.preventDefault?.();
+    e.stopImmediatePropagation?.();
+  }
+
+  function moveDrag(e){
+    if(!dragging) return;
+    if(activePointerId !== null && e.pointerId !== activePointerId) return;
+
+    try { updateSliderPosition(e.clientX); } catch(_){}
+
+    e.preventDefault?.();
+    e.stopImmediatePropagation?.();
+  }
+
+  function endDrag(e){
+    if(!dragging) return;
+
+    dragging = false;
+    activePointerId = null;
+    document.body.classList.remove("dragging");
+
+    try { wrapEl.releasePointerCapture?.(e.pointerId); } catch(_){}
+
+    e.preventDefault?.();
+    e.stopImmediatePropagation?.();
+  }
+
+  // 1) Pak slider altijd als je erop klikt
+  sliderEl.addEventListener("pointerdown", startDrag, { capture:true, passive:false });
+
+  // 2) Pak óók drag als je ergens in de viewer klikt (maar NIET op controls)
+  document.addEventListener("pointerdown", (e) => {
+    if(!canDrag()) return;
+    if(!wrapEl.contains(e.target)) return;
+
+    // niet starten als je op controls klikt
+    if(e.target.closest?.(".controls")) return;
+
+    startDrag(e);
+  }, { capture:true, passive:false });
+
+  document.addEventListener("pointermove", moveDrag, { capture:true, passive:false });
+  document.addEventListener("pointerup", endDrag, { capture:true, passive:false });
+  document.addEventListener("pointercancel", endDrag, { capture:true, passive:false });
+
+  // kleine safety: na layout updates slider weer correct zetten
+  try { updateFullscreenBars(); } catch(_){}
+  try { resetSplitToMiddle(); } catch(_){}
+})();
