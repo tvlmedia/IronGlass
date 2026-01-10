@@ -367,11 +367,10 @@ button.active,
   --cal-scale: 1;
 
   /* ✅ FIX: translate BEFORE scale (so translate is NOT scaled) */
-  transform:
+   transform:
     translate(var(--cal-tx), var(--cal-ty))
     scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
   transform-origin:center;
-  will-change:transform;
 }
 
 #afterWrapper{
@@ -507,10 +506,10 @@ body.sbs-mode #sbsWrapper .pane img{
 
   /* ✅ same fix here */
   transform:
+   transform:
     translate(var(--cal-tx), var(--cal-ty))
     scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
   transform-origin:center;
-  will-change:transform;
 }
 
 /* middenlijn oranje */
