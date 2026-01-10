@@ -399,22 +399,19 @@ const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
 /* === AUTO VERTICAL REFRAME (small sensor heights) === */
 const AUTO_REFRAME = {
-  thresholdH: 16.5,   // mm: hieronder gaan we compenseren
-  maxShiftPct: -0.75   // max 8% van beeldhoogte verschuiven (tweak naar smaak)
+  thresholdH: 16.5,
+  maxShiftFrac: 0.75  // 75% (zoals je huidige gedrag)
 };
 
-// fractie van beeldhoogte (negatief = beeld omhoog in CSS-translateY)
 function getAutoReframeYFrac(){
   const { h } = getCurrentWH();
   const t = AUTO_REFRAME.thresholdH;
-
   if(!h || h >= t) return 0;
 
-  // hoe kleiner de sensorhoogte, hoe meer shift (0..1)
   const severity = clamp((t - h) / t, 0, 1);
 
-  // jouw wens: "iets naar boven positionen"
-  return -severity * AUTO_REFRAME.maxShiftPct;
+  // zelfde als jouw oude: naar beneden
+  return +severity * AUTO_REFRAME.maxShiftFrac;
 }
 
 function getAutoReframeYPx(usableH){
@@ -1017,13 +1014,21 @@ afterImgTag.addEventListener("error", recalcLayout);
 recalcLayout();
 
 /* === Scaling (UI) === */
+let pendingScaleRAF = null;
+
 function setUserScaleFromPct(pct){
   userScale = clamp(pct/100, 1.0, 1.3);
   document.documentElement.style.setProperty("--viewer-scale", String(userScale));
   if(scaleVal) scaleVal.textContent = Math.round(userScale*100) + "%";
-  updateFullscreenBars();
-  resetSplitToMiddle();
-  applyCalibrationTransforms();
+
+  // ✅ wacht tot layout geüpdatet is voordat je usableW/H gebruikt
+  if(pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
+  pendingScaleRAF = requestAnimationFrame(() => {
+    pendingScaleRAF = null;
+    updateFullscreenBars();
+    resetSplitToMiddle();
+    applyCalibrationTransforms();
+  });
 }
 
 function resetUserScale(){
