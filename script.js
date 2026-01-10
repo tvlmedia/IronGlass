@@ -569,22 +569,27 @@ const CAL_Y_INVERT = true; // zet op false als Y de verkeerde kant op gaat
 const CALIBRATION = {
   "ironglass_titan_zoom": {
     "120mm": { scale: 0.96, x: 25.823, y: -70.244 },
-    "85mm":  { scale: 0.89, x: 3.000,  y: 35.000 }
+    "85mm":  { scale: 0.89, x: 3.000,  y: 35.000 },
+    "50mm":  { scale: 0.96, x: -3.965,  y: -27.412 }
   },
 
   "ironglass_sovjet_medium_format": {
     "120mm": { scale: 0.95, x: 40.668, y: -18.485 },
     "90mm":  { scale: 0.88, x: 14.000, y: 29.000 },
-    "80mm":  { scale: 0.97, x: 28.780, y: 0.000 }
+    "80mm":  { scale: 0.97, x: 28.780, y: 0.000 },
+    "50mm":  { scale: 0.78, x: 27.377, y: -10.412 },
+    "50mm":  { scale: 1.120, x: 0.000, y: -27.000 }
   },
 
   "ironglass_sovjet_mkii": {
     "120mm": { scale: 0.85, x: 7.394, y: 18.485 },
-    "85mm":  { scale: 0.95, x: 1.000, y: 65.349 }
+    "85mm":  { scale: 0.95, x: 1.000, y: 65.349 },
+    "50mm": { scale: 0.870, x: 0, y: 0 }
   },
 
   "ironglass_red_p": {
-    "85mm": { scale: 0.93, x: 0.930, y: 73.349 }
+    "85mm": { scale: 0.93, x: 0.930, y: 73.349 },
+    "50mm": { scale: 0.87, x: 24.000, y: 12.000 }
   }
 };
 
