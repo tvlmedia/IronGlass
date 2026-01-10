@@ -280,7 +280,7 @@ const MEASURED_TSTOPS = {
 const TSTOP_FILE_ALIAS = {
   "ironglass_red_p": {
     // files: t2_1, t2_8, t4
-    "wo": "2.1",
+    
     "2":  "2.1",
     "2.8":"2.8",
     "4":  "4"
@@ -288,7 +288,7 @@ const TSTOP_FILE_ALIAS = {
 
   "ironglass_sovjet_mkii": {
     // files: t2_1, t2_9, t4  (geen echte 2.8 files -> map naar 2.9)
-    "wo": "2.1",
+    
     "2":  "2.1",
     "2.8":"2.9",
     "4":  "4"
@@ -296,7 +296,7 @@ const TSTOP_FILE_ALIAS = {
 
   "ironglass_zeiss_jena": {
     // files: t1_9, t2_8, t4
-    "wo": "1.9",
+   
     "2":  "1.9",
     "2.8":"2.8",
     "4":  "4"
@@ -304,7 +304,7 @@ const TSTOP_FILE_ALIAS = {
 
   "ironglass_titan_zoom": {
     // files: t2_9, t4
-    "wo": "2.9",
+    
     "2":  "2.9",
     "2.8":"2.9",
     "4":  "4"
@@ -345,9 +345,7 @@ function pickMeasuredTStop(lensSlug, nominalFocal, uiVal){
 
   if(!nums.length) return null;
 
-  // WO = wijdst open (kleinste T)
-  if(uiVal === "wo") return String(nums[0]);
-
+ 
   const target = parseFloat(String(uiVal));
   if(!Number.isFinite(target)) return String(nums[0]);
 
@@ -563,50 +561,38 @@ function applyCurrentFormat(){
 }
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
-const DEFAULT_T_STOPS = ["wo", "2", "2.8", "4"];
+const DEFAULT_T_STOPS = ["1.4", "2", "2.8", "4"]; // fallback als er géén measured data is
 
-function fillTStops(sel, opts = DEFAULT_T_STOPS, woLabel = "WO"){
+function fillTStops(sel, opts = DEFAULT_T_STOPS){
   sel.innerHTML = "";
-  opts.forEach(v => {
-    const label = (v === "wo") ? woLabel : `T${v}`;
-    sel.add(new Option(label, v));
-  });
+  opts.forEach(v => sel.add(new Option(`T${v}`, v)));
 }
 
 fillTStops(tStopLeftSelect);
 fillTStops(tStopRightSelect);
-tStopLeftSelect.value  = "wo";
-tStopRightSelect.value = "wo";
+
 // ===== Dynamic T-stop dropdowns (per lens + (effective) focal) =====
 
-// Bouw opties: altijd "wo", daarna measured stops (ascending). Anders default.
 function getAvailableTStopsFor(lensSlug, effectiveFocal){
   const stops = getMeasuredStops(lensSlug, effectiveFocal);
   if(stops && stops.length){
     const unique = Array.from(new Set(stops.map(s => String(s).trim()).filter(Boolean)));
     unique.sort((a,b) => parseFloat(a) - parseFloat(b));
-    return ["wo", ...unique];
+    return unique; // ✅ geen WO, alleen echte T-stops
   }
   return DEFAULT_T_STOPS.slice();
 }
 
 function pickClosestTStopOption(options, preferred){
+  if(!options || !options.length) return preferred || "";
   if(options.includes(preferred)) return preferred;
 
-  // WO fallback
-  if(preferred === "wo") return options.includes("wo") ? "wo" : (options[0] || "wo");
-
   const p = parseFloat(String(preferred));
-  if(!Number.isFinite(p)){
-    return options.includes("wo") ? "wo" : (options[0] || "wo");
-  }
-
   const nums = options
-    .filter(v => v !== "wo")
     .map(v => ({ v, n: parseFloat(String(v)) }))
     .filter(o => Number.isFinite(o.n));
 
-  if(!nums.length) return options.includes("wo") ? "wo" : (options[0] || "wo");
+  if(!Number.isFinite(p) || !nums.length) return options[0];
 
   let best = nums[0];
   let bestDiff = Math.abs(best.n - p);
@@ -627,52 +613,34 @@ function updateTStopSelectForSide(side /* "left"|"right" */){
 
   const lensSlug = lensSlugFromLabel(lensLbl);
   const uiFocal  = focalLengthSelect?.value || "50mm";
-
-  // MF-alt moet al in mfAltState zitten → daarom dit via getEffectiveFocal
   const effectiveFocal = getEffectiveFocal(lensSlug, uiFocal, side);
 
-  const prev = sel.value || "wo";
+  const prev = sel.value || DEFAULT_T_STOPS[0];
   const opts = getAvailableTStopsFor(lensSlug, effectiveFocal);
 
-// WO label = "WO (T<measured wide open>)" als we data hebben
-let woLabel = "WO";
-const stops = getMeasuredStops(lensSlug, effectiveFocal);
-if(stops && stops.length){
-  const nums = stops
-    .map(s => parseFloat(String(s)))
-    .filter(n => Number.isFinite(n))
-    .sort((a,b) => a-b);
-
-  if(nums.length) woLabel = `WO (T${nums[0]})`;
-}
-
-fillTStops(sel, opts, woLabel);
+  fillTStops(sel, opts);
   sel.value = pickClosestTStopOption(opts, prev);
 
   return { opts };
 }
 
-// Call this AFTER updateMfAltUI()
 function updateTStopDropdowns(){
+  const prevL = tStopLeftSelect.value  || DEFAULT_T_STOPS[0];
+  const prevR = tStopRightSelect.value || DEFAULT_T_STOPS[0];
+
   const leftInfo  = updateTStopSelectForSide("left");
   const rightInfo = updateTStopSelectForSide("right");
 
-  // Houd ze (zoveel mogelijk) synced zoals je tool gewend is:
-  // Right probeert Left te volgen, anders kiest 'ie closest (of WO).
-  const desired = tStopLeftSelect.value || "wo";
-  if(!rightInfo.opts.includes(desired)){
-    tStopRightSelect.value = pickClosestTStopOption(rightInfo.opts, desired);
-  } else {
-    tStopRightSelect.value = desired;
-  }
+  tStopLeftSelect.value  = pickClosestTStopOption(leftInfo.opts,  prevL);
+  tStopRightSelect.value = pickClosestTStopOption(rightInfo.opts, prevR);
 }
 
 // Oude naam laten bestaan (je listeners gebruiken 'm al)
 function syncTStopsOnContextChange(){
-  // mfAltState moet actueel zijn voordat we dropdowns vullen
   updateMfAltUI();
   updateTStopDropdowns();
 }
+
 
 // === Bokeh toggle (zonder ON/OFF tekst) ===
 bokehToggle.dataset.mode = bokehToggle.dataset.mode || "portrait";
@@ -1142,13 +1110,8 @@ function updateImages(){
   const sceneMode = bokehToggle?.dataset.mode || "portrait";
 
   // fallback alleen als je “oude alias table” iets anders zou kiezen
-  const tLFallback = (uiTL === "wo")
-    ? null
-    : String((TSTOP_FILE_ALIAS?.[LL]?.[uiTL] ?? uiTL)).replace(/\./g, "_");
-
-  const tRFallback = (uiTR === "wo")
-    ? null
-    : String((TSTOP_FILE_ALIAS?.[RR]?.[uiTR] ?? uiTR)).replace(/\./g, "_");
+ const tLFallback = String((TSTOP_FILE_ALIAS?.[LL]?.[uiTL] ?? uiTL)).replace(/\./g, "_");
+const tRFallback = String((TSTOP_FILE_ALIAS?.[RR]?.[uiTR] ?? uiTR)).replace(/\./g, "_");
 
   const leftCandidates  = resolveImageCandidates(LL, leftFocal,  tL, flareMode, sceneMode, tLFallback);
   const rightCandidates = resolveImageCandidates(RR, rightFocal, tR, flareMode, sceneMode, tRFallback);
@@ -1164,11 +1127,11 @@ const rf = aliasFor(RR, rightFocal);
   const lu = lensDescriptions[leftSelect.value]?.url  || "#";
   const ru = lensDescriptions[rightSelect.value]?.url || "#";
 
-  const tLNote = (uiTL !== "wo" && String(tLActual) !== String(uiTL)) ? ` (eig. T${tLActual})` : "";
-  const tRNote = (uiTR !== "wo" && String(tRActual) !== String(uiTR)) ? ` (eig. T${tRActual})` : "";
+const tLNote = (String(tLActual) !== String(uiTL)) ? ` (eig. T${tLActual})` : "";
+const tRNote = (String(tRActual) !== String(uiTR)) ? ` (eig. T${tRActual})` : "";
 
-  const uiTLLabel = (uiTL === "wo") ? "WO" : `T${uiTL}`;
-  const uiTRLabel = (uiTR === "wo") ? "WO" : `T${uiTR}`;
+const uiTLLabel = `T${uiTL}`;
+const uiTRLabel = `T${uiTR}`;
 
   const lfDisplay = String(lf).replace(/_m(35|50)$/, "");
   const rfDisplay = String(rf).replace(/_m(35|50)$/, "");
