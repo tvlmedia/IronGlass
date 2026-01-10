@@ -734,25 +734,15 @@ function getCal(lensSlug, focal){
 
   updateFullscreenBars();
 
-  const rect = comparisonWrapper.getBoundingClientRect();
-  const usableW = Math.max(1, (comparisonWrapper._usableW ?? rect.width));
-  const usableH = Math.max(1, (comparisonWrapper._usableH ?? rect.height));
-
-  const toCssPx = (x=0, y=0) => {
-    const dx = (x / CAL_W) * usableW;
-    let dy = (y / CAL_H) * usableH;
-    if(CAL_Y_INVERT) dy = -dy;
-    return { dx, dy };
-  };
-
-  const requiredScaleFor = (cal) => {
+    const requiredScaleFor = (img, cal) => {
     if(!cal) return 1;
 
     const base = (cal.scale ?? 1);
-    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+    const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
+    const { w: boxW, h: boxH } = getCalBoxFor(img);
 
-    const needX = 1 + (2 * Math.abs(dx)) / usableW;
-    const needY = 1 + (2 * Math.abs(dy)) / usableH;
+    const needX = 1 + (2 * Math.abs(dx)) / boxW;
+    const needY = 1 + (2 * Math.abs(dy)) / boxH;
     const needCover = Math.max(needX, needY, 1);
 
     return needCover / Math.max(0.0001, base);
@@ -760,8 +750,8 @@ function getCal(lensSlug, focal){
 
   let required = Math.max(
     1,
-    requiredScaleFor(leftCal),
-    requiredScaleFor(rightCal)
+    requiredScaleFor(afterImgTag, leftCal),
+    requiredScaleFor(beforeImgTag, rightCal)
   );
 
   required *= 1.005;
