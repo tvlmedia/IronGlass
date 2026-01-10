@@ -204,7 +204,7 @@ const cameras = {
 };
 
 /* === Lens lijsten, alias-focals, files en teksten === */
-const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
+const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Test Zoom","IronGlass Sovjet Medium Format"];
 
 const notes = {
   "ironglass_sovjet_mkii_120mm": "135mm",
@@ -303,7 +303,7 @@ const lensDescriptions = {
   "IronGlass Red P": { text:"Extremely vintage Soviet optics with single coating, heavy character, flare and distortion. Pure, raw, unpolished glass for maximum personality.", url:"https://ironglassadapters.com/rehousing/red-p-limited-edition-soviet-lens-rehousing/" },
   "IronGlass Zeiss Jena": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss-jena-rehousing/" },
   "IronGlass Sovjet MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/rehoused-soviet-lenses/mkii/" },
-  "IronGlass Test Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
+  "IronGlass Titan Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
   "IronGlass Sovjet Medium Format": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
  };
 
@@ -1001,93 +1001,52 @@ window.addEventListener("resize",()=>{
     setWrapperSizeByAR(w,h);
   }
 });
-async function toggleFullscreen(){
-  if(isWrapperFullscreen()){
-    await exitAnyFullscreen();
-
-    const { w, h } = getCurrentWH();
-    comparisonWrapper.style.setProperty("aspect-ratio","auto");
-    setWrapperSizeByAR(w,h);
-    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v,"0px")
-    );
-
-    slider.style.top = "0px";
-    slider.style.height = "100%";
-    slider.style.bottom = "0";
-  } else {
-    clearInlineHeights();
-    await enterWrapperFullscreen();
-    pulseFsBars?.({ duration: 1400 }); // <-- voorkomt crash als pulseFsBars niet bestaat
-  }
-
+function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } 
+                                      
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
-  else applyCalibrationTransforms();
-
-  updateToggleHighlights();
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 
+/* === SxS toggle === */
 function setSideBySide(on,{force=false}={}) {
-  if(isExportingPdf && !force) return;
-
-  const next = !!on;
-  if(!force && sbsActive === next) return;
-  sbsActive = next;
-
-  document.body.classList.toggle("sbs-mode", sbsActive);
-  comparisonWrapper.classList.toggle("sbs-mode", sbsActive);
-
-  const beforeWrapper = beforeImgTag.parentElement;
-
-  if(sbsActive){
-    sbsWrapper.style.display = "flex";
-    beforeWrapper.style.display = "none";
-    afterWrapper.style.display = "none";
-    sbsLeftImg.src  = afterImgTag.src;   // after = links
-    sbsRightImg.src = beforeImgTag.src;  // before = rechts
-    slider.style.display = "none";
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v,"0px")
-    );
-
-    if(isWrapperFullscreen()) clearInlineHeights();
-  } else {
-    sbsWrapper.style.display = "none";
-    beforeWrapper.style.display = "";
-    afterWrapper.style.display = "";
-    slider.style.display = "";
-  }
-
-  const { w, h } = getCurrentWH();
+  if(isExportingPdf && !force) return; const next=!!on; if(!force && sbsActive===next) return; sbsActive=next;
+  document.body.classList.toggle("sbs-mode",sbsActive); comparisonWrapper.classList.toggle("sbs-mode",sbsActive);
+  const beforeWrapper=beforeImgTag.parentElement;
+  if(sbsActive){ sbsWrapper.style.display="flex"; beforeWrapper.style.display="none"; afterWrapper.style.display="none"; sbsLeftImg.src=afterImgTag.src; sbsRightImg.src=beforeImgTag.src; slider.style.display="none"; ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); if(isWrapperFullscreen()) clearInlineHeights();
+  } else { sbsWrapper.style.display="none"; beforeWrapper.style.display=""; afterWrapper.style.display=""; slider.style.display=""; }
+    const {w,h}=getCurrentWH();
   setWrapperSizeByAR(w,h);
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
+    if(!sbsActive){
+    
   updateFullscreenBars();
   resetSplitToMiddle();
 
-  if(calibrateActive && !calibrateUserTouchedScale) autoScaleForCalibration();
-  else applyCalibrationTransforms();
-
-  updateToggleHighlights();
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 
-// 1x listeners, klaar
-fullscreenBtn?.addEventListener("click", (e) => {
-  e.preventDefault?.();   // handig als het een <a> is
-  toggleFullscreen();
-});
+sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
+toggleBtn?.addEventListener("click",()=>{ 
+  resetUserScale(); // <-- ook hier
 
-sbsBtn?.addEventListener("click", (e) => {
-  e.preventDefault?.();
-  setSideBySide(!sbsActive);
+  const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
+  const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
+  updateLensInfo(); 
+  updateImages(); 
 });
-
 /* === Slider drag (mouse/touch) === */
 let isDragging=false;
 slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
