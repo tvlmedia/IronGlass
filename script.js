@@ -829,9 +829,12 @@ function lensSlugFromLabel(lbl=""){
 
 
 function getCal(lensSlug, focal){
-  return CALIBRATION?.[lensSlug]?.[focal] || null;
+  return (
+    CALIBRATION?.[lensSlug]?.[focal] ||
+    CALIBRATION?.[lensSlug]?.[aliasFor(lensSlug, focal)] ||
+    null
+  );
 }
-
 // Auto scaling voor calibrate
     
   function autoScaleForCalibration(){
@@ -853,13 +856,17 @@ function getCal(lensSlug, focal){
   }
 
   // --- je bestaande code hieronder blijft hetzelfde ---
-  const focal = focalLengthSelect?.value || "35mm";
-  const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
-  const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
+ const uiFocal = focalLengthSelect?.value || "35mm";
+const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
-  const leftCal  = getCal(leftSlug, focal);
-  const rightCal = getCal(rightSlug, focal);
+const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
+const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
+const leftCal  = getCal(leftSlug,  leftFocal);
+const rightCal = getCal(rightSlug, rightFocal);
+
+    
   updateFullscreenBars();
 
     const requiredScaleFor = (img, cal) => {
@@ -913,44 +920,31 @@ function applyCalibrationTransforms(){
   const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
   const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
+  const leftCal  = getCal(leftSlug,  leftFocal);
+  const rightCal = getCal(rightSlug, rightFocal);
+
+  // ✅ helper die je miste
   const apply = (img, cal) => {
     if(!img) return;
 
-    const { h: boxH } = getCalBoxFor(img);
-    const autoDy = getAutoReframeYPx(boxH);
-
+    // Calibrate uit of geen data → reset
     if(!calibrateActive || !cal){
-      setCalVars(img, 0, autoDy, 1);
+      setCalVars(img, 0, 0, 1);
       return;
     }
 
     const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
-    setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
+    setCalVars(img, dx, dy, (cal.scale ?? 1));
   };
 
-  const leftCal  = getCal(leftSlug,  leftFocal);
-  const rightCal = getCal(rightSlug, rightFocal);
-
+  // after = links, before = rechts
   apply(afterImgTag,  leftCal);
   apply(beforeImgTag, rightCal);
 
+  // SBS ook
   apply(sbsLeftImg,  leftCal);
   apply(sbsRightImg, rightCal);
 }
-
-  
-  const leftCal  = getCal(leftSlug, focal);
-  const rightCal = getCal(rightSlug, focal);
-
-  // jouw tool: after = links, before = rechts
-  apply(afterImgTag,  leftCal);
-  apply(beforeImgTag, rightCal);
-
-  // SBS images ook
-   apply(sbsLeftImg,  leftCal);
-  apply(sbsRightImg, rightCal);
-} // <-- BELANGRIJK
-
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
 function setImageWithFallback(imgEl, urls){
@@ -1194,13 +1188,41 @@ toggleBtn?.addEventListener("click",()=>{
   updateImages(); 
 });
 /* === Slider drag (mouse/touch) === */
-let isDragging=false;
-slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
-window.addEventListener("mouseup",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
-window.addEventListener("mousemove",e=>{ if(isDragging) updateSliderPosition(e.clientX); });
-slider.addEventListener("touchstart",e=>{ e.preventDefault(); isDragging=true; document.body.classList.add("dragging"); },{passive:false});
-window.addEventListener("touchend",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
-window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
+let isDragging = false;
+
+if(slider && comparisonWrapper && afterWrapper){
+  slider.addEventListener("mousedown", () => {
+    isDragging = true;
+    document.body.classList.add("dragging");
+  });
+
+  window.addEventListener("mouseup", () => {
+    isDragging = false;
+    document.body.classList.remove("dragging");
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if(isDragging) updateSliderPosition(e.clientX);
+  });
+
+  slider.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    isDragging = true;
+    document.body.classList.add("dragging");
+  }, { passive:false });
+
+  window.addEventListener("touchend", () => {
+    isDragging = false;
+    document.body.classList.remove("dragging");
+  });
+
+  window.addEventListener("touchmove", (e) => {
+    if(isDragging && e.touches.length === 1){
+      e.preventDefault();
+      updateSliderPosition(e.touches[0].clientX);
+    }
+  }, { passive:false });
+}
 
 function recalcLayout(){
   updateFullscreenBars();
@@ -1241,7 +1263,6 @@ function resetUserScale(){
   setUserScaleFromPct(100);
 }
 
-// <-- HIER PLAKKEN (direct boven de input-listener)
 
 
 // <-- EN DEZE REGEL VERVANGT je bestaande input-listener
