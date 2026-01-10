@@ -829,9 +829,12 @@ function lensSlugFromLabel(lbl=""){
 
 
 function getCal(lensSlug, focal){
-  return CALIBRATION?.[lensSlug]?.[focal] || null;
+  return (
+    CALIBRATION?.[lensSlug]?.[focal] ||
+    CALIBRATION?.[lensSlug]?.[aliasFor(lensSlug, focal)] ||
+    null
+  );
 }
-
 // Auto scaling voor calibrate
     
   function autoScaleForCalibration(){
@@ -853,13 +856,19 @@ function getCal(lensSlug, focal){
   }
 
   // --- je bestaande code hieronder blijft hetzelfde ---
-  const focal = focalLengthSelect?.value || "35mm";
-  const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
-  const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
+  const uiFocal = focalLengthSelect?.value || "35mm";
+const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
-  const leftCal  = getCal(leftSlug, focal);
-  const rightCal = getCal(rightSlug, focal);
+const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
+const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
+// ✅ alias naar echte calibration keys (notes)
+const leftKey  = aliasFor(leftSlug,  leftFocal);
+const rightKey = aliasFor(rightSlug, rightFocal);
+
+const leftCal  = getCal(leftSlug,  leftKey);
+const rightCal = getCal(rightSlug, rightKey);
   updateFullscreenBars();
 
     const requiredScaleFor = (img, cal) => {
@@ -913,6 +922,10 @@ function applyCalibrationTransforms(){
   const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
   const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
+  // ✅ alias naar echte calibration keys (58mm/37mm/135mm etc)
+  const leftKey  = aliasFor(leftSlug,  leftFocal);
+  const rightKey = aliasFor(rightSlug, rightFocal);
+
   const apply = (img, cal) => {
     if(!img) return;
 
@@ -928,28 +941,17 @@ function applyCalibrationTransforms(){
     setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
   };
 
-  const leftCal  = getCal(leftSlug,  leftFocal);
-  const rightCal = getCal(rightSlug, rightFocal);
+  const leftCal  = getCal(leftSlug,  leftKey);
+  const rightCal = getCal(rightSlug, rightKey);
 
+  // after = links, before = rechts
   apply(afterImgTag,  leftCal);
   apply(beforeImgTag, rightCal);
 
+  // SBS ook
   apply(sbsLeftImg,  leftCal);
   apply(sbsRightImg, rightCal);
 }
-
-  
-  const leftCal  = getCal(leftSlug, focal);
-  const rightCal = getCal(rightSlug, focal);
-
-  // jouw tool: after = links, before = rechts
-  apply(afterImgTag,  leftCal);
-  apply(beforeImgTag, rightCal);
-
-  // SBS images ook
-   apply(sbsLeftImg,  leftCal);
-  apply(sbsRightImg, rightCal);
-} // <-- BELANGRIJK
 
 /* === Image resolver === */
 function aliasFor(lens, nominal){ return notes[`${lens}_${nominal}`] || nominal; }
