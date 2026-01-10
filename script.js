@@ -221,8 +221,6 @@ const notes = {
   "ironglass_titan_zoom_35mm": "37mm",
   "ironglass_titan_zoom_28mm": "29mm",
   "ironglass_sovjet_medium_format_85mm": "80mm",
-  "ironglass_sovjet_medium_format_50mm": "65mm",
-  "ironglass_sovjet_medium_format_50mm": "45mm",
   "ironglass_sovjet_medium_format_28mm": "30mm"
 };
 
@@ -423,6 +421,16 @@ const ALT_FOCAL_OPTIONS = {
 // State: wat user kiest per kant
 const mfAltState = { left: null, right: null };
 
+function getEffectiveFocal(lensSlug, uiFocal, side /* "left"|"right" */){
+  const opts = ALT_FOCAL_OPTIONS?.[lensSlug]?.[uiFocal];
+  if(opts && opts.length > 1){
+    const chosen = mfAltState?.[side];
+    if(chosen && opts.includes(chosen)) return chosen;
+    return opts[0]; // default = eerste optie
+  }
+  return uiFocal;
+}
+
 function fillAltSelect(sel, options, preferred){
   sel.innerHTML = "";
   options.forEach(v => sel.add(new Option(v, v)));
@@ -471,11 +479,11 @@ function updateMfAltUI(){
 // listeners (nog zonder invloed op images!)
 mfAltLeftSel?.addEventListener("change", () => {
   mfAltState.left = mfAltLeftSel.value;
-  // straks in stap 3: updateImages();
+  updateImages();
 });
 mfAltRightSel?.addEventListener("change", () => {
   mfAltState.right = mfAltRightSel.value;
-  // straks in stap 3: updateImages();
+  updateImages();
 });
 
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
@@ -668,8 +676,8 @@ const CALIBRATION = {
     "120mm": { scale: 0.95, x: 40.668, y: -18.485 },
     "90mm":  { scale: 0.88, x: 14.000, y: 29.000 },
     "80mm":  { scale: 0.97, x: 28.780, y: 0.000 },
-    "50mm":  { scale: 0.78, x: 27.377, y: -10.412 },
-    "50mm":  { scale: 1.120, x: 0.000, y: -27.000 },
+    "65mm":  { scale: 0.78,  x: 27.377, y: -10.412 },
+    "45mm":  { scale: 1.120, x: 0.000,  y: -27.000 },
     "45mm":  { scale: 0.780, x: -5.000, y: -65.000 },
     "35mm":  { scale: 1.050, x: 0.000, y: -19.447 },
     "30mm":  { scale: 0.920, x: -8.000, y: -35.000 }
@@ -1009,11 +1017,16 @@ function resolveImageCandidates(lens, nominalFocal, tStr, flareMode, sceneMode, 
 }
 
 function updateImages(){
-  const LL=leftSelect.value.toLowerCase().replace(/\s+/g,"_"), RR=rightSelect.value.toLowerCase().replace(/\s+/g,"_");
-  const uiTL = tStopLeftSelect.value;
-const uiTR = tStopRightSelect.value;
+  const LL = leftSelect.value.toLowerCase().replace(/\s+/g,"_");
+  const RR = rightSelect.value.toLowerCase().replace(/\s+/g,"_");
 
-const focal = focalLengthSelect.value;
+  const uiTL = tStopLeftSelect.value;
+  const uiTR = tStopRightSelect.value;
+
+  const uiFocal = focalLengthSelect.value;
+
+  const leftFocal  = getEffectiveFocal(LL, uiFocal, "left");
+  const rightFocal = getEffectiveFocal(RR, uiFocal, "right");
 
 const tL = fileTStopFor(LL, uiTL, focal);
 const tR = fileTStopFor(RR, uiTR, focal);
