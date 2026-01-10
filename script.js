@@ -856,19 +856,17 @@ function getCal(lensSlug, focal){
   }
 
   // --- je bestaande code hieronder blijft hetzelfde ---
-  const uiFocal = focalLengthSelect?.value || "35mm";
+ const uiFocal = focalLengthSelect?.value || "35mm";
 const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
 const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
 const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
 const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
-// ✅ alias naar echte calibration keys (notes)
-const leftKey  = aliasFor(leftSlug,  leftFocal);
-const rightKey = aliasFor(rightSlug, rightFocal);
+const leftCal  = getCal(leftSlug,  leftFocal);
+const rightCal = getCal(rightSlug, rightFocal);
 
-const leftCal  = getCal(leftSlug,  leftKey);
-const rightCal = getCal(rightSlug, rightKey);
+    
   updateFullscreenBars();
 
     const requiredScaleFor = (img, cal) => {
@@ -922,27 +920,8 @@ function applyCalibrationTransforms(){
   const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
   const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 
-  // ✅ alias naar echte calibration keys (58mm/37mm/135mm etc)
-  const leftKey  = aliasFor(leftSlug,  leftFocal);
-  const rightKey = aliasFor(rightSlug, rightFocal);
-
-  const apply = (img, cal) => {
-    if(!img) return;
-
-    const { h: boxH } = getCalBoxFor(img);
-    const autoDy = getAutoReframeYPx(boxH);
-
-    if(!calibrateActive || !cal){
-      setCalVars(img, 0, autoDy, 1);
-      return;
-    }
-
-    const { dx, dy } = toCssPxFor(img, cal.x ?? 0, cal.y ?? 0);
-    setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
-  };
-
-  const leftCal  = getCal(leftSlug,  leftKey);
-  const rightCal = getCal(rightSlug, rightKey);
+  const leftCal  = getCal(leftSlug,  leftFocal);
+const rightCal = getCal(rightSlug, rightFocal);
 
   // after = links, before = rechts
   apply(afterImgTag,  leftCal);
@@ -1243,7 +1222,6 @@ function resetUserScale(){
   setUserScaleFromPct(100);
 }
 
-// <-- HIER PLAKKEN (direct boven de input-listener)
 
 
 // <-- EN DEZE REGEL VERVANGT je bestaande input-listener
