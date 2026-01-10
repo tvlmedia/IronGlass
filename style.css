@@ -777,3 +777,6 @@ body.sbs-mode #rightDetail{
   background:var(--ig-accent);
   box-shadow:0 0 14px rgba(255,124,0,.6);
 }
+
+#detailOverlay { pointer-events:none; }
+#detailOverlay.active { pointer-events:auto; }
