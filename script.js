@@ -206,84 +206,49 @@ const cameras = {
 /* === Lens lijsten, alias-focals, files en teksten === */
 const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
 
-// --- normalize helpers ---
-function normFocal(f){
-  return String(f || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/mm$/i, "mm");
-}
-
-// notes mag nu STRING of ARRAY zijn
 const notes = {
-  "ironglass_sovjet_mkii_120mm": ["135mm"],
+  "ironglass_sovjet_mkii_120mm": "135mm",
 
-  // UI 85mm -> probeer eerst 80, dan 90 (of draai om als jij liever 90 als primary wil)
-  "ironglass_sovjet_medium_format_85mm": ["80mm", "90mm"],
+  // UI 85mm -> file 80/90mm (kies 1)
+  "ironglass_zeiss_jena_85mm": "80mm",
 
-  // UI 85mm -> 80mm (als je alleen 80 hebt)
-  "ironglass_zeiss_jena_85mm": ["80mm"],
+  // kies één van deze twee:
+  "ironglass_sovjet_medium_format_85mm": "80mm",
+  // "ironglass_sovjet_medium_format_85mm": "80mm",
 };
 
-// return altijd een lijst met te proberen focals (op volgorde)
-function aliasListFor(lens, nominal){
-  const key = `${lens}_${normFocal(nominal)}`;
-  const v = notes[key];
+const TSTOP_FILE_ALIAS = {
+  "ironglass_red_p": {
+    "wo": "2.1",
+    "2":  "2.1",
+    "2.8":"2.1",
+    "4":  "2.1"
+  },
 
-  if (Array.isArray(v)) return v.map(normFocal);
-  if (typeof v === "string") return [normFocal(v)];
-  return [normFocal(nominal)];
-}
+  "ironglass_sovjet_mkii": {
+    "wo": "1.6",
+    "2.8":"2.9"
+  },
 
-function resolveImageCandidates(lens, nominalFocal, tStr, flareMode, sceneMode){
-  const nominalN = normFocal(nominalFocal);
-  const aliasList = aliasListFor(lens, nominalN);
+  "ironglass_zeiss_jena": {
+    "wo": "1.9",
+    "2.8":"2.9"
+  },
 
-  // bases: eerst alle aliases, daarna (als niet al aanwezig) de nominal
-  const bases = [];
-  const seenBase = new Set();
-  const addBase = (focal) => {
-    const b = `${lens}_${focal}_t${tStr}`;
-    if (seenBase.has(b)) return;
-    seenBase.add(b);
-    bases.push(b);
-  };
+  "ironglass_titan_zoom": {
+    "wo": "2.9",
+    "2":  "2.9",
+    "2.8":"2.9",
+    "4":  "4"     // ✅ als jij ook echte t4 files hebt
+  },
 
-  aliasList.forEach(addBase);
-  if (!aliasList.includes(nominalN)) addBase(nominalN);
-
-  const list = [];
-  const seen = new Set();
-  const push = (p)=>{
-    if(!p) return;
-    if(seen.has(p)) return;
-    seen.add(p);
-    list.push(p);
-  };
-
-  const pushBokehPath = (file)=>{ push(`bokeh/${file}`); push(file); };
-
-  bases.forEach(b=>{
-    push(lensImageMap[`${b}_${sceneMode}_${flareMode}`]);
-    push(lensImageMap[`${b}_${sceneMode}`]);
-    push(lensImageMap[`${b}_${flareMode}`]);
-    push(lensImageMap[b]);
-
-    if(sceneMode === "bokeh"){
-      pushBokehPath(`${b}_bokeh.jpg`);
-      pushBokehPath(`${b}_bokeh_${flareMode}.jpg`);
-      pushBokehPath(`${b}_${flareMode}_bokeh.jpg`);
-    }
-
-    push(`${b}_${flareMode}.jpg`);
-    if(flareMode === "doubleflare") push(`${b}_flare.jpg`);
-    push(`${b}_noflare.jpg`);
-    push(`${b}.jpg`);
-  });
-
-  return list.map(f => IMG_BASE + f);
-}
+  "ironglass_sovjet_medium_format": {
+    "wo": "2.9",
+    "2":  "2.9",
+    "2.8":"2.9",
+    "4":  "4"     // ✅ DIT is de belangrijkste fix
+  }
+};
 
 const lensImageMap = {
 };
