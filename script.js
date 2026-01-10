@@ -1097,23 +1097,22 @@ sbsBtn?.addEventListener("click", (e) => {
 function ensureSliderPointerAccess(){
   if(!slider || !comparisonWrapper) return;
 
+  // slider moet altijd clickable blijven
   slider.style.zIndex = "999";
   slider.style.pointerEvents = "auto";
   slider.style.touchAction = "none";
 
-  // images mogen geen events stelen
+  // alleen de IMG's mogen geen events pakken
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
     if(img) img.style.pointerEvents = "none";
   });
 
-  // ✅ wrappers mogen NOOIT events vangen
-if(afterWrapper) afterWrapper.style.pointerEvents = "none";
-const beforeWrapper = beforeImgTag?.parentElement;
-if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
+  // ❌ NIET DOEN (dit kan je slider killen als die erin zit)
+  // if(afterWrapper) afterWrapper.style.pointerEvents = "none";
+  // const beforeWrapper = beforeImgTag?.parentElement;
+  // if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
 }
 ensureSliderPointerAccess();
-slider.style.touchAction = "none";
-
 // ===============================
 // SLIDER DRAG (POINTER EVENTS)
 // ===============================
