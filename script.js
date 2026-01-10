@@ -522,10 +522,10 @@ const AUTO_REFRAME_BY_FOCAL = {
   "default": { startH: 18.0, endH: 7.0, maxY: 0.22, maxX: 0.00 },
 
   "120mm": { maxY: 0.10, maxX: 0.00 },
-  "85mm":  { maxY: 0.12, maxX: -0.10 },
+  "85mm":  { maxY: 0.12, maxX: -0.02 },
   "50mm":  { maxY: 0.10, maxX: 0.00 },
-  "35mm":  { maxY: 0.10, maxX: 0.00 },
-  "28mm":  { maxY: 0.12, maxX: 0.10 },
+  "35mm":  { maxY: 0.07, maxX: 0.00 },
+  "28mm":  { maxY: 0.12, maxX: 0.02 },
   "20mm":  { maxY: 0.05, maxX: 0.00 }
 };
 
