@@ -1089,25 +1089,33 @@ sbsBtn?.addEventListener("click", (e) => {
 });
 
 /* === Slider drag (mouse/touch) === */
-let isDragging=false;
-slider.addEventListener("mousedown",()=>{ isDragging=true; document.body.classList.add("dragging"); });
-window.addEventListener("mouseup",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
-window.addEventListener("mousemove",e=>{ if(isDragging) updateSliderPosition(e.clientX); });
-slider.addEventListener("touchstart",e=>{ e.preventDefault(); isDragging=true; document.body.classList.add("dragging"); },{passive:false});
-window.addEventListener("touchend",()=>{ isDragging=false; document.body.classList.remove("dragging"); });
-window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
+let isDragging = false;
 
-function recalcLayout(){
- 
-  updateFullscreenBars();
-  resetSplitToMiddle();
+if (slider) {
+  slider.style.touchAction = "none"; // voorkomt scroll/zoom interference op mobiel
 
-  if(calibrateActive){
-    if(!calibrateUserTouchedScale) autoScaleForCalibration();
-    else applyCalibrationTransforms();
-  } else {
-    applyCalibrationTransforms();
-  }
+  slider.addEventListener("pointerdown", (e) => {
+    if (sbsActive || isExportingPdf) return;
+    isDragging = true;
+    document.body.classList.add("dragging");
+    slider.setPointerCapture(e.pointerId);
+    updateSliderPosition(e.clientX); // meteen springen naar pointer
+  });
+
+  slider.addEventListener("pointermove", (e) => {
+    if (!isDragging) return;
+    updateSliderPosition(e.clientX);
+  });
+
+  const endDrag = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    document.body.classList.remove("dragging");
+    try { slider.releasePointerCapture(e.pointerId); } catch (_) {}
+  };
+
+  slider.addEventListener("pointerup", endDrag);
+  slider.addEventListener("pointercancel", endDrag);
 }
 
 // 1x listeners, klaar
