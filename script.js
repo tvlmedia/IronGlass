@@ -220,7 +220,6 @@ const notes = {
   "ironglass_zeiss_jena_85mm": "80mm",
   "ironglass_titan_zoom_35mm": "37mm",
   "ironglass_titan_zoom_28mm": "29mm",
-  "ironglass_sovjet_medium_format_85mm": "80mm",
   "ironglass_sovjet_medium_format_28mm": "30mm"
 };
 
@@ -1017,10 +1016,12 @@ function updateImages(){
 
   const uiTL = tStopLeftSelect.value;
   const uiTR = tStopRightSelect.value;
-
   const uiFocal = focalLengthSelect.value;
 
-  // ✅ MF-alt kan links/rechts een andere “echte” focal kiezen
+  // ✅ 1) EERST de MF-alt UI/state updaten (zet mfAltState correct)
+  updateMfAltUI();
+
+  // ✅ 2) DAN pas de effective focal bepalen
   const leftFocal  = getEffectiveFocal(LL, uiFocal, "left");
   const rightFocal = getEffectiveFocal(RR, uiFocal, "right");
 
@@ -1076,8 +1077,8 @@ function updateImages(){
     setImageWithFallback(sbsRightImg, rightCandidates);
   }
 
-  updateMfAltUI();        // ✅ keep UI in sync
-  resetSplitToMiddle();
+  // updateMfAltUI();   // ❌ niet meer hier
+resetSplitToMiddle();
 
   if(calibrateActive){
     if(!calibrateUserTouchedScale) autoScaleForCalibration();
