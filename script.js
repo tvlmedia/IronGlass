@@ -664,13 +664,12 @@ function setImageWithFallback(imgEl, urls){
   imgEl.src = urls[i];
 }
 
-function resolveImageCandidates(lens, nominalFocal, tStr, flareMode, sceneMode){
+function resolveImageCandidates(lens, nominalFocal, tStr, flareMode, sceneMode, tStrFallback = null){
   const alias = aliasFor(lens, nominalFocal);
 
-  // alias eerst proberen, daarna de nominal (zoals je al deed)
-  const bases = (alias !== nominalFocal)
-    ? [`${lens}_${alias}_t${tStr}`, `${lens}_${nominalFocal}_t${tStr}`]
-    : [`${lens}_${nominalFocal}_t${tStr}`];
+  // ✅ probeer eerst primary tStr, daarna fallback tStr (als die anders is)
+  const tList = [tStr];
+  if(tStrFallback && tStrFallback !== tStr) tList.push(tStrFallback);
 
   const list = [];
   const seen = new Set();
@@ -681,38 +680,45 @@ function resolveImageCandidates(lens, nominalFocal, tStr, flareMode, sceneMode){
     list.push(p);
   };
 
-  // helper: probeert zowel in bokeh/ als in root (dan maakt het niet uit hoe jij het opslaat)
   const pushBokehPath = (file)=>{ push(`bokeh/${file}`); push(file); };
 
+  // ✅ bases genereren voor beide tStr varianten
+  const bases = [];
+  tList.forEach(ts => {
+    const bAlias = `${lens}_${alias}_t${ts}`;
+    const bNom   = `${lens}_${nominalFocal}_t${ts}`;
+
+    if(alias !== nominalFocal){
+      bases.push(bAlias, bNom);
+    } else {
+      bases.push(bNom);
+    }
+  });
+
   bases.forEach(b=>{
-    // 1) eerst lensImageMap (als jij later entries toevoegt, werkt dat meteen)
+    // 1) lensImageMap (als je later entries toevoegt)
     push(lensImageMap[`${b}_${sceneMode}_${flareMode}`]);
     push(lensImageMap[`${b}_${sceneMode}`]);
     push(lensImageMap[`${b}_${flareMode}`]);
     push(lensImageMap[b]);
 
-    // 2) SCENE = BOKEH
-if(sceneMode === "bokeh"){
-  // jouw naming: bokeh is een aparte “scene” file zonder flare suffix
-  pushBokehPath(`${b}_bokeh.jpg`);
+    // 2) bokeh scene
+    if(sceneMode === "bokeh"){
+      pushBokehPath(`${b}_bokeh.jpg`);
+      pushBokehPath(`${b}_bokeh_${flareMode}.jpg`);
+      pushBokehPath(`${b}_${flareMode}_bokeh.jpg`);
+    }
 
-  // (optioneel) support als je later toch combinaties gaat exporteren:
-  pushBokehPath(`${b}_bokeh_${flareMode}.jpg`);
-  pushBokehPath(`${b}_${flareMode}_bokeh.jpg`);
-}
-
-    // 3) SCENE = PORTRAIT / NORMAL (of fallback vanaf bokeh)
+    // 3) portrait/normal
     push(`${b}_${flareMode}.jpg`);
     if(flareMode === "doubleflare") push(`${b}_flare.jpg`);
     push(`${b}_noflare.jpg`);
     push(`${b}.jpg`);
   });
 
-
-  
-  // maak er full urls van
   return list.map(f => IMG_BASE + f);
 }
+
 function updateImages(){
   const LL=leftSelect.value.toLowerCase().replace(/\s+/g,"_"), RR=rightSelect.value.toLowerCase().replace(/\s+/g,"_");
   const uiTL = tStopLeftSelect.value;
@@ -727,8 +733,15 @@ const tRActual = actualTStopForLabel(RR, uiTR);
 const flareMode = flareToggle.dataset.mode || "noflare";
 const sceneMode = bokehToggle?.dataset.mode || "portrait";
 
-const leftCandidates  = resolveImageCandidates(LL, focal, tL, flareMode, sceneMode);
-const rightCandidates = resolveImageCandidates(RR, focal, tR, flareMode, sceneMode);
+const uiTLStr = (uiTL === "wo") ? null : String(uiTL).replace(".", "_");
+const uiTRStr = (uiTR === "wo") ? null : String(uiTR).replace(".", "_");
+
+// fallback alleen als alias iets verandert (bijv. 2.8 -> 2.9)
+const tLFallback = (uiTL !== "wo" && String(tLActual) !== String(uiTL)) ? uiTLStr : null;
+const tRFallback = (uiTR !== "wo" && String(tRActual) !== String(uiTR)) ? uiTRStr : null;
+
+const leftCandidates  = resolveImageCandidates(LL, focal, tL, flareMode, sceneMode, tLFallback);
+const rightCandidates = resolveImageCandidates(RR, focal, tR, flareMode, sceneMode, tRFallback);
 
 // jouw tool: before = rechts, after = links
 setImageWithFallback(beforeImgTag, rightCandidates);
