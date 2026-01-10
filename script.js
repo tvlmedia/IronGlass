@@ -1798,3 +1798,100 @@ function forceCaptureCamera(){
 window.addEventListener("DOMContentLoaded", forceCaptureCamera);
 window.addEventListener("pageshow", forceCaptureCamera);
 window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
+
+/* ===============================
+   SLIDER FIX v2 (HARD OVERRIDE)
+   Plak helemaal onderaan script.js
+   =============================== */
+(function sliderFixV2(){
+  if(!window.PointerEvent) return;
+
+  const sliderEl = document.getElementById("slider");
+  const wrapEl   = document.getElementById("comparisonWrapper");
+  const afterWrap = document.getElementById("afterWrapper");
+
+  if(!sliderEl || !wrapEl || !afterWrap) return;
+
+  // Force: slider altijd "bovenop" + interactief
+  sliderEl.style.pointerEvents = "auto";
+  sliderEl.style.touchAction = "none";
+  sliderEl.style.zIndex = "100000";
+
+  // Force: viewer mag pointer-events ontvangen
+  wrapEl.style.touchAction = "none";
+
+  let dragging = false;
+  let activePointerId = null;
+
+  const canDrag = () => {
+    // gebruik jouw globals als ze bestaan
+    if (typeof sbsActive !== "undefined" && sbsActive) return false;
+    if (typeof isExportingPdf !== "undefined" && isExportingPdf) return false;
+    if (typeof detailActive !== "undefined" && detailActive) return false;
+    return true;
+  };
+
+  function startDrag(e){
+    if(!canDrag()) return;
+
+    dragging = true;
+    activePointerId = e.pointerId ?? null;
+
+    document.body.classList.add("dragging");
+
+    // capture op wrapper is het meest stabiel
+    try { wrapEl.setPointerCapture?.(e.pointerId); } catch(_){}
+
+    // jouw functies bestaan al in je file:
+    try { updateFullscreenBars(); } catch(_){}
+    try { updateSliderPosition(e.clientX); } catch(_){}
+
+    e.preventDefault?.();
+    e.stopImmediatePropagation?.();
+  }
+
+  function moveDrag(e){
+    if(!dragging) return;
+    if(activePointerId !== null && e.pointerId !== activePointerId) return;
+
+    try { updateSliderPosition(e.clientX); } catch(_){}
+
+    e.preventDefault?.();
+    e.stopImmediatePropagation?.();
+  }
+
+  function endDrag(e){
+    if(!dragging) return;
+
+    dragging = false;
+    activePointerId = null;
+    document.body.classList.remove("dragging");
+
+    try { wrapEl.releasePointerCapture?.(e.pointerId); } catch(_){}
+
+    e.preventDefault?.();
+    e.stopImmediatePropagation?.();
+  }
+
+  // 1) Pak slider altijd als je erop klikt
+  sliderEl.addEventListener("pointerdown", startDrag, { capture:true, passive:false });
+
+  // 2) Pak óók drag als je ergens in de viewer klikt (maar NIET op controls)
+  document.addEventListener("pointerdown", (e) => {
+    if(!canDrag()) return;
+    if(!wrapEl.contains(e.target)) return;
+
+    // niet starten als je op controls klikt
+    if(e.target.closest?.(".controls")) return;
+
+    startDrag(e);
+  }, { capture:true, passive:false });
+
+  document.addEventListener("pointermove", moveDrag, { capture:true, passive:false });
+  document.addEventListener("pointerup", endDrag, { capture:true, passive:false });
+  document.addEventListener("pointercancel", endDrag, { capture:true, passive:false });
+
+  // kleine safety: na layout updates slider weer correct zetten
+  try { updateFullscreenBars(); } catch(_){}
+  try { resetSplitToMiddle(); } catch(_){}
+})();
