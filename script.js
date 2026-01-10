@@ -1151,24 +1151,14 @@ function sliderEnd(e){
   e.preventDefault?.();
 }
 
-slider.addEventListener("pointerdown", (e) => {
-  if (sbsActive || isExportingPdf || detailActive) return;
-
-  isDraggingSlider = true;
-  document.body.classList.add("dragging");
-
-  try { slider.setPointerCapture?.(e.pointerId); } catch(_) {}
-
-  updateFullscreenBars();
-  updateSliderPosition(e.clientX);
-  e.preventDefault?.();
-}, { passive:false, capture:true });
+slider.addEventListener("pointerdown", sliderStart, { passive:false, capture:true });
 window.addEventListener("pointermove", sliderMove, { passive:false });
 window.addEventListener("pointerup", sliderEnd, { passive:false });
 window.addEventListener("pointercancel", sliderEnd, { passive:false });
 
 comparisonWrapper.addEventListener("pointerdown", (e) => {
   if (sbsActive || isExportingPdf || detailActive) return;
+  if (e.target === slider || e.target?.closest?.("#slider")) return; // ✅
   if (e.target && e.target.closest?.(".controls")) return;
 
   isDraggingSlider = true;
