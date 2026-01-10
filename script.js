@@ -530,6 +530,36 @@ const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper
 const CAL_W = 3840;
 const CAL_H = 2880;
 
+function getUsableWH(){
+  const rect = comparisonWrapper.getBoundingClientRect();
+  return {
+    w: Math.max(1, comparisonWrapper._usableW ?? rect.width),
+    h: Math.max(1, comparisonWrapper._usableH ?? rect.height),
+  };
+}
+
+function getCalScaleForImg(imgEl){
+  const { w: usedW, h: usedH } = getUsableWH();
+  const fit = (imgEl ? getComputedStyle(imgEl).objectFit : "cover") || "cover";
+
+  const sx = usedW / CAL_W;
+  const sy = usedH / CAL_H;
+
+  if (fit === "contain") return Math.min(sx, sy);
+  if (fit === "cover")   return Math.max(sx, sy);
+
+  // fallback: jouw tool werkt “breedte-matchend”
+  return sx;
+}
+
+function calToCssPx(imgEl, x = 0, y = 0){
+  const s = getCalScaleForImg(imgEl);
+  const dx = x * s;
+  let dy = y * s;
+  if (CAL_Y_INVERT) dy = -dy;
+  return { dx, dy, s };
+}
+
 // In Resolve is Y meestal "omhoog = +", in CSS is "omlaag = +"
 const CAL_Y_INVERT = true; // zet op false als Y de verkeerde kant op gaat
 
@@ -722,21 +752,16 @@ function getCal(lensSlug, focal){
 const hostW = Math.max(1, rect.width);
 const hostH = Math.max(1, rect.height);
 
- const toCssPx = (x=0, y=0) => {
-  const dx = (x / CAL_W) * hostW;
-  let dy   = (y / CAL_H) * hostH;
-  if(CAL_Y_INVERT) dy = -dy;
-  return { dx, dy };
-};
+
 
   const requiredScaleFor = (cal) => {
     if(!cal) return 1;
 
     const base = (cal.scale ?? 1);
-    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+    const { dx, dy } = calToCssPx(img, cal.x ?? 0, cal.y ?? 0);
 
-    const needX = 1 + (2 * Math.abs(dx)) / hostW;
-const needY = 1 + (2 * Math.abs(dy)) / hostH;
+    const needX = 1 + (2 * Math.abs(dx)) / usedW;
+const needY = 1 + (2 * Math.abs(dy)) / usedH;
     const needCover = Math.max(needX, needY, 1);
 
     return needCover / Math.max(0.0001, base);
@@ -788,12 +813,7 @@ function applyCalibrationTransforms(){
   const usableH = Math.max(1, (comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
   const autoDy  = getAutoReframeYPx(usableH);
 
-  const toCssPx = (x=0, y=0) => {
-  const dx = (x / CAL_W) * hostW;
-  let dy   = (y / CAL_H) * hostH;
-  if(CAL_Y_INVERT) dy = -dy;
-  return { dx, dy };
-};
+ 
 
   const apply = (img, cal) => {
     if(!img) return;
@@ -811,7 +831,7 @@ function applyCalibrationTransforms(){
     }
 
     // Calibrate AAN + cal-entry → cal + auto reframe
-    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
+    const { dx, dy } = calToCssPx(img, cal.x ?? 0, cal.y ?? 0);
     setCalVars(img, dx, dy + autoDy, (cal.scale ?? 1));
   };
 
