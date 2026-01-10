@@ -400,7 +400,7 @@ const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 /* === AUTO VERTICAL REFRAME (small sensor heights) === */
 const AUTO_REFRAME = {
   thresholdH: 16.5,   // mm: hieronder gaan we compenseren
-  maxShiftPct: 0.08   // max 8% van beeldhoogte verschuiven (tweak naar smaak)
+  maxShiftPct: 0.58   // max 8% van beeldhoogte verschuiven (tweak naar smaak)
 };
 
 // fractie van beeldhoogte (negatief = beeld omhoog in CSS-translateY)
