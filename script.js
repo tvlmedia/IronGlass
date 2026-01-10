@@ -1119,9 +1119,11 @@ slider.style.touchAction = "none";
 let isDraggingSlider = false;
 
 function sliderStart(e){
-  if (sbsActive) return;               // in SBS geen slider
+  if (sbsActive) return;
   if (isExportingPdf) return;
   if (detailActive) return;
+
+  e.stopPropagation(); // ✅ voorkomt dubbel starten via comparisonWrapper
 
   isDraggingSlider = true;
   document.body.classList.add("dragging");
