@@ -1160,14 +1160,15 @@ comparisonWrapper.addEventListener("pointerdown", (e) => {
   if (sbsActive || isExportingPdf || detailActive) return;
   if (e.target && e.target.closest?.(".controls")) return;
 
-  // drag starten
   isDraggingSlider = true;
   document.body.classList.add("dragging");
+
   try { comparisonWrapper.setPointerCapture?.(e.pointerId); } catch(_) {}
+
   updateFullscreenBars();
   updateSliderPosition(e.clientX);
   e.preventDefault?.();
-}, { passive:false });
+}, { passive:false, capture:true });
 /* === Slider drag (mouse/touch) === */
 // ... jouw recalcLayout + load/error listeners blijven gewoon hieronder staan
 
