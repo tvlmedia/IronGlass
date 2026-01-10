@@ -406,13 +406,21 @@ const AUTO_REFRAME = {
 function getAutoReframeYFrac(){
   const cam = cameraSelect?.value;
   const cur = getCurrentWH();
+  if(!cur?.w) return 0;
 
-  // ✅ Full-width formats => GEEN auto reframe
+  // ✅ Full-width (non-anamorphic) formats => GEEN auto reframe
   const formats = cameras?.[cam];
   if(formats){
     let maxW = 0;
-    Object.values(formats).forEach(v => { if(v?.w) maxW = Math.max(maxW, v.w); });
 
+    Object.entries(formats).forEach(([k, v]) => {
+      const label = String(v?.label || k || "").toLowerCase();
+      const isAna = label.includes(" ana") || label.includes("anamorphic") || label.endsWith("ana");
+
+      if(!isAna && v?.w) maxW = Math.max(maxW, v.w);
+    });
+
+    // ~98% van max width beschouwen we als “full width”
     if(maxW && cur.w >= maxW * 0.98) return 0;
   }
 
