@@ -383,10 +383,6 @@ const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
 const BASE_SENSOR = cameras[CAPTURE_CAMERA][CAPTURE_FORMAT];
 let sbsActive=false, isExportingPdf=false, userScale=1;
 
-// ✅ zet deze HIER (en verwijder de latere "let detailActive = false;" verderop)
-let detailActive = false;
-syncDetailOverlayPointerEvents();
-
 /* === Helpers === */
 const isWrapperFullscreen=()=> (document.fullscreenElement||document.webkitFullscreenElement)===comparisonWrapper;
 const enterWrapperFullscreen=()=> comparisonWrapper.requestFullscreen?.()||comparisonWrapper.webkitRequestFullscreen?.();
@@ -1097,80 +1093,21 @@ sbsBtn?.addEventListener("click", (e) => {
 function ensureSliderPointerAccess(){
   if(!slider || !comparisonWrapper) return;
 
-  // slider moet altijd clickable blijven
+  // slider altijd bovenop
   slider.style.zIndex = "999";
   slider.style.pointerEvents = "auto";
-  slider.style.touchAction = "none";
 
-  // alleen de IMG's mogen geen events pakken
+  // images mogen nooit pointer-events "stelen"
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
     if(img) img.style.pointerEvents = "none";
   });
 
-  // ❌ NIET DOEN (dit kan je slider killen als die erin zit)
-  // if(afterWrapper) afterWrapper.style.pointerEvents = "none";
-  // const beforeWrapper = beforeImgTag?.parentElement;
-  // if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
+  // wrappers ook niet (heel belangrijk bij clipPath)
+  if(afterWrapper) afterWrapper.style.pointerEvents = "none";
+  const beforeWrapper = beforeImgTag?.parentElement;
+  if(beforeWrapper) beforeWrapper.style.pointerEvents = "none";
 }
 ensureSliderPointerAccess();
-// ===============================
-// SLIDER DRAG (POINTER EVENTS)
-// ===============================
-let isDraggingSlider = false;
-
-function sliderStart(e){
-  if (sbsActive) return;
-  if (isExportingPdf) return;
-  if (detailActive) return;
-
-  e.stopPropagation(); // ✅ voorkomt dubbel starten via comparisonWrapper
-
-  isDraggingSlider = true;
-  document.body.classList.add("dragging");
-
-  try { slider.setPointerCapture?.(e.pointerId); } catch(_) {}
-
-  updateFullscreenBars();
-  updateSliderPosition(e.clientX);
-  e.preventDefault?.();
-}
-
-function sliderMove(e){
-  if (!isDraggingSlider) return;
-  updateSliderPosition(e.clientX);
-  e.preventDefault?.();
-}
-
-function sliderEnd(e){
-  if (!isDraggingSlider) return;
-  isDraggingSlider = false;
-  document.body.classList.remove("dragging");
-  try { slider.releasePointerCapture?.(e.pointerId); } catch(_) {}
-  try { comparisonWrapper.releasePointerCapture?.(e.pointerId); } catch(_) {}
-  e.preventDefault?.();
-}
-
-slider.addEventListener("pointerdown", sliderStart, { passive:false, capture:true });
-window.addEventListener("pointermove", sliderMove, { passive:false });
-window.addEventListener("pointerup", sliderEnd, { passive:false });
-window.addEventListener("pointercancel", sliderEnd, { passive:false });
-
-comparisonWrapper.addEventListener("pointerdown", (e) => {
-  if (sbsActive || isExportingPdf || detailActive) return;
-  if (e.target === slider || e.target?.closest?.("#slider")) return; // ✅
-  if (e.target && e.target.closest?.(".controls")) return;
-
-  isDraggingSlider = true;
-  document.body.classList.add("dragging");
-
-  try { comparisonWrapper.setPointerCapture?.(e.pointerId); } catch(_) {}
-
-  updateFullscreenBars();
-  updateSliderPosition(e.clientX);
-  e.preventDefault?.();
-}, { passive:false, capture:true });
-/* === Slider drag (mouse/touch) === */
-// ... jouw recalcLayout + load/error listeners blijven gewoon hieronder staan
 
 /* === Slider drag (mouse/touch) === */
 // Slider drag
@@ -1265,19 +1202,13 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 );
 
 // ===== DETAIL (zoom) viewer =====
-
+let detailActive = false;
 
 const leftDetailImg  = leftDetail?.querySelector("img");
 const rightDetailImg = rightDetail?.querySelector("img");
 
-function syncDetailOverlayPointerEvents(){
-  if(!detailOverlay) return;
-  detailOverlay.style.pointerEvents = detailActive ? "auto" : "none";
-}
-
 detailToggleButton?.addEventListener("click", () => {
-  if(!detailOverlay || !leftDetail || !rightDetail) return;
-
+  if(!detailOverlay || !leftDetail || !rightDetail) return; // ✅ guard
   detailActive = !detailActive;
   detailOverlay.classList.toggle("active", detailActive);
 
@@ -1285,8 +1216,6 @@ detailToggleButton?.addEventListener("click", () => {
     leftDetail.style.display = "none";
     rightDetail.style.display = "none";
   }
-
-  syncDetailOverlayPointerEvents(); // ✅ HIER
   updateToggleHighlights();
 });
 
@@ -1306,8 +1235,6 @@ document.addEventListener("keydown", (e) => {
     detailToggleButton?.classList.remove("active");
     leftDetail && (leftDetail.style.display = "none");
     rightDetail && (rightDetail.style.display = "none");
-
-    syncDetailOverlayPointerEvents(); // ✅
     updateToggleHighlights();
   }
 });
@@ -1797,100 +1724,3 @@ function forceCaptureCamera(){
 window.addEventListener("DOMContentLoaded", forceCaptureCamera);
 window.addEventListener("pageshow", forceCaptureCamera);
 window.addEventListener("load", () => setTimeout(forceCaptureCamera, 100));
-
-/* ===============================
-   SLIDER FIX v2 (HARD OVERRIDE)
-   Plak helemaal onderaan script.js
-   =============================== */
-(function sliderFixV2(){
-  if(!window.PointerEvent) return;
-
-  const sliderEl = document.getElementById("slider");
-  const wrapEl   = document.getElementById("comparisonWrapper");
-  const afterWrap = document.getElementById("afterWrapper");
-
-  if(!sliderEl || !wrapEl || !afterWrap) return;
-
-  // Force: slider altijd "bovenop" + interactief
-  sliderEl.style.pointerEvents = "auto";
-  sliderEl.style.touchAction = "none";
-  sliderEl.style.zIndex = "100000";
-
-  // Force: viewer mag pointer-events ontvangen
-  wrapEl.style.touchAction = "none";
-
-  let dragging = false;
-  let activePointerId = null;
-
-  const canDrag = () => {
-    // gebruik jouw globals als ze bestaan
-    if (typeof sbsActive !== "undefined" && sbsActive) return false;
-    if (typeof isExportingPdf !== "undefined" && isExportingPdf) return false;
-    if (typeof detailActive !== "undefined" && detailActive) return false;
-    return true;
-  };
-
-  function startDrag(e){
-    if(!canDrag()) return;
-
-    dragging = true;
-    activePointerId = e.pointerId ?? null;
-
-    document.body.classList.add("dragging");
-
-    // capture op wrapper is het meest stabiel
-    try { wrapEl.setPointerCapture?.(e.pointerId); } catch(_){}
-
-    // jouw functies bestaan al in je file:
-    try { updateFullscreenBars(); } catch(_){}
-    try { updateSliderPosition(e.clientX); } catch(_){}
-
-    e.preventDefault?.();
-    e.stopImmediatePropagation?.();
-  }
-
-  function moveDrag(e){
-    if(!dragging) return;
-    if(activePointerId !== null && e.pointerId !== activePointerId) return;
-
-    try { updateSliderPosition(e.clientX); } catch(_){}
-
-    e.preventDefault?.();
-    e.stopImmediatePropagation?.();
-  }
-
-  function endDrag(e){
-    if(!dragging) return;
-
-    dragging = false;
-    activePointerId = null;
-    document.body.classList.remove("dragging");
-
-    try { wrapEl.releasePointerCapture?.(e.pointerId); } catch(_){}
-
-    e.preventDefault?.();
-    e.stopImmediatePropagation?.();
-  }
-
-  // 1) Pak slider altijd als je erop klikt
-  sliderEl.addEventListener("pointerdown", startDrag, { capture:true, passive:false });
-
-  // 2) Pak óók drag als je ergens in de viewer klikt (maar NIET op controls)
-  document.addEventListener("pointerdown", (e) => {
-    if(!canDrag()) return;
-    if(!wrapEl.contains(e.target)) return;
-
-    // niet starten als je op controls klikt
-    if(e.target.closest?.(".controls")) return;
-
-    startDrag(e);
-  }, { capture:true, passive:false });
-
-  document.addEventListener("pointermove", moveDrag, { capture:true, passive:false });
-  document.addEventListener("pointerup", endDrag, { capture:true, passive:false });
-  document.addEventListener("pointercancel", endDrag, { capture:true, passive:false });
-
-  // kleine safety: na layout updates slider weer correct zetten
-  try { updateFullscreenBars(); } catch(_){}
-  try { resetSplitToMiddle(); } catch(_){}
-})();
