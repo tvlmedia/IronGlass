@@ -1832,6 +1832,22 @@ const ensureAbsoluteUrl=url=>!url?"":(/^https?:\/\//i.test(url)?url:new URL(url,
 const pdfLinkRect=(pdf,x,y,w,h,url)=>{ const abs=ensureAbsoluteUrl(url); if(abs) pdf.link(x,y,w,h,{url:abs}); };
 function getSensorText(){ const cam=cameraSelect.value, fmt=sensorFormatSelect.value, label=cameras[cam]?.[fmt]?.label||""; return `${cam} – ${label}`; }
 
+function getCurrentSplitFraction(){
+  if(sbsActive) return 0.5;
+
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const lbL  = comparisonWrapper._lbLeft  || 0;
+  const lbR  = comparisonWrapper._lbRight || 0;
+
+  const usableW = Math.max(1, rect.width - lbL - lbR);
+
+  // slider.style.left is: (lbL + clamped) + "px"
+  const sliderLeftPx = parseFloat(slider.style.left || "0");
+  const xInUsable = clamp(sliderLeftPx - lbL, 0, usableW);
+
+  return clamp(xInUsable / usableW, 0, 1);
+}
+
 async function buildSplitFromSensor(leftURL,rightURL,W,H){
   const L=await loadHTMLImage(leftURL), R=await loadHTMLImage(rightURL);
   const cvs=document.createElement("canvas"); cvs.width=W; cvs.height=H; const ctx=cvs.getContext("2d",{alpha:false}); ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high";
@@ -1884,8 +1900,8 @@ const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 const yFracL = getAutoReframeYFracForPdf(leftFocal);
 const yFracR = getAutoReframeYFracForPdf(rightFocal);
 
-const leftSensor  = await renderToSensorAR(li, targetAR, exportH, zoom*userScale, yFracL);
-const rightSensor = await renderToSensorAR(ri, targetAR, exportH, zoom*userScale, yFracR);
+const li = afterImgTag.currentSrc || afterImgTag.src;  // after = links
+const ri = beforeImgTag.currentSrc || beforeImgTag.src; // before = rechts
     const splitData=await buildSplitFromSensor(leftSensor.dataURL,rightSensor.dataURL,leftSensor.W,leftSensor.H);
 
     // p1 split
