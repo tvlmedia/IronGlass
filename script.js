@@ -550,23 +550,36 @@ let calibrateAutoScaled = false;
   
 let preCalibrateScalePct = 100; // onthoud user scale van vóór calibrate
 
-calibrateBtn?.addEventListener("click", ()=>{
+calibrateBtn?.addEventListener("click", () => {
   calibrateActive = !calibrateActive;
 
-  if(calibrateActive){
+  // focus-glow kill
+  calibrateBtn.blur();
+
+  if (calibrateActive) {
     preCalibrateScalePct = Math.round((userScale || 1) * 100);
-
-    calibrateAutoScaled = false;   // ✅ reset
-    autoScaleForCalibration();
+    calibrateAutoScaled = false;
   } else {
-    if(scaleSlider) scaleSlider.value = String(preCalibrateScalePct);
+    calibrateUserTouchedScale = false; // ✅ optional: reset
+    calibrateAutoScaled = false;
+    if (scaleSlider) scaleSlider.value = String(preCalibrateScalePct);
     setUserScaleFromPct(preCalibrateScalePct);
-
-    calibrateAutoScaled = false;   // ✅ reset
   }
 
-  applyCalibrationTransforms();
-  updateToggleHighlights();
+  // ✅ WACHT op nieuwe layout voordat je bars/calculations doet
+  requestAnimationFrame(() => {
+    updateFullscreenBars();
+    resetSplitToMiddle();
+
+    if (calibrateActive) {
+      if (!calibrateUserTouchedScale) autoScaleForCalibration();
+      else applyCalibrationTransforms();
+    } else {
+      applyCalibrationTransforms();
+    }
+
+    updateToggleHighlights();
+  });
 });
 
 // --- Auto-enable Calibrate (idempotent) ---
@@ -1555,7 +1568,11 @@ function forceCaptureCamera(){
   sensorFormatSelect.value = CAPTURE_FORMAT;
   sensorFormatSelect.dispatchEvent(new Event("change", { bubbles:true }));
 
-  enableCalibrate(); // ✅ zet Calibrate automatisch aan na capture-format
+requestAnimationFrame(() => {
+  sensorFormatSelect.value = CAPTURE_FORMAT;
+  sensorFormatSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+  requestAnimationFrame(() => enableCalibrate());
 });
 }
 
