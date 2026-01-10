@@ -453,18 +453,7 @@ function applyCurrentFormat(){
   // 1 frame wachten zodat height/usable rect klopt
   requestAnimationFrame(() => applyCalThenPosition());
 }
-sensorFormatSelect.addEventListener("change", applyCurrentFormat);
 
-
-  if(calibrateActive){
-    if(!calibrateUserTouchedScale) autoScaleForCalibration();
-    else applyCalibrationTransforms();
-  } else {
-    applyCalibrationTransforms();
-  }
-}
-  });
-}
 /* === Lenses dropdowns + T-stops === */
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
 const DEFAULT_T_STOPS = ["wo", "2", "2.8", "4"];
@@ -1003,24 +992,17 @@ document.addEventListener("webkitfullscreenchange", onFsChange);
 
 window.addEventListener("resize",()=>{
   if(isWrapperFullscreen()){
-    function applyCalThenPosition(){
+   
   updateFullscreenBars();
-  resetSplitToMiddle();
-
-  if(calibrateActive){
-    if(!calibrateUserTouchedScale) autoScaleForCalibration();
-    else applyCalibrationTransforms();
-  } else {
-    applyCalibrationTransforms();
-  }
-}
+  applyCalThenPosition();
+    
   } else {
     const {w,h}=getCurrentWH();
     setWrapperSizeByAR(w,h);
   }
 });
 function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } 
-                                        function applyCalThenPosition(){
+                                      
   updateFullscreenBars();
   resetSplitToMiddle();
 
@@ -1044,8 +1026,7 @@ function setSideBySide(on,{force=false}={}) {
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
     if(!sbsActive){
-    function applyCalThenPosition(){
-  function applyCalThenPosition(){
+    
   updateFullscreenBars();
   resetSplitToMiddle();
 
@@ -1076,7 +1057,7 @@ window.addEventListener("touchend",()=>{ isDragging=false; document.body.classLi
 window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
 
 function recalcLayout(){
-  function applyCalThenPosition(){
+ 
   updateFullscreenBars();
   resetSplitToMiddle();
 
