@@ -407,13 +407,13 @@ const AUTO_REFRAME = {
 function getAutoReframeYFrac(){
   const cam = cameraSelect?.value;
   const cur = getCurrentWH();
-  if(!cur?.w) return 0;
+  if(!cur?.w || !cur?.h) return 0;
 
   const formats = cameras?.[cam];
   if(formats){
     let maxW = 0;
 
-    // ✅ bepaal max width op NON-anamorphic formats
+    // maxW bepalen op NON-anamorphic formats
     Object.entries(formats).forEach(([k, v]) => {
       const label = String(v?.label || k || "").toLowerCase();
       const isAna =
@@ -427,16 +427,19 @@ function getAutoReframeYFrac(){
     const isFullWidth = maxW && cur.w >= maxW * 0.98;
     const isBigSensor = maxW >= (AUTO_REFRAME.fullWidthMinW || 32);
 
-    // ✅ Alleen bij grote sensors: full width => GEEN auto reframe
+    // full width + big sensor => geen reframe
     if(isFullWidth && isBigSensor) return 0;
   }
 
-  // ✅ Alleen voor echte crop/small-height situaties
-  const t = AUTO_REFRAME.thresholdH;
-  const h = cur?.h;
-  if(!h || h >= t) return 0;
+  // ✅ BELANGRIJK: werk met effectieve hoogte na width-match
+  const baseW = BASE_SENSOR.w;
+  const baseH = BASE_SENSOR.h;
 
-  const severity = clamp((t - h) / t, 0, 1);
+  const effH = cur.h * (baseW / cur.w);
+
+  // alleen reframen als je effectief duidelijk “korter” bent dan baseline
+  const severity = clamp((baseH - effH) / baseH, 0, 1);
+
   return severity * AUTO_REFRAME.maxShiftFrac;
 }
 
