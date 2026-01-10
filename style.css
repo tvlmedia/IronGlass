@@ -366,11 +366,12 @@ button.active,
   --cal-ty: 0px;
   --cal-scale: 1;
 
-  /* ✅ FIX: translate BEFORE scale (so translate is NOT scaled) */
-   transform:
+  /* translate is effectively LAST (CSS applies right-to-left) */
+  transform:
     translate(var(--cal-tx), var(--cal-ty))
     scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
   transform-origin:center;
+  will-change:transform;
 }
 
 #afterWrapper{
@@ -697,9 +698,6 @@ body.sbs-mode #rightDetail{
 .lens-frame-outer.mobile-only{
   display:none !important;
 }
-@media (max-width:767px){
-  .lens-frame-outer{ display:block !important; }
-}
 
 /* ===========================
    RESPONSIVE
@@ -708,6 +706,9 @@ body.sbs-mode #rightDetail{
   #cameraSelect,#sensorFormatSelect,#focalLength{ min-width:120px; }
   #scaleCtrl input[type="range"]{ width:100px; }
 }
+
+/* default: mobile-only controls uit */
+.controls.mobile-only{ display:none !important; }
 
 @media (max-width:767px){
   #fullscreenButton,#detailViewToggle{ display:none !important; }
@@ -724,10 +725,11 @@ body.sbs-mode #rightDetail{
     padding:10px 12px;
   }
 
-  /* desktop controls weg, mobile iframe aan (zoals jij al had) */
+  /* desktop controls weg, mobile iframe aan */
   .controls.mobile-only{ display:block !important; }
+
+  .lens-frame-outer{ display:block !important; }
 }
-.controls.mobile-only{ display:none !important; }
 
 /* duplicaat-vangnet */
 .controls.desktop-only:not(:first-of-type),
