@@ -901,7 +901,8 @@ function enableCalibrate(){
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
-  const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
+  // ✅ Laat calibration consistent: cover blijft altijd dezelfde mapping geven
+  const fit = "cover";
   const pos = "center center";
 
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
