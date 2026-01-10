@@ -35,20 +35,35 @@
       </div>
 
       <div class="row row-2">
-        <button id="calibrateToggle" class="control-button">CALIBRATE</button>
-        <select id="leftLens"></select>
-        <select id="tStopLeftSelect"></select>
-        <select id="rightLens"></select>
-        <select id="tStopRightSelect"></select>
-        <select id="focalLength" title="Focal length">
-          <option value="20mm">20mm</option>
-          <option value="28mm">28mm</option>
-          <option value="35mm">35mm</option>
-          <option value="50mm">50mm</option>
-          <option value="85mm">85mm</option>
-          <option value="120mm">120mm</option>
-        </select>
-      </div>
+  <button id="calibrateToggle" class="control-button">CALIBRATE</button>
+
+  <select id="leftLens"></select>
+  <select id="tStopLeftSelect"></select>
+
+  <!-- Sovjet MF extra match selector (LEFT) -->
+  <div id="mfAltLeftWrap" class="mfAltWrap" style="display:none;">
+    <label class="mfAltLabel">MF match</label>
+    <select id="mfAltLeft"></select>
+  </div>
+
+  <select id="rightLens"></select>
+  <select id="tStopRightSelect"></select>
+
+  <!-- Sovjet MF extra match selector (RIGHT) -->
+  <div id="mfAltRightWrap" class="mfAltWrap" style="display:none;">
+    <label class="mfAltLabel">MF match</label>
+    <select id="mfAltRight"></select>
+  </div>
+
+  <select id="focalLength" title="Focal length">
+    <option value="20mm">20mm</option>
+    <option value="28mm">28mm</option>
+    <option value="35mm">35mm</option>
+    <option value="50mm">50mm</option>
+    <option value="85mm">85mm</option>
+    <option value="120mm">120mm</option>
+  </select>
+</div>
     </div>
 
     <div id="comparisonWrapper" class="desktop-only" tabindex="0">
