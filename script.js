@@ -385,6 +385,7 @@ let sbsActive=false, isExportingPdf=false, userScale=1;
 
 // ✅ zet deze HIER (en verwijder de latere "let detailActive = false;" verderop)
 let detailActive = false;
+syncDetailOverlayPointerEvents();
 
 /* === Helpers === */
 const isWrapperFullscreen=()=> (document.fullscreenElement||document.webkitFullscreenElement)===comparisonWrapper;
@@ -1267,8 +1268,14 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 const leftDetailImg  = leftDetail?.querySelector("img");
 const rightDetailImg = rightDetail?.querySelector("img");
 
+function syncDetailOverlayPointerEvents(){
+  if(!detailOverlay) return;
+  detailOverlay.style.pointerEvents = detailActive ? "auto" : "none";
+}
+
 detailToggleButton?.addEventListener("click", () => {
-  if(!detailOverlay || !leftDetail || !rightDetail) return; // ✅ guard
+  if(!detailOverlay || !leftDetail || !rightDetail) return;
+
   detailActive = !detailActive;
   detailOverlay.classList.toggle("active", detailActive);
 
@@ -1276,6 +1283,8 @@ detailToggleButton?.addEventListener("click", () => {
     leftDetail.style.display = "none";
     rightDetail.style.display = "none";
   }
+
+  syncDetailOverlayPointerEvents(); // ✅ HIER
   updateToggleHighlights();
 });
 
@@ -1295,6 +1304,8 @@ document.addEventListener("keydown", (e) => {
     detailToggleButton?.classList.remove("active");
     leftDetail && (leftDetail.style.display = "none");
     rightDetail && (rightDetail.style.display = "none");
+
+    syncDetailOverlayPointerEvents(); // ✅
     updateToggleHighlights();
   }
 });
