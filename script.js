@@ -204,7 +204,7 @@ const cameras = {
 };
 
 /* === Lens lijsten, alias-focals, files en teksten === */
-const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Test 2 Zoom","IronGlass Sovjet Medium Format"];
+const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Test 2 Zoom","IronGlass Sovjet Timo Format"];
 
 const notes = {
   "ironglass_sovjet_mkii_120mm": "135mm",
