@@ -526,7 +526,7 @@ const AUTO_REFRAME_BY_FOCAL = {
   "50mm":  { maxY: 0.06, maxX: 0.00 },
   "35mm":  { maxY: 0.07, maxX: -0.005 },
   "28mm":  { maxY: 0.15, maxX: 0.02 },
-  "20mm":  { maxY: -0.1, maxX: 0.00 }
+  "20mm":  { maxY: 0.2, maxX: 0.00 }
 };
 
 // Alleen deze focals wil je handmatig tunen:
