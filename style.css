@@ -51,7 +51,6 @@ body{
   filter:drop-shadow(0 0 10px rgba(0,0,0,.6));
   transition:opacity .2s ease;
 }
-
 #igHeader img:hover{ opacity:1; }
 
 /* ===========================
@@ -366,10 +365,13 @@ button.active,
   --cal-ty: 0px;
   --cal-scale: 1;
 
-  /* translate is effectively LAST (CSS applies right-to-left) */
+  /* ✅ FIX: crop/zoom (sensor*viewer) is effectief "laatste"
+     (CSS transforms worden rechts→links toegepast) */
   transform:
+    scale(calc(var(--sensor-scale) * var(--viewer-scale)))
     translate(var(--cal-tx), var(--cal-ty))
-    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
+    scale(var(--cal-scale));
+
   transform-origin:center;
   will-change:transform;
 }
@@ -505,9 +507,12 @@ body.sbs-mode #sbsWrapper .pane img{
   --cal-ty: 0px;
   --cal-scale: 1;
 
+  /* ✅ dezelfde fix in SxS */
   transform:
+    scale(calc(var(--sensor-scale) * var(--viewer-scale)))
     translate(var(--cal-tx), var(--cal-ty))
-    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
+    scale(var(--cal-scale));
+
   transform-origin:center;
   will-change:transform;
 }
@@ -521,7 +526,7 @@ body.sbs-mode #sbsWrapper::before{
   left:50%;
   width:1px;
   background:var(--ig-accent);
-  box-shadow:0 0 14px rgba(255,124,0,0.55);
+  box-shadow:0 0 14px rgba(255,124,0,.55);
   z-index:4;
 }
 
@@ -727,7 +732,6 @@ body.sbs-mode #rightDetail{
 
   /* desktop controls weg, mobile iframe aan */
   .controls.mobile-only{ display:block !important; }
-
   .lens-frame-outer{ display:block !important; }
 }
 
