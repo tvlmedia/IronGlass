@@ -733,12 +733,11 @@ function getCal(lensSlug, focal){
       setUserScaleFromPct(pct);
     }
 
-    // ✅ BELANGRIJK: ook zonder autoscale moet calibrate wél apply’en
+    // ✅ ook zonder autoscale moet calibrate wél apply’en
     applyCalibrationTransforms();
     return;
   }
 
-  // --- je bestaande code hieronder blijft hetzelfde ---
   const focal = focalLengthSelect?.value || "35mm";
   const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
   const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
@@ -748,22 +747,32 @@ function getCal(lensSlug, focal){
 
   updateFullscreenBars();
 
- const rect  = comparisonWrapper.getBoundingClientRect();
-const hostW = Math.max(1, rect.width);
-const hostH = Math.max(1, rect.height);
+  // ✅ usable window (na letterbox/pillarbox)
+  const { w: usedW, h: usedH } = getUsableWH();
 
+  // autoscale is bedoeld om “cover” safe te maken → neem cover-scale
+  const sx = usedW / CAL_W;
+  const sy = usedH / CAL_H;
+  const sCover = Math.max(sx, sy);
 
+  const toCssPx = (x=0, y=0) => {
+    const dx = x * sCover;
+    let dy   = y * sCover;
+    if(CAL_Y_INVERT) dy = -dy;
+    return { dx, dy };
+  };
 
   const requiredScaleFor = (cal) => {
     if(!cal) return 1;
 
     const base = (cal.scale ?? 1);
-    const { dx, dy } = calToCssPx(img, cal.x ?? 0, cal.y ?? 0);
+    const { dx, dy } = toCssPx(cal.x ?? 0, cal.y ?? 0);
 
     const needX = 1 + (2 * Math.abs(dx)) / usedW;
-const needY = 1 + (2 * Math.abs(dy)) / usedH;
+    const needY = 1 + (2 * Math.abs(dy)) / usedH;
     const needCover = Math.max(needX, needY, 1);
 
+    // required viewer-scale factor (bovenop jouw cal.scale)
     return needCover / Math.max(0.0001, base);
   };
 
@@ -773,7 +782,7 @@ const needY = 1 + (2 * Math.abs(dy)) / usedH;
     requiredScaleFor(rightCal)
   );
 
-  required *= 1.005;
+  required *= 1.005; // kleine safety
 
   const pct = clamp(Math.ceil(required * 100), 100, 130);
 
@@ -782,7 +791,6 @@ const needY = 1 + (2 * Math.abs(dy)) / usedH;
 
   calibrateAutoScaled = (pct > 100);
 
-  // ✅ extra zekerheid: transforms meteen toepassen
   applyCalibrationTransforms();
 }
 
