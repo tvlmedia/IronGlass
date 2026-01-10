@@ -746,3 +746,9 @@ body.sbs-mode #rightDetail{
   #infoContainer{ color:#000 !important; }
   #comparisonWrapper img{ object-fit:contain !important; }
 }
+
+#calibrateToggle:focus:not(.active),
+#calibrateToggle:focus-visible:not(.active){
+  box-shadow: none !important;
+  outline: none !important;
+}
