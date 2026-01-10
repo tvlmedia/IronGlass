@@ -372,6 +372,7 @@ const flareToggle=q("flareToggle"), scaleSlider=q("scaleSlider"), scaleVal=q("sc
 const bokehToggle = q("bokehToggle");
 const calibrateBtn = q("calibrateToggle");
 let calibrateActive = false;
+let calibrateUserTouchedScale = false;
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
@@ -909,8 +910,8 @@ const uiTLStr = (uiTL === "wo") ? null : String(uiTL).replace(".", "_");
 const uiTRStr = (uiTR === "wo") ? null : String(uiTR).replace(".", "_");
 
 // fallback alleen als alias iets verandert (bijv. 2.8 -> 2.9)
-const tLFallback = (uiTL === "wo") ? null : String(uiTL).replace(/\./g, "_");
-const tRFallback = (uiTR === "wo") ? null : String(uiTR).replace(/\./g, "_");
+const tLFallback = (uiTL === "wo") ? null : String((TSTOP_FILE_ALIAS?.[LL]?.[uiTL] ?? uiTL)).replace(/\./g, "_");
+const tRFallback = (uiTR === "wo") ? null : String((TSTOP_FILE_ALIAS?.[RR]?.[uiTR] ?? uiTR)).replace(/\./g, "_");
 
 const leftCandidates  = resolveImageCandidates(LL, focal, tL, flareMode, sceneMode, tLFallback);
 const rightCandidates = resolveImageCandidates(RR, focal, tR, flareMode, sceneMode, tRFallback);
@@ -1083,7 +1084,7 @@ function resetUserScale(){
 }
 
 // <-- HIER PLAKKEN (direct boven de input-listener)
-let calibrateUserTouchedScale = false;
+
 
 // <-- EN DEZE REGEL VERVANGT je bestaande input-listener
 scaleSlider?.addEventListener("input", (e) => {
