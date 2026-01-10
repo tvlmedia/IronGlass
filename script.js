@@ -1443,8 +1443,8 @@ function resetSplitToMiddle(){
   const lbT  = comparisonWrapper._lbTop    || 0;
   const lbB  = comparisonWrapper._lbBottom || 0;
 
-  const usableW = Math.max(1, Math.round(rect.width  - lbL - lbR));
-  const usableH = Math.max(1, Math.round(rect.height - lbT - lbB));
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
+const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
 
   const mid = Math.round(usableW / 2);
 
@@ -1466,8 +1466,8 @@ function updateSliderPosition(clientX){
   const lbT  = comparisonWrapper._lbTop    || 0;
   const lbB  = comparisonWrapper._lbBottom || 0;
 
-  const usableW = Math.max(1, Math.round(rect.width - lbL - lbR));
-  const usableH = Math.max(1, Math.round(rect.height - lbT - lbB));
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
+const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
 
   const clamped = clamp(Math.round(clientX - rect.left - lbL), 0, usableW);
 
