@@ -211,7 +211,6 @@ const notes = {
   "ironglass_sovjet_mkii_120mm": "135mm",
 
   // 85mm UI → pak de echte file-focal
-  "ironglass_sovjet_mkii_85mm": "80mm",
   "ironglass_zeiss_jena_85mm": "80mm",
 
   // Medium Format: kies welke jij als “85mm slot” wil gebruiken:
