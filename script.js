@@ -204,7 +204,7 @@ const cameras = {
 };
 
 /* === Lens lijsten, alias-focals, files en teksten === */
-const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Test 2 Zoom","IronGlass Sovjet Timo Format"];
+const lenses = ["IronGlass Red P","IronGlass Sovjet MKII","IronGlass Zeiss Jena","IronGlass Titan Zoom","IronGlass Sovjet Medium Format"];
 
 const notes = {
   "ironglass_sovjet_mkii_120mm": "135mm",
@@ -398,21 +398,6 @@ function getCurrentWH(){
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
-// ===============================
-// ONE TRUE applyCalThenPosition()
-// ===============================
-function applyCalThenPosition(){
-  updateFullscreenBars();
-  resetSplitToMiddle();
-
-  if (calibrateActive) {
-    if (!calibrateUserTouchedScale) autoScaleForCalibration();
-    else applyCalibrationTransforms();
-  } else {
-    applyCalibrationTransforms();
-  }
-}
-
 /* === AUTO VERTICAL REFRAME (small sensor heights) === */
 const AUTO_REFRAME = {
   thresholdH: 16.5,
@@ -450,11 +435,11 @@ function applyCurrentFormat(){
   const scale = Math.abs(BASE_SENSOR.w - w) < 0.1 ? 1 : (BASE_SENSOR.w / w);
   comparisonWrapper.style.setProperty("--sensor-scale", scale.toFixed(4));
 
-  // 1 frame wachten zodat height/usable rect klopt
-  requestAnimationFrame(() => applyCalThenPosition());
-}
-sensorFormatSelect.addEventListener("change", applyCurrentFormat);
-
+  // ✅ WACHT 1 FRAME zodat de nieuwe hoogte/usable rect echt klopt
+  requestAnimationFrame(() => {
+   function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
   if(calibrateActive){
     if(!calibrateUserTouchedScale) autoScaleForCalibration();
@@ -611,25 +596,38 @@ let calibrateAutoScaled = false;
 
 // Calibration Toggle
   
-let preCalibrateScalePct = 100;
+let preCalibrateScalePct = 100; // onthoud user scale van vóór calibrate
 
 calibrateBtn?.addEventListener("click", () => {
   calibrateActive = !calibrateActive;
+
+  // focus-glow kill
   calibrateBtn.blur();
 
   if (calibrateActive) {
     preCalibrateScalePct = Math.round((userScale || 1) * 100);
     calibrateAutoScaled = false;
   } else {
-    calibrateUserTouchedScale = false;
+    calibrateUserTouchedScale = false; // ✅ optional: reset
     calibrateAutoScaled = false;
-
     if (scaleSlider) scaleSlider.value = String(preCalibrateScalePct);
     setUserScaleFromPct(preCalibrateScalePct);
   }
 
+  // ✅ WACHT op nieuwe layout voordat je bars/calculations doet
   requestAnimationFrame(() => {
-    applyCalThenPosition();
+   function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
+
     updateToggleHighlights();
   });
 });
@@ -970,37 +968,37 @@ function onFsChange(){
   const fs = isWrapperFullscreen();
   setFullscreenImageFit(fs);
 
-  if (fs) {
-    clearInlineHeights();
-    // pulseFsBars?.({duration:1400}); // optioneel
-  } else {
-    const { w, h } = getCurrentWH();
-    comparisonWrapper.style.setProperty("aspect-ratio", "auto");
-    setWrapperSizeByAR(w, h);
-    requestAnimationFrame(() => setWrapperSizeByAR(w, h));
-
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v =>
-      comparisonWrapper.style.setProperty(v, "0px")
-    );
-
-    slider.style.top = "0px";
-    slider.style.height = "100%";
-    slider.style.bottom = "0";
+  if(fs){ clearInlineHeights(); pulseFsBars({duration:1400}); }
+  else { const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
+    slider.style.top="0px"; slider.style.height="100%"; slider.style.bottom="0";
   }
+  function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
-  requestAnimationFrame(() => {
-    if (!isWrapperFullscreen()) {
-      const { w, h } = getCurrentWH();
-      setWrapperSizeByAR(w, h);
-    }
-    applyCalThenPosition();
-  });
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 
-document.addEventListener("fullscreenchange", onFsChange);
-document.addEventListener("webkitfullscreenchange", onFsChange);
-
-
+  if(calibrateActive){
+  if(!calibrateUserTouchedScale){
+    autoScaleForCalibration();
+  } else {
+    applyCalibrationTransforms();
+  }
+} else {
+  applyCalibrationTransforms();
+}
+});
+  requestAnimationFrame(()=>{ if(!isWrapperFullscreen()){ const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
+}
+document.addEventListener("fullscreenchange",onFsChange);
+document.addEventListener("webkitfullscreenchange",onFsChange);
 window.addEventListener("resize",()=>{
   if(isWrapperFullscreen()){
     function applyCalThenPosition(){
@@ -1103,12 +1101,23 @@ let pendingScaleRAF = null;
 function setUserScaleFromPct(pct){
   userScale = clamp(pct/100, 1.0, 1.3);
   document.documentElement.style.setProperty("--viewer-scale", String(userScale));
-  if (scaleVal) scaleVal.textContent = Math.round(userScale * 100) + "%";
+  if(scaleVal) scaleVal.textContent = Math.round(userScale*100) + "%";
 
-  if (pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
+  // ✅ wacht tot layout geüpdatet is voordat je usableW/H gebruikt
+  if(pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
   pendingScaleRAF = requestAnimationFrame(() => {
     pendingScaleRAF = null;
-    applyCalThenPosition();
+    function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
   });
 }
 
