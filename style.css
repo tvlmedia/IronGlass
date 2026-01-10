@@ -752,11 +752,28 @@ body.sbs-mode #rightDetail{
   box-shadow: none !important;
   outline: none !important;
 }
-/* geldt voor alle viewer images (before/after + sbs) */
 #beforeImgTag,
 #afterImgTag,
 #sbsLeftImg,
 #sbsRightImg{
-  transform: translate(var(--cal-tx, 0px), var(--cal-ty, 0px)) scale(var(--cal-scale, 1));
-  transform-origin: center center;
+  transform:
+    translate(var(--cal-tx, 0px), var(--cal-ty, 0px))
+    scale(calc(var(--sensor-scale) * var(--viewer-scale) * var(--cal-scale)));
+  transform-origin:center;
+}
+#slider{
+  width:18px;              /* hitbox */
+  background:transparent;  /* niet een dikke streep */
+}
+
+#slider::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  bottom:0;
+  width:2px;
+  transform:translateX(-50%);
+  background:var(--ig-accent);
+  box-shadow:0 0 14px rgba(255,124,0,.6);
 }
