@@ -402,19 +402,14 @@ const mfAltRightSel  = q("mfAltRight");
 // (dit is alleen UI; resolver gebruiken we in stap 3)
 const ALT_FOCAL_OPTIONS = {
   "ironglass_sovjet_medium_format": {
-    // Als user 80 of 90 kiest: laat ze wisselen
-    "80mm": ["80mm","90mm"],
-    "90mm": ["90mm","80mm"],
+    // UI 85mm → kies tussen 80 en 90
+    "85mm": ["80mm","90mm"],
 
-    // Dit is jouw “UI 50mm slot” -> soms 65 / soms 45
+    // UI 50mm → kies tussen 65 en 45
     "50mm": ["65mm","45mm"],
 
-    // Soms 45 of 35 (als je dat wil kunnen switchen)
-    "45mm": ["45mm","35mm"],
-    "35mm": ["35mm","45mm"],
-
-    // (optioneel) als je 65 ook wil kunnen switchen:
-    "65mm": ["65mm","45mm"]
+    // UI 35mm → kies tussen 35 en 45
+    "35mm": ["35mm","45mm"]
   }
 };
 
