@@ -632,13 +632,15 @@ function enableCalibrate(){
 
 // --- Fullscreen: voorkom crop (force object-fit: contain) ---
 function setFullscreenImageFit(isFs){
-  const fit = isFs ? "contain" : ""; // leeg = terug naar CSS
-  const pos = "center center";
-
   [beforeImgTag, afterImgTag, sbsLeftImg, sbsRightImg].forEach(img => {
     if(!img) return;
-    img.style.objectFit = fit;
-    img.style.objectPosition = pos;
+    if(isFs){
+      img.style.objectFit = "contain";
+      img.style.objectPosition = "center center";
+    } else {
+      img.style.removeProperty("object-fit");
+      img.style.removeProperty("object-position");
+    }
   });
 }
 // --- Toggle Highlight ---
@@ -1108,8 +1110,7 @@ function ensureSliderPointerAccess(){
 ensureSliderPointerAccess();
 
 /* === Slider drag (mouse/touch) === */
-Slider drag
-
+// Slider drag
 function recalcLayout(){
   // zorg dat bars/usable rect kloppen en split/slider netjes reset
   updateFullscreenBars();
