@@ -565,10 +565,10 @@ function applyCurrentFormat(){
 lenses.forEach(l=>{ leftSelect.add(new Option(l,l)); rightSelect.add(new Option(l,l)); });
 const DEFAULT_T_STOPS = ["wo", "2", "2.8", "4"];
 
-function fillTStops(sel, opts = DEFAULT_T_STOPS){
+function fillTStops(sel, opts = DEFAULT_T_STOPS, woLabel = "WO"){
   sel.innerHTML = "";
   opts.forEach(v => {
-    const label = (v === "wo") ? "WO" : `T${v}`;
+    const label = (v === "wo") ? woLabel : `T${v}`;
     sel.add(new Option(label, v));
   });
 }
@@ -634,7 +634,19 @@ function updateTStopSelectForSide(side /* "left"|"right" */){
   const prev = sel.value || "wo";
   const opts = getAvailableTStopsFor(lensSlug, effectiveFocal);
 
-  fillTStops(sel, opts);
+// WO label = "WO (T<measured wide open>)" als we data hebben
+let woLabel = "WO";
+const stops = getMeasuredStops(lensSlug, effectiveFocal);
+if(stops && stops.length){
+  const nums = stops
+    .map(s => parseFloat(String(s)))
+    .filter(n => Number.isFinite(n))
+    .sort((a,b) => a-b);
+
+  if(nums.length) woLabel = `WO (T${nums[0]})`;
+}
+
+fillTStops(sel, opts, woLabel);
   sel.value = pickClosestTStopOption(opts, prev);
 
   return { opts };
