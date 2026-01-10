@@ -1147,6 +1147,7 @@ function sliderEnd(e){
   isDraggingSlider = false;
   document.body.classList.remove("dragging");
   try { slider.releasePointerCapture?.(e.pointerId); } catch(_) {}
+  try { comparisonWrapper.releasePointerCapture?.(e.pointerId); } catch(_) {}
   e.preventDefault?.();
 }
 
