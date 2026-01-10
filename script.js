@@ -437,15 +437,17 @@ function applyCurrentFormat(){
 
   // ✅ WACHT 1 FRAME zodat de nieuwe hoogte/usable rect echt klopt
   requestAnimationFrame(() => {
-    updateFullscreenBars();
-    resetSplitToMiddle();
+   function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
-    if (calibrateActive) {
-      if (!calibrateUserTouchedScale) autoScaleForCalibration();
-      else applyCalibrationTransforms();
-    } else {
-      applyCalibrationTransforms();
-    }
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
   });
 }
 /* === Lenses dropdowns + T-stops === */
@@ -614,15 +616,17 @@ calibrateBtn?.addEventListener("click", () => {
 
   // ✅ WACHT op nieuwe layout voordat je bars/calculations doet
   requestAnimationFrame(() => {
-    updateFullscreenBars();
-    resetSplitToMiddle();
+   function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
-    if (calibrateActive) {
-      if (!calibrateUserTouchedScale) autoScaleForCalibration();
-      else applyCalibrationTransforms();
-    } else {
-      applyCalibrationTransforms();
-    }
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
 
     updateToggleHighlights();
   });
@@ -969,10 +973,17 @@ function onFsChange(){
     ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
     slider.style.top="0px"; slider.style.height="100%"; slider.style.bottom="0";
   }
-  updateFullscreenBars();
-requestAnimationFrame(()=>{
+  function applyCalThenPosition(){
   updateFullscreenBars();
   resetSplitToMiddle();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
 
   if(calibrateActive){
   if(!calibrateUserTouchedScale){
@@ -990,21 +1001,34 @@ document.addEventListener("fullscreenchange",onFsChange);
 document.addEventListener("webkitfullscreenchange",onFsChange);
 window.addEventListener("resize",()=>{
   if(isWrapperFullscreen()){
-    updateFullscreenBars();
-    resetSplitToMiddle();
+    function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
-    if(calibrateActive){
-      autoScaleForCalibration();
-    } else {
-      applyCalibrationTransforms();
-    }
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
   } else {
     const {w,h}=getCurrentWH();
     setWrapperSizeByAR(w,h);
   }
 });
-function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } updateFullscreenBars(); requestAnimationFrame(()=>{ updateFullscreenBars(); resetSplitToMiddle(); }); })(); }
-fullscreenBtn?.addEventListener("click",toggleFullscreen);
+function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } 
+                                        function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
+}
 
 /* === SxS toggle === */
 function setSideBySide(on,{force=false}={}) {
@@ -1018,12 +1042,17 @@ function setSideBySide(on,{force=false}={}) {
   requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
 
     if(!sbsActive){
-    updateFullscreenBars();
-    resetSplitToMiddle();
-  }
+    function applyCalThenPosition(){
+  function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
 
-  applyCalibrationTransforms();
-  updateToggleHighlights();
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 
 sbsBtn?.addEventListener("click",()=>setSideBySide(!sbsActive));
@@ -1045,10 +1074,16 @@ window.addEventListener("touchend",()=>{ isDragging=false; document.body.classLi
 window.addEventListener("touchmove",e=>{ if(isDragging && e.touches.length===1){ e.preventDefault(); updateSliderPosition(e.touches[0].clientX); } },{passive:false});
 
 function recalcLayout(){
+  function applyCalThenPosition(){
   updateFullscreenBars();
   resetSplitToMiddle();
-  if(calibrateActive) autoScaleForCalibration();
-  else applyCalibrationTransforms();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
+    applyCalibrationTransforms();
+  }
 }
 
 // 1x listeners, klaar
@@ -1072,9 +1107,17 @@ function setUserScaleFromPct(pct){
   if(pendingScaleRAF) cancelAnimationFrame(pendingScaleRAF);
   pendingScaleRAF = requestAnimationFrame(() => {
     pendingScaleRAF = null;
-    updateFullscreenBars();
-    resetSplitToMiddle();
+    function applyCalThenPosition(){
+  updateFullscreenBars();
+  resetSplitToMiddle();
+
+  if(calibrateActive){
+    if(!calibrateUserTouchedScale) autoScaleForCalibration();
+    else applyCalibrationTransforms();
+  } else {
     applyCalibrationTransforms();
+  }
+}
   });
 }
 
