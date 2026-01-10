@@ -1093,9 +1093,9 @@ function updateImages(){
 }
 
 /* === Init defaults === */
-leftSelect.value  = "IronGlass Titan Zoom";
-rightSelect.value = "IronGlass Sovjet Medium Format";
-focalLengthSelect.value = "120mm";
+leftSelect.value  = "IronGlass Sovjet MKII";
+rightSelect.value = "IronGlass Zeiss Jena";
+focalLengthSelect.value = "50mm";
 tStopLeftSelect.value   = "2.8";
 tStopRightSelect.value  = "2.8";
 
