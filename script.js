@@ -218,6 +218,7 @@ const notes = {
   // Als je UI nog 85mm aanbiedt voor Jena/MF maar je wil hem altijd naar 80mm sturen:
   // (mag blijven, maar als je nearest-focal gebruikt kan dit er uiteindelijk uit)
   "ironglass_zeiss_jena_85mm": "80mm",
+  "ironglass_titan_zoom_35mm": "37mm",
   "ironglass_sovjet_medium_format_85mm": "80mm",
   "ironglass_sovjet_medium_format_50mm": "65mm",
   "ironglass_sovjet_medium_format_50mm": "45mm"
@@ -572,7 +573,8 @@ const CALIBRATION = {
   "ironglass_titan_zoom": {
     "120mm": { scale: 0.96, x: 25.823, y: -70.244 },
     "85mm":  { scale: 0.89, x: 3.000,  y: 35.000 },
-    "50mm":  { scale: 0.96, x: -3.965,  y: -27.412 }
+    "50mm":  { scale: 0.96, x: -3.965,  y: -27.412 },
+    "35mm":  { scale: 0.900, x: -13.930,  y: -77.447 }
   },
 
   "ironglass_sovjet_medium_format": {
@@ -580,18 +582,22 @@ const CALIBRATION = {
     "90mm":  { scale: 0.88, x: 14.000, y: 29.000 },
     "80mm":  { scale: 0.97, x: 28.780, y: 0.000 },
     "50mm":  { scale: 0.78, x: 27.377, y: -10.412 },
-    "50mm":  { scale: 1.120, x: 0.000, y: -27.000 }
+    "50mm":  { scale: 1.120, x: 0.000, y: -27.000 },
+    "45mm":  { scale: 0.780, x: -5.000, y: -65.000 },
+    "35mm":  { scale: 1.050, x: 0.000, y: -19.447 }
   },
 
   "ironglass_sovjet_mkii": {
     "120mm": { scale: 0.85, x: 7.394, y: 18.485 },
     "85mm":  { scale: 0.95, x: 1.000, y: 65.349 },
-    "50mm": { scale: 0.870, x: 0, y: 0 }
+    "50mm": { scale: 0.870, x: 0, y: 0 },
+    "35mm": { scale: 0.980, x: -13.930, y: 0 }
   },
 
   "ironglass_red_p": {
     "85mm": { scale: 0.93, x: 0.930, y: 73.349 },
-    "50mm": { scale: 0.87, x: 24.000, y: 12.000 }
+    "50mm": { scale: 0.87, x: 24.000, y: 12.000 },
+    "35mm": { scale: 0.990, x: -10.860, y: 18.447 }         
   }
 };
 
