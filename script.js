@@ -211,7 +211,9 @@ const notes = {
   // MKII: jij hebt 135mm files, UI toont 120mm
   "ironglass_sovjet_mkii_120mm": "135mm",
   "ironglass_sovjet_mkii_50mm": "58mm",
+  "ironglass_sovjet_mkii_35mm": "37mm",
   "ironglass_red_p_50mm": "58mm",
+  "ironglass_red_p_35mm": "37mm",
 
   // Als je UI nog 85mm aanbiedt voor Jena/MF maar je wil hem altijd naar 80mm sturen:
   // (mag blijven, maar als je nearest-focal gebruikt kan dit er uiteindelijk uit)
