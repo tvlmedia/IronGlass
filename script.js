@@ -2144,21 +2144,43 @@ const rxR = (e.clientX - rectR.left) / rectR.width;
 const ryR = (e.clientY - rectR.top)  / rectR.height;
 
 const cfg = getDetailConfig();
+const size = cfg.size;
+const zoom = cfg.zoom;
 
-// ✅ HIER: eerst uncalibrate
+const pad = 8;
+const gap = 24; // zelfde “afstand” gevoel als je oude logic
+
+// ✅ 1x clamp voor het hele duo
+const groupW = (size * 2) + gap;
+let groupX = e.clientX - size - gap;     // left box op “oude” plek
+let groupY = e.clientY - (size / 2);
+
+groupX = clamp(groupX, pad, window.innerWidth  - groupW - pad);
+groupY = clamp(groupY, pad, window.innerHeight - size  - pad);
+
+// subpixel seams fix (optioneel maar nice)
+groupX = Math.round(groupX);
+groupY = Math.round(groupY);
+
+// ✅ eerst uncalibrate
 const pL = uncalibrateRxRy(afterImgTag,  rectL, rxL, ryL);
 const pR = uncalibrateRxRy(beforeImgTag, rectR, rxR, ryR);
 
-// ✅ en dan pas showDetailBoxAt met pL/pR
+// ✅ vaste posities meegeven -> GEEN individuele clamp meer
 const showL = showDetailBoxAt(
   e, leftDetail, leftDetailImg, afterImgTag,
-  rectL, pL.rx, pL.ry, "left", cfg.zoom, cfg.size, 0
+  rectL, pL.rx, pL.ry, "left", zoom, size, 0,
+  { x: groupX, y: groupY }
 );
 
 const showR = showDetailBoxAt(
   e, rightDetail, rightDetailImg, beforeImgTag,
-  rectR, pR.rx, pR.ry, "right", cfg.zoom, cfg.size, 0
+  rectR, pR.rx, pR.ry, "right", zoom, size, 0,
+  { x: groupX + size + gap, y: groupY }
 );
+
+if(!showL) leftDetail.style.display  = "none";
+if(!showR) rightDetail.style.display = "none";
 
  if(!showL) leftDetail.style.display  = "none";
 if(!showR) rightDetail.style.display = "none";
