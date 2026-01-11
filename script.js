@@ -465,38 +465,42 @@ if(exposureBtn){
 }
 
 function updateMfAltUI(){
-  const focal = focalLengthSelect?.value || "50mm";
+  const uiFocal = focalLengthSelect?.value || "50mm";
 
   const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
   const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
+  const leftOpts  = ALT_FOCAL_OPTIONS?.[leftSlug]?.[uiFocal]  || null;
+  const rightOpts = ALT_FOCAL_OPTIONS?.[rightSlug]?.[uiFocal] || null;
+
   // LEFT
-if(mfAltLeftWrap && mfAltLeftSel){
-  if(leftOpts && leftOpts.length > 1){
-    mfAltLeftWrap.style.display = "flex";
-    mfAltLeftSel.disabled = false;
+  if(mfAltLeftWrap && mfAltLeftSel){
+    if(leftOpts && leftOpts.length > 1){
+      mfAltLeftWrap.style.display = "flex";
+      mfAltLeftSel.disabled = false;
 
-    fillAltSelect(mfAltLeftSel, leftOpts, mfAltState.left);
-    mfAltState.left = mfAltLeftSel.value;
-  } else {
-    mfAltLeftWrap.style.display = "none";
-    mfAltLeftSel.disabled = true;
-    mfAltState.left = null;
+      fillAltSelect(mfAltLeftSel, leftOpts, mfAltState.left);
+      mfAltState.left = mfAltLeftSel.value;
+    } else {
+      mfAltLeftWrap.style.display = "none";
+      mfAltLeftSel.disabled = true;
+      mfAltState.left = null;
+    }
   }
-}
 
-// RIGHT
-if(mfAltRightWrap && mfAltRightSel){
-  if(rightOpts && rightOpts.length > 1){
-    mfAltRightWrap.style.display = "flex";
-    mfAltRightSel.disabled = false;
+  // RIGHT
+  if(mfAltRightWrap && mfAltRightSel){
+    if(rightOpts && rightOpts.length > 1){
+      mfAltRightWrap.style.display = "flex";
+      mfAltRightSel.disabled = false;
 
-    fillAltSelect(mfAltRightSel, rightOpts, mfAltState.right);
-    mfAltState.right = mfAltRightSel.value;
-  } else {
-    mfAltRightWrap.style.display = "none";
-    mfAltRightSel.disabled = true;
-    mfAltState.right = null;
+      fillAltSelect(mfAltRightSel, rightOpts, mfAltState.right);
+      mfAltState.right = mfAltRightSel.value;
+    } else {
+      mfAltRightWrap.style.display = "none";
+      mfAltRightSel.disabled = true;
+      mfAltState.right = null;
+    }
   }
 }
 
