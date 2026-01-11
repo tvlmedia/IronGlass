@@ -1063,3 +1063,15 @@ body.sbs-mode #rightDetail{
   transform: translateY(3px);
   opacity: 0.9;
 }
+/* ========== FIX: Controls blijven bovenaan plakken ========== */
+.controlsStack{
+  position: sticky;
+  top: 12px;               /* 0 als je 'm echt tegen de top wil */
+  z-index: 9999;
+}
+
+/* optioneel: zodat het er niet 'doorheen' lijkt te scrollen */
+.controlsStack .panel{
+  background: rgba(0,0,0,0.78);
+  backdrop-filter: blur(10px);
+}
