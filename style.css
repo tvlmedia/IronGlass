@@ -937,3 +937,17 @@ body.dragging #slider::after{
 @media (max-width: 1000px){
   .controlsTop .lensSide{ flex-wrap: wrap; }
 }
+/* Oranje rand om de hele image viewer */
+#comparisonWrapper{
+  position: relative; /* voor pseudo-element */
+}
+
+#comparisonWrapper::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 140, 0, 0.7); /* oranje, subtiel */
+  border-radius: 12px; /* match je UI als je rounding hebt */
+  pointer-events: none;
+  z-index: 50; /* boven images/overlay, onder UI knoppen */
+}
