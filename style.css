@@ -929,7 +929,7 @@ body.sbs-mode #rightDetail{
 #comparisonWrapper:fullscreen #afterImgTag,
 #comparisonWrapper:-webkit-full-screen #beforeImgTag,
 #comparisonWrapper:-webkit-full-screen #afterImgTag{
-  inset: var(--lb-top,0px) var(--lb-right,0px) var(--lb-bottom,0px) var(--lb-left,0px) !important;
+  inset: 0 !important;
 }
 
 /* (optioneel) als je ooit SBS fullscreen ook “boxed” wil maken, zet deze aan.
