@@ -1538,7 +1538,7 @@ function onFsChange(){
 
   if(fs){
     clearInlineHeights();
-    pulseFsBars({duration:1400});
+    pulseFsBarsSafe({duration:1400});
   } else {
     const {w,h}=getCurrentWH();
     comparisonWrapper.style.setProperty("aspect-ratio","auto");
@@ -1590,7 +1590,6 @@ async function toggleFullscreen(){
   try{
     clearInlineHeights();
     await enterWrapperFullscreen();
-    pulseFsBarsSafe({duration:1400});
   } catch(e){
     // als fullscreen geblokkeerd is → mask weer weg
     endFsEnterMask();
