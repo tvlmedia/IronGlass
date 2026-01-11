@@ -966,3 +966,69 @@ body.sbs-mode #rightDetail{
 #sbsWrapper{
   inset: var(--lb-top,0px) var(--lb-right,0px) var(--lb-bottom,0px) var(--lb-left,0px);
 }
+/* =========================
+   BOTTOM: lensInfo + notes
+   ========================= */
+
+#lensInfo {
+  width: 100%;
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* Works regardless of what JS injects as children */
+#lensInfo > * {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  line-height: 1.35;
+}
+
+/* Titles inside cards (pak je huidige markup mee, whatever it is) */
+#lensInfo strong,
+#lensInfo b {
+  font-weight: 700;
+}
+
+/* Note box */
+#explanationBox {
+  width: 100%;
+  margin-top: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+#explanationBox .noteItem {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+#explanationBox .noteItem + .noteItem {
+  margin-top: 10px;
+}
+
+#explanationBox .noteIcon {
+  opacity: 0.9;
+  transform: translateY(2px);
+}
+
+#explanationBox p {
+  margin: 0;
+  line-height: 1.45;
+  opacity: 0.92;
+}
+
+/* Responsive: stack lens cards */
+@media (max-width: 980px) {
+  #lensInfo {
+    grid-template-columns: 1fr;
+  }
+}
