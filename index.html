@@ -100,28 +100,34 @@
         <!-- ===== BOTTOM PANEL (Viewer actions + Advanced + Scale) ===== -->
         <div class="panel controlsBottom" role="group" aria-label="Viewer controls">
 
-          <div class="row actionRow">
-            <div class="actionLeft">
-              <button id="toggleButton" class="control-button" type="button">↔ Flip</button>
-              <button id="sbsToggle" class="control-button" type="button">Side-by-Side (S)</button>
-              <button id="fullscreenButton" class="control-button" type="button">⛶ Fullscreen (P)</button>
-              <button id="detailViewToggle" class="control-button" type="button">🔍 Detail View (D)</button>
-              <button id="bokehToggle" class="control-button" type="button">Bokeh (B)</button>
-              <button id="flareToggle" class="control-button" type="button" data-mode="noflare">Flare: OFF (F)</button>
-            </div>
+         <div class="row actionRow">
+  <div class="actionLeft">
+    <button id="toggleButton" class="control-button" type="button">↔ Flip</button>
+    <button id="sbsToggle" class="control-button" type="button">Side-by-Side (S)</button>
+    <button id="fullscreenButton" class="control-button" type="button">⛶ Fullscreen (P)</button>
+    <button id="detailViewToggle" class="control-button" type="button">🔍 Detail View (D)</button>
+    <button id="bokehToggle" class="control-button" type="button">Bokeh (B)</button>
+    <button id="flareToggle" class="control-button" type="button" data-mode="noflare">Flare: OFF (F)</button>
 
-            <div class="actionRight">
-              <button
-                id="advancedToggle"
-                class="control-button"
-                type="button"
-                aria-expanded="false"
-                aria-controls="advancedPanel"
-              >
-                Advanced ▾
-              </button>
-            </div>
-          </div>
+    <!-- Scale: tussen Flare en Advanced -->
+    <label id="scaleCtrl" class="chip">
+      <span id="scaleVal">100%</span>
+      <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1" />
+    </label>
+  </div>
+
+  <div class="actionRight">
+    <button
+      id="advancedToggle"
+      class="control-button"
+      type="button"
+      aria-expanded="false"
+      aria-controls="advancedPanel"
+    >
+      Advanced ▾
+    </button>
+  </div>
+</div>
 
           <!-- Advanced (drop) -->
           <div id="advancedPanel" class="advancedPanel" aria-hidden="true">
@@ -136,13 +142,6 @@
             </button>
           </div>
 
-          <!-- Scale -->
-          <div class="row scaleRow">
-            <label id="scaleCtrl" class="chip">
-              <span id="scaleVal">100%</span>
-              <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1" />
-            </label>
-          </div>
 
         </div>
       </section>
