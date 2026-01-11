@@ -942,9 +942,12 @@ flareToggle.addEventListener("click", ()=>{
   updateImages();
   updateToggleHighlights();
 });
-/* === Side-by-side wrapper === */
-const sbsWrapper=document.createElement("div"); sbsWrapper.id="sbsWrapper"; sbsWrapper.innerHTML=`<div class="pane"><img id="sbsLeftImg" alt=""></div><div class="pane"><img id="sbsRightImg" alt=""></div>`; comparisonWrapper.appendChild(sbsWrapper); sbsWrapper.style.display="none";
-const sbsLeftImg=sbsWrapper.querySelector("#sbsLeftImg"), sbsRightImg=sbsWrapper.querySelector("#sbsRightImg");
+/* === Side-by-side wrapper (use existing DOM) === */
+const sbsWrapper = q("sbsWrapper");
+const sbsLeftImg = q("sbsLeftImg");
+const sbsRightImg = q("sbsRightImg");
+
+if (sbsWrapper) sbsWrapper.style.display = "none";
 
 
 function getCalBoxFor(img){
