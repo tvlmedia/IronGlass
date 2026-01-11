@@ -841,3 +841,194 @@ body.sbs-mode #rightDetail{
   box-shadow:none !important;
   outline:none !important;
 }
+
+
+
+
+/* ===========================
+   IRONGLASS HARD-EDGE OVERRIDES
+   Paste this at the VERY END of your CSS
+   =========================== */
+
+:root{
+  /* Kill rounded UI */
+  --radius: 0px;
+  --radius-sm: 0px;
+
+  /* Slightly cleaner + more "site-like" contrast */
+  --panel: rgba(12,12,12,.92);
+  --panel2: rgba(10,10,10,.92);
+
+  --stroke: rgba(255,255,255,.12);
+  --stroke2: rgba(255,255,255,.08);
+
+  /* Less "glow", more premium */
+  --shadow: 0 18px 48px rgba(0,0,0,.68);
+  --shadow2: 0 14px 34px rgba(0,0,0,.62);
+
+  /* IronGlass-ish orange */
+  --accent: #ff7a00;
+  --accent2:#ff8a00;
+
+  /* Tighter UI feel */
+  --hpad: 14px;
+}
+
+/* Background: flatter, more IronGlass */
+body{
+  background:
+    radial-gradient(900px 500px at 50% -240px, rgba(255,122,0,.06), transparent 60%),
+    #000;
+}
+
+/* ===========================
+   PANELS: hard-edge, less glass
+   =========================== */
+.controlsStack .panel{
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,122,0,.22);
+  background: linear-gradient(180deg, rgba(14,14,14,.96), rgba(8,8,8,.96));
+  box-shadow: var(--shadow2);
+
+  /* Remove the "modern glass" vibe */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Make highlight line feel more "industrial" */
+.controlsStack .panel::before{
+  left: 0 !important;
+  right: 0 !important;
+  opacity: .35 !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent) !important;
+}
+
+/* Advanced panel also squared */
+#advancedPanel.advancedPanel{
+  border-radius: 0 !important;
+}
+
+/* ===========================
+   INPUTS: remove pill look
+   =========================== */
+select,
+.control-button{
+  border-radius: 0 !important;
+  height: 36px;
+  padding: 0 14px;
+
+  /* More IronGlass: darker + flatter */
+  background: rgba(9,9,9,.92) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  box-shadow: 0 12px 26px rgba(0,0,0,.55) !important;
+
+  /* IronGlass typography: less "rounded UI" vibe */
+  font-size: 12px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+/* Hover: mostly border + subtle pop, not glow */
+select:hover,
+.control-button:hover{
+  border-color: rgba(255,122,0,.55) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.62) !important;
+  filter: brightness(1.03) !important;
+}
+
+/* Active toggles: crisp orange stroke */
+button.active,
+.controls button.active{
+  border-color: rgba(255,122,0,.90) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.62) !important;
+}
+
+/* Focus: slimmer ring */
+select:focus,
+.control-button:focus{
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(255,122,0,.22), 0 14px 34px rgba(0,0,0,.62) !important;
+  border-color: rgba(255,122,0,.85) !important;
+}
+
+/* Scale chip: also square */
+#scaleCtrl.chip{
+  border-radius: 0 !important;
+  background: rgba(9,9,9,.92) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  box-shadow: 0 12px 26px rgba(0,0,0,.55) !important;
+}
+
+/* MF alt wrap: square */
+.mfAltWrap{
+  border-radius: 0 !important;
+  background: rgba(9,9,9,.78) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+
+/* ===========================
+   VIEWER: hard-edge frame
+   =========================== */
+#comparisonWrapper{
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,122,0,.28) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+/* Fullscreen remains square already; keep */
+#comparisonWrapper:fullscreen,
+#comparisonWrapper:-webkit-full-screen{
+  border-radius: 0 !important;
+}
+
+/* ===========================
+   SLIDER: less "app", more "tool"
+   =========================== */
+#slider{
+  width: 2px;
+  box-shadow: 0 0 18px rgba(255,122,0,.25) !important;
+}
+
+/* Replace round knob with square handle */
+#slider::after{
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 0 !important;
+  background: rgba(0,0,0,.72) !important;
+  border: 1px solid rgba(255,122,0,.65) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.65), 0 0 14px rgba(255,122,0,.12) !important;
+}
+
+/* ===========================
+   INFO / BOXES: hard-edge
+   =========================== */
+#explanationBox{
+  border-radius: 0 !important;
+  background: rgba(8,8,8,.92) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+}
+
+/* Detail viewer: square */
+.detail-view-square{
+  border-radius: 0 !important;
+  background: rgba(0,0,0,.92) !important;
+  border: 1px solid rgba(255,122,0,.48) !important;
+  box-shadow: 0 22px 60px rgba(0,0,0,.72), 0 0 18px rgba(255,122,0,.10) !important;
+}
+
+/* SBS pane borders: crisp */
+body.sbs-mode #sbsWrapper .pane:first-child{
+  border-right: 1px solid rgba(255,122,0,.28) !important;
+}
+body.sbs-mode #sbsWrapper .pane:last-child{
+  border-left: 1px solid rgba(255,122,0,.28) !important;
+}
+
+/* Remove rounded seam fixes (not needed when square) */
+body.sbs-mode #leftDetail,
+body.sbs-mode #rightDetail{
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
