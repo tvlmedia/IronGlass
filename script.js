@@ -1606,6 +1606,7 @@ function onFsChange(){
     clearInlineHeights();
     pulseFsBarsSafe({duration:1400});
   } else {
+    comparisonWrapper.style.padding = "0px";          // ✅ stap 4
     const {w,h}=getCurrentWH();
     comparisonWrapper.style.setProperty("aspect-ratio","auto");
     setWrapperSizeByAR(w,h);
@@ -1644,15 +1645,17 @@ window.addEventListener("resize",()=>{
   }
 });
 async function toggleFullscreen(){
-  if(isWrapperFullscreen()){
-    exitRequestedByButton = true;
+ if(isWrapperFullscreen()){
+  exitRequestedByButton = true;
 
-    await exitAnyFullscreen();
+  await exitAnyFullscreen();
 
-    // reset ASAP (na event-loop), zodat “echte” exits daarna weer gate triggeren
-    setTimeout(() => { exitRequestedByButton = false; }, 0);
+  setTimeout(() => { exitRequestedByButton = false; }, 0);
 
-    endFsEnterMask(); // safety
+  endFsEnterMask();
+
+  comparisonWrapper.style.padding = "0px";        // ✅ HIER
+    
 
     const {w,h}=getCurrentWH();
     comparisonWrapper.style.setProperty("aspect-ratio","auto");
@@ -2115,6 +2118,7 @@ if(!showR) rightDetail.style.display = "none";
 /* === Letter/pillarbox berekening + slider === */
 function updateFullscreenBars(){
   if(sbsActive){
+    comparisonWrapper.style.padding = "0px"; // ✅
     ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
     comparisonWrapper._lbLeft=comparisonWrapper._lbRight=comparisonWrapper._lbTop=comparisonWrapper._lbBottom=0;
     const r = comparisonWrapper.getBoundingClientRect();
@@ -2133,22 +2137,22 @@ function updateFullscreenBars(){
   let lbL = 0, lbR = 0, lbT = 0, lbB = 0;
 
   if(hostAR > targetAR){
-    // pillarbox (zwarte balken links/rechts)
     usedH = hostH;
     usedW = Math.round(usedH * targetAR);
-
-    const leftover = hostW - usedW;           // 👈 totaal rest-pixels
-    lbL = Math.floor(leftover / 2);           // 👈 links floor
-    lbR = leftover - lbL;                     // 👈 rechts krijgt de rest (dus altijd exact passend)
+    const leftover = hostW - usedW;
+    lbL = Math.floor(leftover / 2);
+    lbR = leftover - lbL;
   } else {
-    // letterbox (zwarte balken boven/onder)
     usedW = hostW;
     usedH = Math.round(usedW / targetAR);
-
     const leftover = hostH - usedH;
     lbT = Math.floor(leftover / 2);
     lbB = leftover - lbT;
   }
+
+  // ✅ maak de bars fysiek (centered usable window)
+  comparisonWrapper.style.boxSizing = "border-box";
+  comparisonWrapper.style.padding = `${lbT}px ${lbR}px ${lbB}px ${lbL}px`;
 
   [["--lb-top",lbT],["--lb-bottom",lbB],["--lb-left",lbL],["--lb-right",lbR]]
     .forEach(([k,v]) => comparisonWrapper.style.setProperty(k, `${v}px`));
@@ -2160,7 +2164,7 @@ function updateFullscreenBars(){
 }
 function resetSplitToMiddle(){
   if(sbsActive) return;
-   if(document.body.classList.contains("dragging")) return; // ✅ niet resetten tijdens slepen
+  if(document.body.classList.contains("dragging")) return;
 
   const rect = comparisonWrapper.getBoundingClientRect();
   const lbL  = comparisonWrapper._lbLeft   || 0;
@@ -2169,17 +2173,18 @@ function resetSplitToMiddle(){
   const lbB  = comparisonWrapper._lbBottom || 0;
 
   const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
-const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
 
   const mid = Math.round(usableW / 2);
 
-  // ✅ clip ook verticaal binnen usable window
-  const inset = `inset(${lbT}px ${lbR + (usableW - mid)}px ${lbB}px ${lbL}px)`;
+  // ✅ clip binnen de content box (padding is al toegepast)
+  const inset = `inset(0px ${usableW - mid}px 0px 0px)`;
   afterWrapper.style.clipPath = inset;
   afterWrapper.style.webkitClipPath = inset;
 
-  slider.style.left   = (lbL + mid) + "px";
-  slider.style.top    = lbT + "px";
+  // ✅ slider ook binnen content box
+  slider.style.left   = mid + "px";
+  slider.style.top    = "0px";
   slider.style.height = usableH + "px";
   slider.style.bottom = "auto";
 }
@@ -2191,21 +2196,20 @@ function updateSliderPosition(clientX){
   const lbT  = comparisonWrapper._lbTop    || 0;
   const lbB  = comparisonWrapper._lbBottom || 0;
 
- const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width - lbL - lbR)));
-const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width - lbL - lbR)));
+  const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
 
+  // ✅ clientX naar content-x (dus minus padding-left)
   const clamped = clamp(Math.round(clientX - rect.left - lbL), 0, usableW);
 
-  const leftInset  = lbL;
-  const rightInset = lbR + (usableW - clamped);
-
-  // ✅ clip ook verticaal + behoud jouw 1px seam-fix
-  const inset = `inset(${lbT}px ${Math.max(0, rightInset - 1)}px ${lbB}px ${leftInset}px)`;
+  // ✅ clip binnen content box (padding is al toegepast)
+  const rightInset = (usableW - clamped);
+  const inset = `inset(0px ${Math.max(0, rightInset - 1)}px 0px 0px)`;
   afterWrapper.style.clipPath = inset;
   afterWrapper.style.webkitClipPath = inset;
 
-  slider.style.left   = (lbL + clamped) + "px";
-  slider.style.top    = lbT + "px";
+  slider.style.left   = clamped + "px";
+  slider.style.top    = "0px";
   slider.style.height = usableH + "px";
   slider.style.bottom = "auto";
 }
