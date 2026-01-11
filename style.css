@@ -1004,3 +1004,15 @@ body.dragging {
   -webkit-user-select: none;
   user-select: none;
 }
+/* --- FS enter: verberg 1-2 frames zodat je nooit de "volle crop" ziet --- */
+#comparisonWrapper.fs-entering #beforeImage,
+#comparisonWrapper.fs-entering #afterWrapper,
+#comparisonWrapper.fs-entering #slider,
+#comparisonWrapper.fs-entering #fsBars,
+#comparisonWrapper.fs-entering #sbsWrapper{
+  opacity: 0 !important;
+}
+
+#comparisonWrapper.fs-entering{
+  background:#000 !important;
+}
