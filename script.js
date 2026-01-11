@@ -245,7 +245,7 @@ const MEASURED_TSTOPS = {
     "30mm":  ["4", "3.8"]
   },
 
-  "ironglass_zeiss_jena": {
+  "ironglass_zeiss_": {
     // jouw nieuwe files: 50mm t1_9 / t2_8 / t4
     "120mm": ["4", "2.9"],
     "80mm":  ["4", "2.8", "1.9"],
@@ -293,7 +293,7 @@ const TSTOP_FILE_ALIAS = {
     "4":  "4"
   },
 
-  "ironglass_zeiss_jena": {
+  "ironglass_zeiss_": {
     // files: t1_9, t2_8, t4
    
     "2":  "1.9",
@@ -317,7 +317,7 @@ const lensImageMap = {
 
 const lensDescriptions = {
   "IronGlass Red P": { text:"Extremely vintage Soviet optics with single coating, heavy character, flare and distortion. Pure, raw, unpolished glass for maximum personality.", url:"https://ironglassadapters.com/rehousing/red-p-limited-edition-soviet-lens-rehousing/" },
-  "IronGlass Zeiss Jena": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss-jena-rehousing/" },
+  "IronGlass Zeiss ": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss--rehousing/" },
   "IronGlass Sovjet MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/rehoused-soviet-lenses/mkii/" },
   "IronGlass Titan Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
   "IronGlass Sovjet Medium Format": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
@@ -1190,9 +1190,9 @@ function updateToggleHighlights(){
 /* === RAW map + download === */
 const rawFileMap={
   "ironglass_red_p_35mm_t2_8":"images/raw/RedP_37mm_T2.8_RAW.tif",
-  "ironglass_zeiss_jena_35mm_t2_8":"images/raw/ZeissJena_35mm_T2.8_RAW.tif",
+  "ironglass_zeiss__35mm_t2_8":"images/raw/Zeiss_35mm_T2.8_RAW.tif",
   "ironglass_red_p_50mm_t2_8":"images/raw/RedP_58mm_T2.8_RAW.tif",
-  "ironglass_zeiss_jena_50mm_t2_8":"images/raw/ZeissJena_50mm_T2.8_RAW.tif",
+  "ironglass_zeiss__50mm_t2_8":"images/raw/Zeiss_50mm_T2.8_RAW.tif",
   "cooke_panchro_ff_50mm_t2_8":"images/raw/CookeFF_50mm_T2.8_RAW.tif"
 };
 function setDownloadButton(btn,key){
@@ -1534,7 +1534,7 @@ resetSplitToMiddle();
 /* === Init defaults === */
 leftSelect.value  = "IronGlass Sovjet MKII";
 rightSelect.value = "IronGlass Zeiss Jena";
-focalLengthSelect.value = "85mm";
+focalLengthSelect.value = "35mm";
 tStopLeftSelect.value   = "2.8";
 tStopRightSelect.value  = "2.8";
 
@@ -2115,12 +2115,15 @@ if(!showR) rightDetail.style.display = "none";
 
 
 
-/* === Letter/pillarbox berekening + slider === */
 function updateFullscreenBars(){
+  // ✅ nooit padding gebruiken voor bars (anders raakt clip/slider space out of sync)
+  comparisonWrapper.style.padding = "0px";
+  comparisonWrapper.style.boxSizing = "border-box";
+
   if(sbsActive){
-    comparisonWrapper.style.padding = "0px"; // ✅
     ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
     comparisonWrapper._lbLeft=comparisonWrapper._lbRight=comparisonWrapper._lbTop=comparisonWrapper._lbBottom=0;
+
     const r = comparisonWrapper.getBoundingClientRect();
     comparisonWrapper._usableW = r.width;
     comparisonWrapper._usableH = r.height;
@@ -2150,10 +2153,6 @@ function updateFullscreenBars(){
     lbB = leftover - lbT;
   }
 
-  // ✅ maak de bars fysiek (centered usable window)
-  comparisonWrapper.style.boxSizing = "border-box";
-  comparisonWrapper.style.padding = `${lbT}px ${lbR}px ${lbB}px ${lbL}px`;
-
   [["--lb-top",lbT],["--lb-bottom",lbB],["--lb-left",lbL],["--lb-right",lbR]]
     .forEach(([k,v]) => comparisonWrapper.style.setProperty(k, `${v}px`));
 
@@ -2166,50 +2165,51 @@ function resetSplitToMiddle(){
   if(sbsActive) return;
   if(document.body.classList.contains("dragging")) return;
 
-  const rect = comparisonWrapper.getBoundingClientRect();
-  const lbL  = comparisonWrapper._lbLeft   || 0;
-  const lbR  = comparisonWrapper._lbRight  || 0;
-  const lbT  = comparisonWrapper._lbTop    || 0;
-  const lbB  = comparisonWrapper._lbBottom || 0;
+  updateFullscreenBars(); // ✅ zeker weten dat lb/usable klopt
 
-  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
-  const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW || 1));
+  const usableH = Math.max(1, Math.round(comparisonWrapper._usableH || 1));
+
+  const lbL  = comparisonWrapper._lbLeft   || 0;
+  const lbT  = comparisonWrapper._lbTop    || 0;
 
   const mid = Math.round(usableW / 2);
 
-  // ✅ clip binnen de content box (padding is al toegepast)
+  // afterWrapper is nu al "inset naar usable window" via CSS, dus clip is puur usableW-space
   const inset = `inset(0px ${usableW - mid}px 0px 0px)`;
   afterWrapper.style.clipPath = inset;
   afterWrapper.style.webkitClipPath = inset;
 
-  // ✅ slider ook binnen content box
-  slider.style.left   = mid + "px";
-  slider.style.top    = "0px";
+  // slider in wrapper-space: usable start = lbL
+  slider.style.left   = (lbL + mid) + "px";
+  slider.style.top    = lbT + "px";
   slider.style.height = usableH + "px";
   slider.style.bottom = "auto";
 }
 
 function updateSliderPosition(clientX){
+  updateFullscreenBars(); // ✅ bars/usable up-to-date
+
   const rect = comparisonWrapper.getBoundingClientRect();
   const lbL  = comparisonWrapper._lbLeft   || 0;
-  const lbR  = comparisonWrapper._lbRight  || 0;
   const lbT  = comparisonWrapper._lbTop    || 0;
-  const lbB  = comparisonWrapper._lbBottom || 0;
 
-  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width - lbL - lbR)));
-  const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW || 1));
+  const usableH = Math.max(1, Math.round(comparisonWrapper._usableH || 1));
 
-  // ✅ clientX naar content-x (dus minus padding-left)
+  // clientX -> usable-space (0..usableW)
   const clamped = clamp(Math.round(clientX - rect.left - lbL), 0, usableW);
 
-  // ✅ clip binnen content box (padding is al toegepast)
   const rightInset = (usableW - clamped);
-  const inset = `inset(0px ${Math.max(0, rightInset - 1)}px 0px 0px)`;
+
+  // afterWrapper is usable-sized (door CSS inset), dus clip = usable-space
+  const inset = `inset(0px ${Math.max(0, rightInset)}px 0px 0px)`;
   afterWrapper.style.clipPath = inset;
   afterWrapper.style.webkitClipPath = inset;
 
-  slider.style.left   = clamped + "px";
-  slider.style.top    = "0px";
+  // slider in wrapper-space: voeg lb offsets toe
+  slider.style.left   = (lbL + clamped) + "px";
+  slider.style.top    = lbT + "px";
   slider.style.height = usableH + "px";
   slider.style.bottom = "auto";
 }
