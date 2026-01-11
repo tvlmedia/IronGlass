@@ -1134,7 +1134,7 @@ function getCal(lensSlug, focal){
     if(calibrateAutoScaled){
       calibrateAutoScaled = false;
 
-      const pct = clamp(preCalibrateScalePct || 100, 100, 130);
+      const pct = clamp(preCalibrateScalePct || 100, 100, 150);
       if(scaleSlider) scaleSlider.value = String(pct);
       setUserScaleFromPct(pct);
     }
@@ -1183,7 +1183,7 @@ const rightCal = getCal(rightSlug, rightFocal);
 
   required *= 1.005;
 
-  const pct = clamp(Math.ceil(required * 100), 100, 130);
+  const pct = clamp(Math.ceil(required * 100), 100, 150);
 
   if(scaleSlider) scaleSlider.value = String(pct);
   setUserScaleFromPct(pct);
@@ -1578,7 +1578,7 @@ recalcLayout();
 let pendingScaleRAF = null;
 
 function setUserScaleFromPct(pct){
-  userScale = clamp(pct/100, 1.0, 1.3);
+  userScale = clamp(pct/100, 1.0, 1.5);
   document.documentElement.style.setProperty("--viewer-scale", String(userScale));
   if(scaleVal) scaleVal.textContent = Math.round(userScale*100) + "%";
 
@@ -2018,7 +2018,7 @@ const LENS_SCALE_TABLE={
 function normalizeLensKey(lbl=""){ const s=lbl.toLowerCase(); if(s.includes("panchro"))return"panchro"; if(s.includes("red p"))return"red p"; if(s.includes("mk ii")||s.includes("mkii")||s.includes("mk2"))return"mkii"; if(s.includes("jena"))return"jena"; if(s.includes("vespid"))return"vespid"; if(s.includes("arles"))return"arles"; if(s.includes("lomo")&&s.includes("standard"))return"lomo standard speed"; return""; }
 function isScaleAllowedBySensor(){ const {w,h}=getCurrentWH(), EPS=0.001; return (w>30.720+EPS)&&(h>16.200+EPS); }
 function scaleForLens(lbl, focal){ const k=normalizeLensKey(lbl), fk=String(focal).includes("75")?"75mm":"35mm"; return (LENS_SCALE_TABLE[fk]||{})[k]||100; }
-function applyScalePercent(p){ const v=clamp(Math.round(p),100,130); if(scaleSlider) scaleSlider.value=String(v); setUserScaleFromPct(v); }
+function applyScalePercent(p){ const v=clamp(Math.round(p),100,150); if(scaleSlider) scaleSlider.value=String(v); setUserScaleFromPct(v); }
 function autoScaleNow(){ if(!isScaleAllowedBySensor()) return applyScalePercent(100); const l=leftSelect?.value||"", r=rightSelect?.value||"", f=focalLengthSelect?.value||"35mm"; applyScalePercent(Math.max(scaleForLens(l,f),scaleForLens(r,f))); }
 
 
