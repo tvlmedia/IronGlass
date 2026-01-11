@@ -2019,6 +2019,41 @@ function getFittedImageRect(imgEl){
   };
 }
 
+function getOuterViewerScale(){
+  const sensor = parseFloat(getComputedStyle(comparisonWrapper).getPropertyValue("--sensor-scale")) || 1;
+  const viewer = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--viewer-scale")) || 1;
+  return sensor * viewer;
+}
+
+// Zet rx/ry (0..1 in de VIEWER) om naar rx/ry (0..1 in de ONGETRANSFORMEERDE image)
+// zodat de detail-zoom exact de gecalibreerde view volgt.
+function uncalibrateRxRy(imgEl, rect, rx, ry){
+  if(!imgEl || !rect) return { rx, ry };
+
+  const cs = getComputedStyle(imgEl);
+
+  const tx = parseFloat(cs.getPropertyValue("--cal-tx")) || 0;
+  const ty = parseFloat(cs.getPropertyValue("--cal-ty")) || 0;
+  const sc = parseFloat(cs.getPropertyValue("--cal-scale")) || 1;
+
+  const outer = getOuterViewerScale();
+
+  // translate wordt in jouw transform nog vermenigvuldigd door outer-scale (maar niet door cal-scale)
+  const dxN = (tx * outer) / Math.max(1, rect.width);
+  const dyN = (ty * outer) / Math.max(1, rect.height);
+
+  // 1) undo translate
+  let u = rx - dxN;
+  let v = ry - dyN;
+
+  // 2) undo cal-scale (scale rond center)
+  const inv = 1 / Math.max(0.0001, sc);
+  u = (u - 0.5) * inv + 0.5;
+  v = (v - 0.5) * inv + 0.5;
+
+  return { rx: u, ry: v };
+}
+
 document.addEventListener("mousemove", (e) => {
   if(!detailActive) return;
 
@@ -2056,16 +2091,19 @@ groupY = clamp(groupY, pad, window.innerHeight - size  - pad);
 groupX = Math.round(groupX);
 groupY = Math.round(groupY);
 
-  showDetailBoxAt(
-  e, leftDetail, leftDetailImg, sbsLeftImg, L, rx, ry,
+const Lp = uncalibrateRxRy(sbsLeftImg,  L, rx, ry);
+const Rp = uncalibrateRxRy(sbsRightImg, R, rx, ry);
+
+showDetailBoxAt(
+  e, leftDetail, leftDetailImg, sbsLeftImg, L, Lp.rx, Lp.ry,
   "left", zoom, size, 0,
   { x: groupX, y: groupY }
 );
 
 showDetailBoxAt(
-  e, rightDetail, rightDetailImg, sbsRightImg, R, rx, ry,
+  e, rightDetail, rightDetailImg, sbsRightImg, R, Rp.rx, Rp.ry,
   "right", zoom, size, 0,
- { x: groupX + size, y: groupY }
+  { x: groupX + size, y: groupY }
 );
   return;
 }
