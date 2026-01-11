@@ -892,3 +892,48 @@ body.sbs-mode #rightDetail{
 body.dragging #slider::after{
   opacity: 0 !important;
 }
+/* === FIX: voorkom dat MF-alt / T-stop naar beneden wrappen === */
+
+/* 1) In de lens sides: nooit wrappen op desktop */
+.controlsTop .lensSide{
+  flex-wrap: nowrap;
+}
+
+/* 2) Laat de lens-select (eerste field) de flex-ruimte pakken */
+.controlsTop .lensSide .field:first-child{
+  flex: 1 1 auto;
+  min-width: 0; /* belangrijk: anders mag hij niet krimpen */
+}
+
+/* 3) De andere fields blijven “auto” */
+.controlsTop .lensSide .field{
+  flex: 0 0 auto;
+}
+
+/* 4) Haal harde min-width weg zodat het kan passen */
+#leftLens, #rightLens{
+  width: 100%;
+  min-width: 0;         /* override jouw 320px */
+}
+
+/* 5) Maak MF wrapper compacter (jij styled nu wrapper + select = te breed) */
+.mfAltWrap{
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+/* 6) Geef mfAlt select een nette (kleinere) vaste breedte */
+#mfAltLeft, #mfAltRight{
+  min-width: 96px;
+}
+
+/* 7) Eventueel ook T-stop iets compacter zodat het altijd past */
+#tStopLeftSelect, #tStopRightSelect{
+  min-width: 96px; /* was 110 */
+}
+
+/* Optioneel: op kleinere screens mag het wél wrappen */
+@media (max-width: 1000px){
+  .controlsTop .lensSide{ flex-wrap: wrap; }
+}
