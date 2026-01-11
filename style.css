@@ -857,3 +857,29 @@ body.sbs-mode #rightDetail{
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; }
 }
+
+
+/* ===== Scale chip in toolbar (match button height) ===== */
+.controlsBottom .actionLeft{
+  align-items: center;
+}
+
+#scaleCtrl.chip{
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+#scaleCtrl #scaleVal{
+  min-width: 46px;
+}
+
+#scaleCtrl input[type="range"]{
+  width: 140px;
+}
+
+/* iets kleiner op medium screens */
+@media (max-width:1000px){
+  #scaleCtrl input[type="range"]{ width: 120px; }
+}
