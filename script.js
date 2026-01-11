@@ -1997,17 +1997,49 @@ if(!showR) rightDetail.style.display = "none";
 
 /* === Letter/pillarbox berekening + slider === */
 function updateFullscreenBars(){
-  if(sbsActive){ ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); comparisonWrapper._lbLeft=comparisonWrapper._lbRight=comparisonWrapper._lbTop=comparisonWrapper._lbBottom=0; 
-                const r = comparisonWrapper.getBoundingClientRect();
-comparisonWrapper._usableW = r.width;
-comparisonWrapper._usableH = r.height;    return; }
-  
-  const rect=comparisonWrapper.getBoundingClientRect(), hostW=Math.max(1,Math.round(rect.width)), hostH=Math.max(1,Math.round(rect.height)), targetAR=getTargetAR(), hostAR=hostW/hostH;
-  let usedW,usedH, lbL=0,lbR=0,lbT=0,lbB=0;
-  if(hostAR>targetAR){ usedH=hostH; usedW=Math.round(usedH*targetAR); const side=Math.floor((hostW-usedW)/2); lbL=lbR=side; }
-  else { usedW=hostW; usedH=Math.round(usedW/targetAR); const bar=Math.floor((hostH-usedH)/2); lbT=lbB=bar; }
-  [["--lb-top",lbT],["--lb-bottom",lbB],["--lb-left",lbL],["--lb-right",lbR]].forEach(([k,v])=>comparisonWrapper.style.setProperty(k,`${v}px`));
-  Object.assign(comparisonWrapper,{ _lbLeft:lbL,_lbRight:lbR,_lbTop:lbT,_lbBottom:lbB,_usableW:usedW, _usableH:usedH });
+  if(sbsActive){
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
+    comparisonWrapper._lbLeft=comparisonWrapper._lbRight=comparisonWrapper._lbTop=comparisonWrapper._lbBottom=0;
+    const r = comparisonWrapper.getBoundingClientRect();
+    comparisonWrapper._usableW = r.width;
+    comparisonWrapper._usableH = r.height;
+    return;
+  }
+
+  const rect = comparisonWrapper.getBoundingClientRect();
+  const hostW = Math.max(1, Math.round(rect.width));
+  const hostH = Math.max(1, Math.round(rect.height));
+  const targetAR = getTargetAR();
+  const hostAR = hostW / hostH;
+
+  let usedW, usedH;
+  let lbL = 0, lbR = 0, lbT = 0, lbB = 0;
+
+  if(hostAR > targetAR){
+    // pillarbox (zwarte balken links/rechts)
+    usedH = hostH;
+    usedW = Math.round(usedH * targetAR);
+
+    const leftover = hostW - usedW;           // 👈 totaal rest-pixels
+    lbL = Math.floor(leftover / 2);           // 👈 links floor
+    lbR = leftover - lbL;                     // 👈 rechts krijgt de rest (dus altijd exact passend)
+  } else {
+    // letterbox (zwarte balken boven/onder)
+    usedW = hostW;
+    usedH = Math.round(usedW / targetAR);
+
+    const leftover = hostH - usedH;
+    lbT = Math.floor(leftover / 2);
+    lbB = leftover - lbT;
+  }
+
+  [["--lb-top",lbT],["--lb-bottom",lbB],["--lb-left",lbL],["--lb-right",lbR]]
+    .forEach(([k,v]) => comparisonWrapper.style.setProperty(k, `${v}px`));
+
+  Object.assign(comparisonWrapper, {
+    _lbLeft: lbL, _lbRight: lbR, _lbTop: lbT, _lbBottom: lbB,
+    _usableW: usedW, _usableH: usedH
+  });
 }
 function resetSplitToMiddle(){
   if(sbsActive) return;
@@ -2018,8 +2050,8 @@ function resetSplitToMiddle(){
   const lbT  = comparisonWrapper._lbTop    || 0;
   const lbB  = comparisonWrapper._lbBottom || 0;
 
-  const usableW = Math.max(1, Math.round(rect.width  - lbL - lbR));
-  const usableH = Math.max(1, Math.round(rect.height - lbT - lbB));
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width  - lbL - lbR)));
+const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
 
   const mid = Math.round(usableW / 2);
 
@@ -2041,8 +2073,8 @@ function updateSliderPosition(clientX){
   const lbT  = comparisonWrapper._lbTop    || 0;
   const lbB  = comparisonWrapper._lbBottom || 0;
 
-  const usableW = Math.max(1, Math.round(rect.width - lbL - lbR));
-  const usableH = Math.max(1, Math.round(rect.height - lbT - lbB));
+ const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? (rect.width - lbL - lbR)));
+const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.height - lbT - lbB)));
 
   const clamped = clamp(Math.round(clientX - rect.left - lbL), 0, usableW);
 
