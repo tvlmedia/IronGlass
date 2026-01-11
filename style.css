@@ -924,6 +924,23 @@ body.sbs-mode #rightDetail{
   color: rgba(245,245,245,.55);
 }
 
+/* ✅ FULLSCREEN = laat IMG’s alleen in de usable window zien (height-based / correct in crop modes) */
+#comparisonWrapper:fullscreen #beforeImgTag,
+#comparisonWrapper:fullscreen #afterImgTag,
+#comparisonWrapper:-webkit-full-screen #beforeImgTag,
+#comparisonWrapper:-webkit-full-screen #afterImgTag{
+  inset: var(--lb-top,0px) var(--lb-right,0px) var(--lb-bottom,0px) var(--lb-left,0px) !important;
+}
+
+/* (optioneel) als je ooit SBS fullscreen ook “boxed” wil maken, zet deze aan.
+   Nu niet nodig omdat jouw JS bij sbsActive lb=0 maakt. */
+/*
+#comparisonWrapper:fullscreen #sbsWrapper .pane img,
+#comparisonWrapper:-webkit-full-screen #sbsWrapper .pane img{
+  inset: var(--lb-top,0px) var(--lb-right,0px) var(--lb-bottom,0px) var(--lb-left,0px) !important;
+}
+*/
+
 /* =========================================================
    PRINT + REDUCED MOTION
 ========================================================= */
