@@ -392,6 +392,7 @@ const exposureBtn = q("exposureToggle");
 let exposureCorrectionActive = true; // ✅ default ON
 
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
+const downloadPdfButton = q("downloadPdfButton"); // ✅ HIER
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 
 const advancedToggle = q("advancedToggle");
@@ -648,7 +649,6 @@ mfAltRightSel?.addEventListener("change", () => {
 });
 
 const IMG_BASE="https://tvlmedia.github.io/IronGlass/images/", RAW_BASE=IMG_BASE+"raw/";
-const { jsPDF } = window.jspdf || {};
 const CAPTURE_CAMERA = "Fujifilm GFX Eterna";
 const CAPTURE_FORMAT = "Open Gate 4:3 4K (3840x2880)";
 
@@ -2282,7 +2282,19 @@ function autoScaleNow(){ if(!isScaleAllowedBySensor()) return applyScalePercent(
   document.querySelectorAll("a[href]").forEach(setBlank);
   new MutationObserver(muts=>muts.forEach(m=>m.addedNodes.forEach(n=>{ if(n.nodeType!==1) return; if(n.matches?.("a[href]")) setBlank(n); n.querySelectorAll?.("a[href]").forEach(setBlank); }))).observe(document.documentElement,{childList:true,subtree:true});
 })();
+function getJsPDFCtor(){
+  // cdnjs UMD: window.jspdf.jsPDF
+  if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
 
+  // sommige builds exposen window.jsPDF
+  if (window.jsPDF) return window.jsPDF;
+
+  return null;
+}
+
+function getHtml2CanvasFn(){
+  return window.html2canvas || null;
+}
 /* === PDF export (4 pagina’s) === */
 function loadHTMLImage(src){ return new Promise((res,rej)=>{ const im=new Image(); im.crossOrigin="anonymous"; im.onload=()=>res(im); im.onerror=rej; im.src=src; }); }
 async function renderToSensorAR(imgOrURL, targetAR, outH, scale=1, yFrac=0){
@@ -2350,71 +2362,6 @@ function drawBars(pdf,TOP_BAR,BOTTOM_BAR,PAGE_MARGIN){
     }
   };
 }
-q("downloadPdfButton")?.addEventListener("click",async()=>{
-  const wasSBS=sbsActive; isExportingPdf=true; if(sbsBtn) sbsBtn.disabled=true;
-  try{
-    if(wasSBS){ setSideBySide(false,{force:true}); await new Promise(r=>requestAnimationFrame(r)); await new Promise(r=>requestAnimationFrame(r)); updateFullscreenBars(); resetSplitToMiddle(); }
-    updateFullscreenBars();
-    const pdf=new jsPDF({orientation:"landscape",unit:"px",format:"a4"}), TOP_BAR=40, BOTTOM_BAR=80, PAGE_MARGIN=24;
-    const bars=drawBars(pdf,TOP_BAR,BOTTOM_BAR,PAGE_MARGIN), pageW=pdf.internal.pageSize.getWidth(), pageH=pdf.internal.pageSize.getHeight();
-    const contentBox={x:0,y:TOP_BAR,w:pageW,h:pageH-TOP_BAR-BOTTOM_BAR};
-    const targetAR=getTargetAR(), exportH=Math.round((pageH-TOP_BAR-BOTTOM_BAR)*8);
-    const {w:sW}=getCurrentWH(), zoom=Math.max(1,BASE_SENSOR.w/sW);
-    const leftText=leftLabel.textContent, rightText=rightLabel.textContent, leftName=leftSelect.value, rightName=rightSelect.value, focal=focalLengthSelect.value;
-    const tLeft=String(tStopLeftSelect.value).replace(/\./g,"_"), tRight=String(tStopRightSelect.value).replace(/\./g,"_");
-    const logo=await loadHTMLImage("https://tvlmedia.github.io/IronGlass/LOGOVOORPDF.png"), sensorText=getSensorText();
-      const uiFocal = focalLengthSelect?.value || "35mm";
-const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
-const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
-
-const leftFocal  = getEffectiveFocal(leftSlug,  uiFocal, "left");
-const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
-
-const yFracL = getAutoReframeYFracForPdf(leftFocal);
-const yFracR = getAutoReframeYFracForPdf(rightFocal);
-
-const li = afterImgTag.currentSrc || afterImgTag.src;   // after = links
-const ri = beforeImgTag.currentSrc || beforeImgTag.src; // before = rechts
-
-const leftSensor  = await renderToSensorAR(li, targetAR, exportH, zoom, yFracL);
-const rightSensor = await renderToSensorAR(ri, targetAR, exportH, zoom, yFracR);
-
-const splitData = await buildSplitFromSensor(
-  leftSensor.dataURL,
-  rightSensor.dataURL,
-  leftSensor.W,
-  leftSensor.H
-);
-
-    // p1 split
-    pdf.setFillColor(0,0,0); pdf.rect(0,0,pageW,pageH,"F"); bars.top(`${leftText} vs ${rightText}`); await placeContain(pdf,splitData,contentBox); bars.bottomP1(logo,sensorText);
-    // p2 left
-    pdf.addPage(); pdf.setFillColor(0,0,0); pdf.rect(0,0,pageW,pageH,"F"); bars.top(`${leftText} – ${sensorText}`); await placeContain(pdf,leftSensor.dataURL,contentBox);
-    bars.bottom({ text:lensDescriptions[leftName]?.text||"", link:lensDescriptions[leftName]?.url||"", logo });
-    // p3 right
-    pdf.addPage(); pdf.setFillColor(0,0,0); pdf.rect(0,0,pageW,pageH,"F"); bars.top(`${rightText} – ${sensorText}`); await placeContain(pdf,rightSensor.dataURL,contentBox);
-    bars.bottom({ text:lensDescriptions[rightName]?.text||"", link:lensDescriptions[rightName]?.url||"", logo });
-    // p4 UI + split
-    pdf.addPage(); pdf.setFillColor(0,0,0); pdf.rect(0,0,pageW,pageH,"F"); bars.top(`${leftText} vs ${rightText}`);
-    const x=PAGE_MARGIN, maxW=pageW-PAGE_MARGIN*2, controlsEl=document.querySelector('#toolRoot .controls')||document.querySelector('.controls');
-    const screenshotEl=async el=>{ if(!el) return null; const cvs=await html2canvas(el,{useCORS:true,backgroundColor:null,scale:window.devicePixelRatio||1}); return cvs.toDataURL("image/png"); };
-    document.body.classList.add("pdf-compact"); const controlsShot=await screenshotEl(controlsEl), infoShot=await screenshotEl(infoContainer); document.body.classList.remove("pdf-compact");
-    let curY=TOP_BAR+PAGE_MARGIN;
-    const placeToWidth=async(dataURL, X, Y, maxW)=>{ const im=await loadHTMLImage(dataURL); const nW=im.naturalWidth||im.width, nH=im.naturalHeight||im.height, ratio=nH/nW, w=Math.min(maxW,nW), h=Math.round(w*ratio); pdf.addImage(dataURL,"PNG",X,Y,w,h); return {w,h}; };
-    if(controlsShot){ const w=Math.round(maxW*0.7), cx=x+Math.round((maxW-w)/2); const placed=await placeToWidth(controlsShot,cx,curY,w); curY+=placed.h+8; }
-    const fullBoxP4={x, y:curY, w:maxW, h:(pageH-BOTTOM_BAR-PAGE_MARGIN)-curY-(infoShot?12:0) }; await placeContain(pdf,splitData,fullBoxP4);
-    if(infoShot){ const infoY=fullBoxP4.y+fullBoxP4.h+12; await placeToWidth(infoShot,x,infoY,maxW); }
-    bars.bottom({ text:"", link:"", logo, ctaLabel:"Open de interactieve Lens Comparison Tool", ctaUrl:"https://tvlrental.nl/lens-comparison/" });
-
-    const makeSafe=s=>String(s||"").replace(/[^\w]+/g,"");
-    const cam=cameraSelect.value||"UnknownCamera", sensorLabel=(cameras[cam]?.[sensorFormatSelect.value]?.label)||sensorFormatSelect.value||"UnknownSensorMode";
-    const filename=`TVLRENTAL_${makeSafe(leftName)}_${makeSafe(rightName)}_${makeSafe(focal)}_T${tLeft}vsT${tRight}_${makeSafe(cam)}_${makeSafe(sensorLabel)}.pdf`;
-    pdf.save(filename);
-  } finally {
-    if(wasSBS) setSideBySide(true,{force:true});
-    updateFullscreenBars(); resetSplitToMiddle(); if(sbsBtn) sbsBtn.disabled=false; isExportingPdf=false;
-  }
-});
 
 /* === Self-check (stil, alleen console) === */
 (function(){
