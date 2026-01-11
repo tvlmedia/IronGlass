@@ -2035,6 +2035,7 @@ function updateFullscreenBars(){
 }
 function resetSplitToMiddle(){
   if(sbsActive) return;
+   if(document.body.classList.contains("dragging")) return; // ✅ niet resetten tijdens slepen
 
   const rect = comparisonWrapper.getBoundingClientRect();
   const lbL  = comparisonWrapper._lbLeft   || 0;
@@ -2083,6 +2084,56 @@ const usableH = Math.max(1, Math.round(comparisonWrapper._usableH ?? (rect.heigh
   slider.style.height = usableH + "px";
   slider.style.bottom = "auto";
 }
+
+/* === SLIDER DRAG (Pointer Events, rock solid) === */
+let isDraggingSlider = false;
+
+function startSliderDrag(e){
+  if(sbsActive || isExportingPdf) return;
+
+  isDraggingSlider = true;
+  document.body.classList.add("dragging");
+
+  // Pointer capture = blijft volgen, ook als je buiten de slider komt
+  try { slider.setPointerCapture(e.pointerId); } catch(_) {}
+
+  updateFullscreenBars();          // ensures usableW/H correct
+  updateSliderPosition(e.clientX); // jump meteen naar startpunt
+
+  e.preventDefault();
+}
+
+function moveSliderDrag(e){
+  if(!isDraggingSlider) return;
+  updateSliderPosition(e.clientX);
+  e.preventDefault();
+}
+
+function endSliderDrag(e){
+  if(!isDraggingSlider) return;
+
+  isDraggingSlider = false;
+  document.body.classList.remove("dragging");
+
+  try { slider.releasePointerCapture(e.pointerId); } catch(_) {}
+
+  e.preventDefault();
+}
+
+// Belangrijk: passive:false zodat preventDefault werkt op touch
+slider.addEventListener("pointerdown", startSliderDrag, { passive:false });
+window.addEventListener("pointermove", moveSliderDrag, { passive:false });
+window.addEventListener("pointerup", endSliderDrag, { passive:false });
+window.addEventListener("pointercancel", endSliderDrag, { passive:false });
+
+// Optioneel: klik in het beeld = slider jump (nice UX)
+comparisonWrapper.addEventListener("pointerdown", (e) => {
+  if(sbsActive || isExportingPdf) return;
+  if(e.target === slider) return; // slider zelf handelt drag af
+  updateFullscreenBars();
+  updateSliderPosition(e.clientX);
+}, { passive:false });
+
 /* === Autoscale per lens/focal (100–130%) === */
 const LENS_SCALE_TABLE={
   "35mm":{ panchro:100,"red p":116,mkii:117,jena:112,vespid:109,arles:110,"lomo standard speed":110 },
