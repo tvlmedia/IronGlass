@@ -2148,7 +2148,7 @@ const size = cfg.size;
 const zoom = cfg.zoom;
 
 const pad = 8;
-const gap = 24; // zelfde “afstand” gevoel als je oude logic
+const gap = 0; // zelfde “afstand” gevoel als je oude logic
 
 // ✅ 1x clamp voor het hele duo
 const groupW = (size * 2) + gap;
