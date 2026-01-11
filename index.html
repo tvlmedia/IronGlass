@@ -7,129 +7,172 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
   <!-- IronGlass Header Logo -->
   <div id="igHeader">
     <img src="IRONGLASS LOGO.png" alt="IronGlass Logo">
   </div>
 
   <div id="toolRoot">
-  <div class="frame-1200">
-    <div class="controls desktop-only">
-      <div class="row row-1">
-        <button id="toggleButton" class="control-button">↔ Flip</button>
-        <button id="fullscreenButton" class="control-button">⛶ Fullscreen</button>
-        <button id="detailViewToggle" class="control-button">🔍 Detail View</button>
-        <button id="sbsToggle" type="button" class="control-button">Side-by-Side</button>
-    
+    <div class="frame-1200">
 
-        <label id="scaleCtrl" class="chip">
-          <span id="scaleVal">100%</span>
-          <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1">
-        </label>
+      <!-- =========================
+           NEW: CONTROLS STACK (2 panels)
+           ========================= -->
+      <div class="controlsStack desktop-only">
 
-        <select id="cameraSelect"></select>
-        <select id="sensorFormatSelect" disabled></select>
-        <button id="flareToggle" class="control-button" data-mode="noflare">Flare: OFF</button>
-        <button id="bokehToggle" class="control-button" type="button">Bokeh: OFF</button>
+        <!-- ===== TOP PANEL (Lens setup) ===== -->
+        <div class="panel controlsTop">
 
-      </div>
+          <!-- Row A: Camera + Sensor -->
+          <div class="row camRow">
+            <select id="cameraSelect"></select>
+            <select id="sensorFormatSelect" disabled></select>
+          </div>
 
-      <div class="row row-2">
-  <button id="calibrateToggle" class="control-button">CALIBRATE</button>
-   <button id="exposureToggle" class="control-button active" aria-pressed="true">
-    Exposure Correction
-  </button>
-        
+          <!-- Row B: Left / Focal / Right (+ T-stops) -->
+          <div class="row lensRow">
 
-  <select id="leftLens"></select>
-  <select id="tStopLeftSelect"></select>
+            <!-- LEFT -->
+            <div class="lensSide">
+              <select id="leftLens"></select>
+              <select id="tStopLeftSelect"></select>
 
-  <!-- Sovjet MF extra match selector (LEFT) -->
-  <div id="mfAltLeftWrap" class="mfAltWrap" style="display:none;">
-    <label class="mfAltLabel">Sovjet Medium Format Match</label>
-    <select id="mfAltLeft"></select>
-  </div>
+              <!-- Sovjet MF extra match selector (LEFT) -->
+              <div id="mfAltLeftWrap" class="mfAltWrap" style="display:none;">
+                <label class="mfAltLabel">Sovjet Medium Format Match</label>
+                <select id="mfAltLeft"></select>
+              </div>
+            </div>
 
-  <select id="rightLens"></select>
-  <select id="tStopRightSelect"></select>
+            <!-- CENTER -->
+            <div class="lensCenter">
+              <select id="focalLength" title="Focal length">
+                <option value="20mm">20mm</option>
+                <option value="28mm">28mm</option>
+                <option value="35mm">35mm</option>
+                <option value="50mm">50mm</option>
+                <option value="85mm">85mm</option>
+                <option value="120mm">120mm</option>
+              </select>
+            </div>
 
-  <!-- Sovjet MF extra match selector (RIGHT) -->
-  <div id="mfAltRightWrap" class="mfAltWrap" style="display:none;">
-    <label class="mfAltLabel">MF match</label>
-    <select id="mfAltRight"></select>
-  </div>
+            <!-- RIGHT -->
+            <div class="lensSide">
+              <select id="rightLens"></select>
+              <select id="tStopRightSelect"></select>
 
-  <select id="focalLength" title="Focal length">
-    <option value="20mm">20mm</option>
-    <option value="28mm">28mm</option>
-    <option value="35mm">35mm</option>
-    <option value="50mm">50mm</option>
-    <option value="85mm">85mm</option>
-    <option value="120mm">120mm</option>
-  </select>
-</div>
-    </div>
+              <!-- Sovjet MF extra match selector (RIGHT) -->
+              <div id="mfAltRightWrap" class="mfAltWrap" style="display:none;">
+                <label class="mfAltLabel">MF match</label>
+                <select id="mfAltRight"></select>
+              </div>
+            </div>
 
-    <div id="comparisonWrapper" class="desktop-only" tabindex="0">
-      <div id="beforeImage">
-        <img id="beforeImgTag" alt="Right lens preview">
-      </div>
+          </div>
+        </div>
 
-      <!-- === DETAIL VIEW OVERLAY (ZOOM) === -->
-      <div id="detailOverlay">
-        <div id="leftDetail" class="detail-view-square"><img alt="Left zoom"></div>
-        <div id="rightDetail" class="detail-view-square"><img alt="Right zoom"></div>
-      </div>
+        <!-- ===== BOTTOM PANEL (Viewer actions) ===== -->
+        <div class="panel controlsBottom">
 
-      <div id="afterWrapper">
-        <div id="afterImage">
-          <img id="afterImgTag" alt="Left lens preview">
+          <div class="row actionRow">
+            <div class="actionLeft">
+              <button id="toggleButton" class="control-button">↔ Flip</button>
+              <button id="sbsToggle" type="button" class="control-button">Side-by-Side</button>
+              <button id="fullscreenButton" class="control-button">⛶ Fullscreen</button>
+              <button id="detailViewToggle" class="control-button">🔍 Detail View</button>
+              <button id="bokehToggle" class="control-button" type="button">Bokeh</button>
+              <button id="flareToggle" class="control-button" data-mode="noflare">Flare: OFF</button>
+            </div>
+
+            <div class="actionRight">
+              <!-- NEW: Advanced dropdown toggle -->
+              <button id="advancedToggle" class="control-button" type="button">Advanced ▾</button>
+            </div>
+          </div>
+
+          <!-- NEW: Advanced panel (hidden by default; JS toggles .open) -->
+          <div id="advancedPanel" class="advancedPanel" aria-hidden="true">
+            <button id="calibrateToggle" class="control-button">Calibrate</button>
+            <button id="exposureToggle" class="control-button active" aria-pressed="true">
+              Exposure Correction
+            </button>
+          </div>
+
+          <!-- Slider row -->
+          <div class="row scaleRow">
+            <label id="scaleCtrl" class="chip">
+              <span id="scaleVal">100%</span>
+              <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1">
+            </label>
+          </div>
+
         </div>
       </div>
 
-      <div id="fsBars" aria-hidden="true">
-        <div class="bar top"></div>
-        <div class="bar bottom"></div>
-        <div class="bar left"></div>
-        <div class="bar right"></div>
+      <!-- =========================
+           VIEWER
+           ========================= -->
+      <div id="comparisonWrapper" class="desktop-only" tabindex="0">
+        <div id="beforeImage">
+          <img id="beforeImgTag" alt="Right lens preview">
+        </div>
+
+        <!-- === DETAIL VIEW OVERLAY (ZOOM) === -->
+        <div id="detailOverlay">
+          <div id="leftDetail" class="detail-view-square"><img alt="Left zoom"></div>
+          <div id="rightDetail" class="detail-view-square"><img alt="Right zoom"></div>
+        </div>
+
+        <div id="afterWrapper">
+          <div id="afterImage">
+            <img id="afterImgTag" alt="Left lens preview">
+          </div>
+        </div>
+
+        <div id="fsBars" aria-hidden="true">
+          <div class="bar top"></div>
+          <div class="bar bottom"></div>
+          <div class="bar left"></div>
+          <div class="bar right"></div>
+        </div>
+
+        <div id="slider"></div>
       </div>
 
-      <div id="slider"></div>
-    </div>
+      <div id="infoContainer" class="desktop-only">
+        <div class="infoCol">
+          <div id="leftLabel"></div>
+          <button id="downloadLeftRawButton" class="control-button" disabled>⬇ Download Left RAW</button>
+        </div>
 
-    <div id="infoContainer" class="desktop-only">
-      <div class="infoCol">
-        <div id="leftLabel"></div>
-        <button id="downloadLeftRawButton" class="control-button" disabled>⬇ Download Left RAW</button>
+        <div class="infoCol">
+          <div id="rightLabel"></div>
+          <button id="downloadRightRawButton" class="control-button" disabled>⬇ Download Right RAW</button>
+        </div>
       </div>
 
-      <div class="infoCol">
-        <div id="rightLabel"></div>
-        <button id="downloadRightRawButton" class="control-button" disabled>⬇ Download Right RAW</button>
+      <div id="lensInfo" class="desktop-only"></div>
+
+      <div id="explanationBox" class="desktop-only">
+        <p>⚠️ Note: Some lenses are visually matched. For example, if you select 35mm, you may see a 32mm or 37mm lens that matches the 35mm field of view. This ensures a fair and accurate comparison.</p>
       </div>
-    </div>
 
-    <div id="lensInfo" class="desktop-only"></div>
-
-    <div id="explanationBox" class="desktop-only">
-      <p>⚠️ Note: Some lenses are visually matched. For example, if you select 35mm, you may see a 32mm or 37mm lens that matches the 35mm field of view. This ensures a fair and accurate comparison.</p>
     </div>
   </div>
-</div>
 
-<!-- mobile iframe blijft gewoon zoals je ‘m had, onder toolRoot -->
-<div class="lens-frame-outer mobile-only">
-  <div class="lens-frame-wrapper">
-    <iframe 
-      src="https://tvlmedia.github.io/lens-compare/" 
-      allowfullscreen 
-      loading="lazy">
-    </iframe>
+  <!-- mobile iframe blijft zoals je 'm had -->
+  <div class="lens-frame-outer mobile-only">
+    <div class="lens-frame-wrapper">
+      <iframe
+        src="https://tvlmedia.github.io/lens-compare/"
+        allowfullscreen
+        loading="lazy">
+      </iframe>
+    </div>
   </div>
-</div>
 
   <!-- === Scripts === -->
-   <!-- === Scripts === -->
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script defer src="script.js"></script>
