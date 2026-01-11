@@ -1,28 +1,27 @@
 /* ===========================
-   PREMIUM / HIGH-END UI CSS
-   (TVL / IronGlass vibe)
+   TVL LENS TOOL – PREMIUM CALM UI
+   (IronGlass vibe, 2026 calm merge)
    =========================== */
 
 /* --- Reset-ish --- */
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+
 body{
   margin:0;
-  color:rgba(245,245,245,.92);
+  color: rgba(245,245,245,.92);
   font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  font-size:13.5px;
-  line-height:1.45;
-  letter-spacing:.01em;
+  font-size: 13.5px;
+  line-height: 1.45;
+  letter-spacing: .01em;
 
-  /* Premium dark: depth + subtle noise-ish feel (no image needed) */
+  /* Calm premium dark: depth without “effects” overload */
   background:
-    radial-gradient(1200px 600px at 50% -200px, rgba(255,124,0,.08), transparent 55%),
-    radial-gradient(900px 500px at 20% 10%, rgba(255,255,255,.04), transparent 50%),
-    radial-gradient(900px 500px at 80% 20%, rgba(255,255,255,.03), transparent 50%),
+    radial-gradient(900px 520px at 50% -260px, rgba(255,124,0,.06), transparent 62%),
     #050505;
 }
 
-/* prevent drag select in UI */
+/* prevent drag/select in UI */
 *{
   -webkit-user-drag:none;
   user-select:none;
@@ -35,29 +34,29 @@ body{
 
   --bg: #050505;
 
-  --panel: rgba(18,18,18,.72);
-  --panel2: rgba(14,14,14,.78);
+  /* Calm surfaces */
+  --surface: rgba(14,14,14,.78);
+  --surface2: rgba(10,10,10,.78);
 
-  --stroke: rgba(255,255,255,.10);
-  --stroke2: rgba(255,255,255,.06);
+  --hairline: rgba(255,255,255,.07);
+  --hairline2: rgba(255,255,255,.05);
 
-  --shadow: 0 16px 48px rgba(0,0,0,.55);
+  --shadow: 0 18px 54px rgba(0,0,0,.62);
   --shadow2: 0 10px 28px rgba(0,0,0,.45);
 
   --accent: #ff7c00;
-  --accent2:#ff8a00;
 
   --text: rgba(245,245,245,.92);
-  --muted: rgba(245,245,245,.56);
+  --muted: rgba(245,245,245,.60);
 
-  --radius: 16px;
+  --radius: 14px;
   --radius-sm: 12px;
 
-  --chip-bg: rgba(15,15,15,.65);
+  --chip-bg: rgba(15,15,15,.62);
   --chip-stroke: rgba(255,255,255,.10);
-  --chip-stroke-hover: rgba(255,124,0,.40);
+  --chip-stroke-hover: rgba(255,255,255,.16);
 
-  --focus: 0 0 0 2px rgba(255,124,0,.22), 0 0 0 6px rgba(0,0,0,.75);
+  --focus: 0 0 0 2px rgba(255,124,0,.22), 0 0 0 6px rgba(0,0,0,.72);
 
   --hpad: 16px;
 }
@@ -76,7 +75,7 @@ body{
   width:auto;
   opacity:.95;
   filter: drop-shadow(0 18px 22px rgba(0,0,0,.55));
-  transition:opacity .2s ease, transform .2s ease;
+  transition: opacity .2s ease, transform .2s ease;
 }
 #igHeader img:hover{
   opacity:1;
@@ -120,16 +119,16 @@ body.sbs-mode .frame-1200{
    CONTROLS STACK
    =========================== */
 .controlsStack.desktop-only{
-  position:sticky;
-  top:0;
-  z-index:50;
-  margin:16px 0 18px;
+  position: sticky;
+  top: 10px;
+  z-index: 50;
+
+  margin: 14px 0 18px;
+  padding: 0;
+
   display:flex;
   flex-direction:column;
   gap:10px;
-
-  /* give it breathing room */
-  padding:10px 0 0;
 }
 
 /* When in sbs, keep controls centered */
@@ -139,17 +138,16 @@ body.sbs-mode .controlsStack.desktop-only{
   margin-right:auto;
 }
 
-/* Panels: glass */
+/* Panels: calm glass */
 .controlsStack .panel{
   width:100%;
   padding:14px var(--hpad);
   border-radius: var(--radius);
-  border: 1px solid rgba(255,124,0,.18);
+  border: 1px solid var(--hairline);
 
-  background:
-    radial-gradient(1200px 500px at 50% -200px, rgba(255,124,0,.10), transparent 60%),
-    linear-gradient(180deg, rgba(20,20,20,.78), rgba(10,10,10,.72));
+  background: linear-gradient(180deg, var(--surface), var(--surface2));
   box-shadow: var(--shadow2);
+
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 
@@ -157,18 +155,8 @@ body.sbs-mode .controlsStack.desktop-only{
   overflow:hidden;
 }
 
-/* subtle highlight line */
-.controlsStack .panel::before{
-  content:"";
-  position:absolute;
-  left:14px;
-  right:14px;
-  top:0;
-  height:1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent);
-  opacity:.55;
-  pointer-events:none;
-}
+/* Kill the older highlight line */
+.controlsStack .panel::before{ display:none; }
 
 /* Rows */
 .controlsStack .row{
@@ -247,9 +235,9 @@ body.sbs-mode .controlsStack.desktop-only{
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.08);
 
-  background:
-    linear-gradient(180deg, rgba(14,14,14,.85), rgba(8,8,8,.85));
+  background: linear-gradient(180deg, rgba(14,14,14,.85), rgba(8,8,8,.85));
   box-shadow: 0 20px 50px rgba(0,0,0,.55);
+
   gap:10px;
   justify-content:center;
   flex-wrap:wrap;
@@ -265,28 +253,28 @@ body.sbs-mode .controlsStack.desktop-only{
 }
 
 /* ===========================
-   INPUTS: premium chips
+   INPUTS: premium calm chips
    =========================== */
 select,
 .control-button{
-  height:34px;
-  border-radius:999px;
-  padding:0 12px;
+  height: 36px;
+  border-radius: 999px;
+  padding: 0 12px;
 
   background: var(--chip-bg);
-  border:1px solid var(--chip-stroke);
+  border: 1px solid var(--chip-stroke);
   color: var(--text);
 
-  font-size:12px;
-  letter-spacing:.08em;
-  text-transform:uppercase;
+  font-size: 13px;
+  letter-spacing: .02em;
+  text-transform: none;
 
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:8px;
 
-  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  box-shadow: 0 10px 26px rgba(0,0,0,.40);
   transition:
     transform .12s ease,
     background .18s ease,
@@ -303,7 +291,6 @@ select{
   -webkit-appearance:none;
   appearance:none;
 
-  /* subtle chevron */
   background-image:
     linear-gradient(45deg, transparent 50%, rgba(255,255,255,.65) 50%),
     linear-gradient(135deg, rgba(255,255,255,.65) 50%, transparent 50%),
@@ -323,8 +310,8 @@ select{
 select:hover,
 .control-button:hover{
   border-color: var(--chip-stroke-hover);
-  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 0 1px rgba(255,124,0,.10);
-  filter: brightness(1.06);
+  box-shadow: 0 12px 30px rgba(0,0,0,.48);
+  filter: brightness(1.04);
 }
 
 select:active,
@@ -333,8 +320,9 @@ select:active,
   box-shadow: 0 8px 18px rgba(0,0,0,.35);
 }
 
-select:focus,
-.control-button:focus{
+/* Focus only when it matters */
+select:focus-visible,
+.control-button:focus-visible{
   outline:none;
   box-shadow: var(--focus);
   border-color: rgba(255,124,0,.55);
@@ -367,11 +355,11 @@ select:disabled{
    =========================== */
 button.active,
 .controls button.active{
-  border-color: rgba(255,124,0,.75) !important;
+  background: rgba(255,124,0,.14) !important;
+  border-color: rgba(255,124,0,.70) !important;
   box-shadow:
-    0 10px 26px rgba(0,0,0,.45),
-    0 0 0 1px rgba(255,124,0,.25),
-    0 0 18px rgba(255,124,0,.18);
+    0 12px 30px rgba(0,0,0,.50),
+    0 0 0 1px rgba(255,124,0,.18) !important;
 }
 
 /* Flare off label, keep your text */
@@ -478,7 +466,7 @@ button.active,
   --lb-right:0px;
 
   border-radius: var(--radius);
-  border: 1px solid rgba(255,124,0,.22);
+  border: 1px solid rgba(255,255,255,.08);
   box-shadow: var(--shadow);
 }
 
@@ -520,7 +508,7 @@ button.active,
   will-change:transform;
 }
 
-/* Slider: more premium (thin + knob on hover) */
+/* Slider: brand functional */
 #slider{
   position:absolute;
   top:0;
@@ -528,8 +516,8 @@ button.active,
   left:50%;
   transform:translateX(-50%);
   width:2px;
-  background: rgba(255,124,0,.90);
-  box-shadow: 0 0 22px rgba(255,124,0,.35);
+  background: rgba(255,124,0,.92);
+  box-shadow: 0 0 18px rgba(255,124,0,.28);
   cursor: ew-resize;
   z-index:10;
   touch-action:none;
@@ -542,17 +530,15 @@ button.active,
   left:50%;
   width:28px;
   height:28px;
-  border-radius:50%;
+  border-radius:999px;
   transform: translate(-50%,-50%);
-  background: rgba(10,10,10,.60);
+  background: rgba(10,10,10,.55);
   border:1px solid rgba(255,124,0,.55);
   box-shadow: 0 12px 26px rgba(0,0,0,.55), 0 0 18px rgba(255,124,0,.20);
   opacity:0;
   transition: opacity .15s ease, transform .15s ease;
 }
-#comparisonWrapper:hover #slider::after{
-  opacity:1;
-}
+#comparisonWrapper:hover #slider::after{ opacity:1; }
 body.dragging #slider::after{
   opacity:1;
   transform: translate(-50%,-50%) scale(1.04);
@@ -596,8 +582,8 @@ body.dragging #slider::after{
   bottom:var(--lb-bottom,0);
   left:var(--lb-left,0);
   right:var(--lb-right,0);
-  border: 1px solid rgba(255,124,0,.22);
-  box-shadow: 0 0 20px rgba(255,124,0,.18);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 0 20px rgba(255,124,0,.14);
 }
 
 /* ===========================
@@ -627,10 +613,10 @@ body.sbs-mode #sbsWrapper .pane{
   overflow:hidden;
 }
 body.sbs-mode #sbsWrapper .pane:first-child{
-  border-right:1px solid rgba(255,124,0,.22);
+  border-right:1px solid rgba(255,255,255,.08);
 }
 body.sbs-mode #sbsWrapper .pane:last-child{
-  border-left:1px solid rgba(255,124,0,.22);
+  border-left:1px solid rgba(255,255,255,.08);
 }
 
 body.sbs-mode #sbsWrapper .pane img{
@@ -699,12 +685,32 @@ body.sbs-mode #sbsWrapper .pane img{
   margin:14px 0 0;
   padding:0 10px;
   color: rgba(245,245,245,.78);
+
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
 }
 
+/* Cards: works for any direct child (p/div/etc) */
+#lensInfo > *{
+  margin:0;
+  padding:12px 14px;
+  border-radius: var(--radius-sm);
+  border:1px solid rgba(255,255,255,.08);
+  background: rgba(12,12,12,.55);
+  color: rgba(245,245,245,.74);
+}
+
+/* Accent for strong/b */
 #lensInfo b,
 #lensInfo strong{
   color: rgba(255,124,0,.95);
   font-weight:700;
+}
+
+/* Small screens: stack cards */
+@media (max-width:860px){
+  #lensInfo{ grid-template-columns: 1fr; }
 }
 
 #explanationBox{
@@ -714,10 +720,16 @@ body.sbs-mode #sbsWrapper .pane img{
 
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255,255,255,.08);
-  background: rgba(12,12,12,.55);
+  background: rgba(12,12,12,.50);
 
-  color: rgba(245,245,245,.65);
+  color: rgba(245,245,245,.62);
   font-size:12.5px;
+}
+
+/* Let users select/copy text in info areas */
+#lensInfo, #lensInfo * , #explanationBox, #explanationBox *{
+  user-select:text;
+  -webkit-user-select:text;
 }
 
 /* ===========================
@@ -835,169 +847,10 @@ body.sbs-mode #rightDetail{
   #comparisonWrapper img{ object-fit:contain !important; }
 }
 
-/* Calibrate focus exception */
-#calibrateToggle:focus:not(.active),
+/* Calibrate focus (calm, but not dead for keyboard) */
 #calibrateToggle:focus-visible:not(.active){
-  box-shadow:none !important;
-  outline:none !important;
-}
-
-
-
-
-/* ===========================
-   2026 CALM OVERRIDES (paste at very end)
-   =========================== */
-
-:root{
-  /* Calm hierarchy */
-  --bg: #050505;
-
-  --surface: rgba(14,14,14,.78);
-  --surface2: rgba(10,10,10,.78);
-
-  --hairline: rgba(255,255,255,.07);
-  --hairline2: rgba(255,255,255,.05);
-
-  --text: rgba(245,245,245,.92);
-  --muted: rgba(245,245,245,.60);
-
-  /* Keep your brand */
-  --accent: #ff7c00;
-
-  /* Bring back “premium”, not square tool */
-  --radius: 14px;
-  --radius-sm: 12px;
-
-  --shadow: 0 18px 54px rgba(0,0,0,.62);
-  --shadow2: 0 10px 28px rgba(0,0,0,.45);
-
-  --focus: 0 0 0 2px rgba(255,124,0,.22), 0 0 0 6px rgba(0,0,0,.72);
-}
-
-/* Background: less “effects”, more depth */
-body{
-  background:
-    radial-gradient(900px 520px at 50% -260px, rgba(255,124,0,.06), transparent 62%),
-    #050505;
-}
-
-/* ---------- CONTROLS: stop orange frames ---------- */
-.controlsStack .panel{
-  border-radius: var(--radius) !important;
-  border: 1px solid var(--hairline) !important;
-  background: linear-gradient(180deg, var(--surface), var(--surface2)) !important;
-  box-shadow: var(--shadow2) !important;
-
-  /* keep it premium but subtle */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  /* kill the “highlight line” chrome vibe */
-  overflow: hidden;
-}
-.controlsStack .panel::before{ display:none !important; }
-
-/* Make the whole control area feel like one calm toolbar */
-.controlsStack.desktop-only{
-  position: sticky;
-  top: 10px;
-  z-index: 50;
-  padding: 0;
-  margin: 14px 0 18px;
-}
-
-/* ---------- INPUTS: stop uppercase cockpit typography ---------- */
-select,
-.control-button{
-  height: 36px;
-  border-radius: 999px !important;
-
-  background: rgba(15,15,15,.62) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-
-  color: var(--text) !important;
-
-  font-size: 13px !important;
-  letter-spacing: .02em !important;
-  text-transform: none !important;
-
-  box-shadow: 0 10px 26px rgba(0,0,0,.40) !important;
-}
-
-select:hover,
-.control-button:hover{
-  border-color: rgba(255,255,255,.16) !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,.48) !important;
-  filter: brightness(1.04);
-}
-
-/* Focus only when it matters */
-select:focus-visible,
-.control-button:focus-visible{
-  outline: none !important;
   box-shadow: var(--focus) !important;
-  border-color: rgba(255,124,0,.55) !important;
-}
-
-/* ---------- ACTIVE STATE: orange only for state ---------- */
-button.active,
-.controls button.active{
-  background: rgba(255,124,0,.14) !important;
-  border-color: rgba(255,124,0,.70) !important;
-  box-shadow:
-    0 12px 30px rgba(0,0,0,.50),
-    0 0 0 1px rgba(255,124,0,.18) !important;
-}
-
-/* ---------- VIEWER: remove orange frame, keep it image-first ---------- */
-#comparisonWrapper{
-  border-radius: var(--radius) !important;
-  border: 1px solid rgba(255,255,255,.08) !important;
-  box-shadow: var(--shadow) !important;
-}
-
-/* slider stays brand (functioneel) */
-#slider{
-  background: rgba(255,124,0,.92) !important;
-  box-shadow: 0 0 18px rgba(255,124,0,.28) !important;
-}
-#slider::after{
-  border-radius: 999px !important;
-  border: 1px solid rgba(255,124,0,.55) !important;
-  background: rgba(10,10,10,.55) !important;
-}
-
-/* ---------- LENS INFO: maak er 2 cards van (zonder JS/HTML rewrite) ---------- */
-#lensInfo{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 0 10px;
-}
-#lensInfo p{
-  margin: 0;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(12,12,12,.55);
-  color: rgba(245,245,245,.74);
-}
-#lensInfo strong{
-  color: rgba(255,124,0,.95);
-}
-
-/* Small screens: stack cards */
-@media (max-width: 860px){
-  #lensInfo{ grid-template-columns: 1fr; }
-}
-
-/* ---------- Explanation box calmer ---------- */
-#explanationBox{
-  border-radius: var(--radius-sm) !important;
-  border: 1px solid rgba(255,255,255,.08) !important;
-  background: rgba(12,12,12,.50) !important;
-  color: rgba(245,245,245,.62) !important;
+  outline:none !important;
 }
 
 /* Respect reduced motion */
