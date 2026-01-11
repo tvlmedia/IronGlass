@@ -2452,29 +2452,39 @@ window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
 document.addEventListener("DOMContentLoaded", () => {
   const controls = document.querySelector(".controlsStack.desktop-only");
   const sentinel = document.getElementById("controlsSentinel");
-  const spacer = document.getElementById("controlsSpacer");
+  const spacer   = document.getElementById("controlsSpacer");
   if (!controls || !sentinel || !spacer) return;
 
   const setControlsHeight = () => {
-    const h = Math.ceil(controls.getBoundingClientRect().height);
-    // +16 voor je top-gap / ademruimte
-    document.documentElement.style.setProperty("--controls-stack-h", `${h + 16}px`);
+    const r = controls.getBoundingClientRect();
+    const cs = getComputedStyle(controls);
+    const mt = parseFloat(cs.marginTop) || 0;
+    const mb = parseFloat(cs.marginBottom) || 0;
+
+    // totale ruimte die controls innemen in de layout
+    const h = Math.ceil(r.height + mt + mb);
+
+    document.documentElement.style.setProperty("--controls-stack-h", `${h}px`);
   };
 
   setControlsHeight();
 
-  // update hoogte als Advanced open/dicht gaat of als layout verandert
   const ro = new ResizeObserver(setControlsHeight);
   ro.observe(controls);
 
-  // detecteer wanneer sticky actief is
+  // Toggle stuck zodra sentinel “boven” de viewport verdwijnt
   const io = new IntersectionObserver(
     ([entry]) => {
       document.body.classList.toggle("controls-stuck", !entry.isIntersecting);
     },
-    { threshold: 0 }
+    {
+      threshold: 0,
+      rootMargin: "0px 0px 0px 0px"
+    }
   );
   io.observe(sentinel);
+
+  window.addEventListener("resize", setControlsHeight);
 });
 
 
