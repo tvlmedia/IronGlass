@@ -1,106 +1,78 @@
-/* ===========================
-   TVL LENS TOOL – PREMIUM CALM UI
-   (IronGlass vibe, 2026 calm merge)
-   =========================== */
+/* =========================================================
+   TVL LENS TOOL — PREMIUM CALM UI (CLEAN REWRITE)
+   - single source of truth
+   - no duplicate overrides
+   - stable desktop + fullscreen + SBS + detail viewer
+   ========================================================= */
 
-/* --- Reset-ish --- */
+/* ---------------------------
+   RESET / BASE
+--------------------------- */
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
 
-body{
-  margin:0;
-  color: rgba(245,245,245,.92);
-  font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  font-size: 13.5px;
-  line-height: 1.45;
-  letter-spacing: .01em;
-
-  /* Calm premium dark: depth without “effects” overload */
-  background:
-    radial-gradient(900px 520px at 50% -260px, rgba(255,124,0,.06), transparent 62%),
-    #050505;
-}
-
-/* prevent drag/select in UI */
-*{
-  -webkit-user-drag:none;
-  user-select:none;
-}
-
-/* --- Tokens --- */
 :root{
+  /* used by your JS transforms */
   --sensor-scale: 1;
   --viewer-scale: 1;
 
+  /* palette */
   --bg: #050505;
+  --surfaceA: rgba(14,14,14,.82);
+  --surfaceB: rgba(8,8,8,.78);
 
-  /* Calm surfaces */
-  --surface: rgba(14,14,14,.78);
-  --surface2: rgba(10,10,10,.78);
+  --hairline: rgba(255,255,255,.08);
+  --hairline2: rgba(255,255,255,.06);
 
-  --hairline: rgba(255,255,255,.07);
-  --hairline2: rgba(255,255,255,.05);
-
-  --shadow: 0 18px 54px rgba(0,0,0,.62);
-  --shadow2: 0 10px 28px rgba(0,0,0,.45);
+  --shadowA: 0 18px 54px rgba(0,0,0,.62);
+  --shadowB: 0 10px 28px rgba(0,0,0,.45);
 
   --accent: #ff7c00;
-
   --text: rgba(245,245,245,.92);
   --muted: rgba(245,245,245,.60);
 
   --radius: 14px;
   --radius-sm: 12px;
 
-  --chip-bg: rgba(15,15,15,.62);
-  --chip-stroke: rgba(255,255,255,.10);
-  --chip-stroke-hover: rgba(255,255,255,.16);
+  --chip-bg: rgba(15,15,15,.66);
+  --chip-stroke: rgba(255,255,255,.11);
+  --chip-stroke-hover: rgba(255,255,255,.18);
 
   --focus: 0 0 0 2px rgba(255,124,0,.22), 0 0 0 6px rgba(0,0,0,.72);
 
   --hpad: 16px;
 }
 
-/* ===========================
-   HEADER LOGO
-   =========================== */
-#igHeader{
-  width:100%;
-  display:flex;
-  justify-content:center;
-  padding:18px 0 10px;
-}
-#igHeader img{
-  height:58px;
-  width:auto;
-  opacity:.95;
-  filter: drop-shadow(0 18px 22px rgba(0,0,0,.55));
-  transition: opacity .2s ease, transform .2s ease;
-}
-#igHeader img:hover{
-  opacity:1;
-  transform: translateY(-1px);
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.45;
+  letter-spacing: .01em;
+
+  color: var(--text);
+
+  background:
+    radial-gradient(900px 520px at 50% -260px, rgba(255,124,0,.06), transparent 62%),
+    var(--bg);
 }
 
-/* ===========================
-   OUTER LAYOUT
-   =========================== */
-#toolRoot{ width:100%; }
-
-.frame-1200{
-  width:min(1200px, 94vw);
-  margin:0 auto;
-  padding-bottom:34px;
+/* prevent drag/select in UI (except explicit opt-in areas below) */
+*{
+  -webkit-user-drag:none;
+  user-select:none;
 }
 
-/* Side-by-side can be wider */
-body.sbs-mode .frame-1200{
-  width:min(1600px, 94vw);
+body.dragging,
+body.dragging *{
+  cursor: ew-resize;
+  user-select:none !important;
+  -webkit-user-select:none !important;
 }
 
-/* ===========================
-   UTILITIES
-   =========================== */
+/* ---------------------------
+   ACCESSIBILITY HELPERS
+--------------------------- */
 .sr-only{
   position:absolute !important;
   width:1px !important;
@@ -115,38 +87,73 @@ body.sbs-mode .frame-1200{
 
 .field{ display:flex; }
 
-/* ===========================
-   CONTROLS STACK
-   =========================== */
+/* =========================================================
+   HEADER LOGO
+========================================================= */
+#igHeader{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  padding:18px 0 10px;
+}
+
+#igHeader img{
+  height:58px;
+  width:auto;
+  opacity:.95;
+  filter: drop-shadow(0 18px 22px rgba(0,0,0,.55));
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+#igHeader img:hover{
+  opacity:1;
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   OUTER LAYOUT
+========================================================= */
+#toolRoot{ width:100%; }
+
+.frame-1200{
+  width:min(1200px, 94vw);
+  margin:0 auto;
+  padding-bottom:34px;
+}
+
+body.sbs-mode .frame-1200{
+  width:min(1600px, 94vw);
+}
+
+/* =========================================================
+   CONTROLS STACK (DESKTOP)
+========================================================= */
 .controlsStack.desktop-only{
   position: sticky;
   top: 10px;
   z-index: 50;
 
   margin: 14px 0 18px;
-  padding: 0;
-
   display:flex;
   flex-direction:column;
   gap:10px;
 }
 
-/* When in sbs, keep controls centered */
 body.sbs-mode .controlsStack.desktop-only{
   max-width:1200px;
   margin-left:auto;
   margin-right:auto;
 }
 
-/* Panels: calm glass */
 .controlsStack .panel{
   width:100%;
   padding:14px var(--hpad);
+
   border-radius: var(--radius);
   border: 1px solid var(--hairline);
 
-  background: linear-gradient(180deg, var(--surface), var(--surface2));
-  box-shadow: var(--shadow2);
+  background: linear-gradient(180deg, var(--surfaceA), var(--surfaceB));
+  box-shadow: var(--shadowB);
 
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -155,10 +162,7 @@ body.sbs-mode .controlsStack.desktop-only{
   overflow:hidden;
 }
 
-/* Kill the older highlight line */
-.controlsStack .panel::before{ display:none; }
-
-/* Rows */
+/* rows */
 .controlsStack .row{
   display:flex;
   align-items:center;
@@ -167,17 +171,19 @@ body.sbs-mode .controlsStack.desktop-only{
   flex-wrap:wrap;
 }
 
-/* TOP panel layout */
+/* top panel */
 .controlsTop .camRow{
   justify-content:center;
   gap:10px;
   margin-bottom:10px;
 }
 
-/* LensRow: 3 columns, keep crisp */
 .controlsTop .lensRow{
-  flex-wrap:nowrap;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   gap:12px;
+  flex-wrap:nowrap;
 }
 
 .controlsTop .lensSide{
@@ -187,7 +193,16 @@ body.sbs-mode .controlsStack.desktop-only{
   align-items:center;
   justify-content:center;
   gap:10px;
-  flex-wrap:wrap;
+  flex-wrap:nowrap; /* desktop = never wrap */
+}
+
+.controlsTop .lensSide .field:first-child{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.controlsTop .lensSide .field{
+  flex:0 0 auto;
 }
 
 .controlsTop .lensCenter{
@@ -197,8 +212,10 @@ body.sbs-mode .controlsStack.desktop-only{
   justify-content:center;
 }
 
-/* BOTTOM panel layout */
+/* bottom panel */
 .controlsBottom .actionRow{
+  display:flex;
+  align-items:center;
   justify-content:space-between;
   gap:12px;
 }
@@ -227,34 +244,38 @@ body.sbs-mode .controlsStack.desktop-only{
   justify-content:flex-end;
 }
 
-/* Advanced panel dropdown */
+/* advanced panel */
 #advancedPanel.advancedPanel{
   display:none;
   margin-top:10px;
   padding:10px;
+
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.08);
-
-  background: linear-gradient(180deg, rgba(14,14,14,.85), rgba(8,8,8,.85));
+  background: linear-gradient(180deg, rgba(14,14,14,.86), rgba(8,8,8,.86));
   box-shadow: 0 20px 50px rgba(0,0,0,.55);
 
   gap:10px;
   justify-content:center;
   flex-wrap:wrap;
 }
-#advancedPanel.advancedPanel.open{
-  display:flex;
-}
 
-/* Scale row */
+#advancedPanel.advancedPanel.open{ display:flex; }
+
 .controlsBottom .scaleRow{
   margin-top:10px;
   justify-content:center;
 }
 
-/* ===========================
-   INPUTS: premium calm chips
-   =========================== */
+/* allow wrap on smaller screens */
+@media (max-width:1000px){
+  .controlsTop .lensRow{ flex-wrap:wrap; }
+  .controlsTop .lensSide{ flex-wrap:wrap; }
+}
+
+/* =========================================================
+   INPUTS — PREMIUM CALM CHIPS
+========================================================= */
 select,
 .control-button{
   height: 36px;
@@ -267,7 +288,6 @@ select,
 
   font-size: 13px;
   letter-spacing: .02em;
-  text-transform: none;
 
   display:inline-flex;
   align-items:center;
@@ -284,7 +304,7 @@ select,
     filter .18s ease;
 }
 
-/* selects: keep native arrow but nicer spacing */
+/* select arrow */
 select{
   cursor:pointer;
   line-height:normal;
@@ -320,7 +340,6 @@ select:active,
   box-shadow: 0 8px 18px rgba(0,0,0,.35);
 }
 
-/* Focus only when it matters */
 select:focus-visible,
 .control-button:focus-visible{
   outline:none;
@@ -328,7 +347,6 @@ select:focus-visible,
   border-color: rgba(255,124,0,.55);
 }
 
-/* Disabled */
 .control-button:disabled,
 select:disabled{
   opacity:.45;
@@ -337,22 +355,26 @@ select:disabled{
   filter:none;
 }
 
-/* widths */
+/* widths (make lens selects fluid inside lensSide) */
 #cameraSelect,#sensorFormatSelect{ min-width:220px; }
 #focalLength{ min-width:140px; }
 
-#leftLens,#rightLens{ min-width:320px; }
-#tStopLeftSelect,#tStopRightSelect{ min-width:110px; }
+#leftLens,#rightLens{
+  width:100%;
+  min-width:0; /* crucial */
+}
 
-/* Smaller on narrow screens */
+#tStopLeftSelect,#tStopRightSelect{ min-width:96px; }
+#mfAltLeft,#mfAltRight{ min-width:96px; }
+
+/* smaller */
 @media (max-width:1000px){
-  #leftLens,#rightLens{ min-width:260px; }
   #cameraSelect,#sensorFormatSelect{ min-width:190px; }
 }
 
-/* ===========================
-   ACTIVE STATES (toggles)
-   =========================== */
+/* =========================================================
+   ACTIVE STATES (TOGGLES)
+========================================================= */
 button.active,
 .controls button.active{
   background: rgba(255,124,0,.14) !important;
@@ -362,27 +384,29 @@ button.active,
     0 0 0 1px rgba(255,124,0,.18) !important;
 }
 
-/* Flare off label, keep your text */
 #flareToggle[data-mode="noflare"]{ opacity:.95; }
 
-/* ===========================
-   SCALE CHIP
-   =========================== */
+/* =========================================================
+   SCALE CHIP (TOOLBAR)
+========================================================= */
 #scaleCtrl.chip{
   display:inline-flex;
   align-items:center;
   gap:10px;
-  height:34px;
-  padding:0 12px;
+
+  height: 36px;
+  padding: 0 12px;
   border-radius:999px;
 
   background: rgba(15,15,15,.62);
   border:1px solid rgba(255,255,255,.10);
   box-shadow: 0 10px 28px rgba(0,0,0,.38);
+
+  flex: 0 0 auto;
 }
 
 #scaleCtrl #scaleVal{
-  min-width:52px;
+  min-width:46px;
   text-align:right;
   color: var(--muted);
   letter-spacing:.06em;
@@ -391,11 +415,15 @@ button.active,
 #scaleCtrl input[type="range"]{
   -webkit-appearance:none;
   appearance:none;
-  width:180px;
+  width: 140px;
   height:18px;
   background:transparent;
   margin:0;
   padding:0;
+}
+
+@media (max-width:1000px){
+  #scaleCtrl input[type="range"]{ width:120px; }
 }
 
 #scaleCtrl input[type="range"]::-webkit-slider-runnable-track{
@@ -408,7 +436,6 @@ button.active,
   border-radius:999px;
   background: rgba(255,255,255,.14);
 }
-
 #scaleCtrl input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none;
   appearance:none;
@@ -429,17 +456,17 @@ button.active,
   box-shadow: 0 10px 18px rgba(0,0,0,.55), 0 0 16px rgba(255,124,0,.22);
 }
 
-/* ===========================
-   MF MATCH WRAP (premium)
-   =========================== */
+/* =========================================================
+   MF MATCH WRAP
+========================================================= */
 .mfAltWrap{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  padding:6px 10px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.08);
-  background: rgba(10,10,10,.45);
+
+  padding:0;               /* compact */
+  border:0;
+  background:transparent;
 }
 
 .mfAltLabel{
@@ -450,9 +477,9 @@ button.active,
   white-space:nowrap;
 }
 
-/* ===========================
+/* =========================================================
    VIEWER
-   =========================== */
+========================================================= */
 #comparisonWrapper{
   position:relative;
   width:100%;
@@ -467,14 +494,25 @@ button.active,
 
   border-radius: var(--radius);
   border: 1px solid rgba(255,255,255,.08);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadowA);
+
+  touch-action:none; /* prevents scroll while dragging */
 }
 
-/* Remove older double-outline systems */
-#comparisonWrapper::after{ display:none; }
+/* subtle accent outline (single, non-conflicting) */
+#comparisonWrapper::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: inherit;
+  border: 1px solid rgba(255,140,0,.55);
+  pointer-events:none;
+  z-index: 8; /* below slider (10), above images */
+}
 
-/* Layers */
-#beforeImage{ position:absolute; inset:0; }
+/* layers */
+#beforeImage{ position:absolute; inset:0; z-index:1; }
+
 #afterWrapper{
   position:absolute;
   inset:0;
@@ -485,7 +523,7 @@ button.active,
   will-change:clip-path;
 }
 
-/* Images (keep your transform logic intact) */
+/* images (keep your JS transform vars intact) */
 #beforeImgTag,
 #afterImgTag{
   position:absolute;
@@ -508,42 +546,38 @@ button.active,
   will-change:transform;
 }
 
-/* === SLIDER: wide hit-area, thin visible line === */
+/* =========================================================
+   SLIDER — wide hit area, thin visible line, NO KNOB
+========================================================= */
 #slider{
   position:absolute;
-  top:0;
-  bottom:0;
+  top:0; bottom:0;
   left:50%;
   transform:translateX(-50%);
-  width:24px;                 /* 👈 brede hit-area */
-  background:transparent;     /* 👈 geen dikke lijn */
+  width:24px;           /* wide hit area */
+  background:transparent;
   cursor: ew-resize;
   z-index:10;
   touch-action:none;
 }
 
-/* zichtbare lijn (2px) in het midden */
 #slider::before{
   content:"";
   position:absolute;
   left:50%;
-  top:0;
-  bottom:0;
+  top:0; bottom:0;
   width:2px;
   transform:translateX(-50%);
   background: rgba(255,124,0,.92);
   box-shadow: 0 0 18px rgba(255,124,0,.28);
 }
 
-#comparisonWrapper:hover #slider::after{ opacity:1; }
-body.dragging #slider::after{
-  opacity:1;
-  transform: translate(-50%,-50%) scale(1.04);
-}
+/* hard-disable any old knob pseudo */
+#slider::after{ content:none !important; display:none !important; }
 
-/* ===========================
-   FULLSCREEN
-   =========================== */
+/* =========================================================
+   FULLSCREEN + SAFE BARS
+========================================================= */
 #comparisonWrapper:fullscreen,
 #comparisonWrapper:-webkit-full-screen{
   width:100vw;
@@ -557,20 +591,26 @@ body.dragging #slider::after{
   overflow:hidden;
 }
 
-/* Keep bars system */
+#comparisonWrapper:fullscreen::after,
+#comparisonWrapper:-webkit-full-screen::after{
+  display:none; /* no accent outline in fullscreen */
+}
+
+/* FS bars */
 #fsBars{
   position:absolute;
   inset:0;
   pointer-events:none;
   z-index:9;
 }
+
 #fsBars .bar{ position:absolute; background:#000; }
 #fsBars .top{ top:0; left:var(--lb-left,0); right:var(--lb-right,0); height:var(--lb-top,0); }
 #fsBars .bottom{ bottom:0; left:var(--lb-left,0); right:var(--lb-right,0); height:var(--lb-bottom,0); }
 #fsBars .left{ top:var(--lb-top,0); bottom:var(--lb-bottom,0); left:0; width:var(--lb-left,0); }
 #fsBars .right{ top:var(--lb-top,0); bottom:var(--lb-bottom,0); right:0; width:var(--lb-right,0); }
 
-/* subtle inner outline for fullscreen safe area */
+/* inner safe outline */
 #comparisonWrapper:fullscreen #fsBars::after,
 #comparisonWrapper:-webkit-full-screen #fsBars::after{
   content:"";
@@ -579,13 +619,24 @@ body.dragging #slider::after{
   bottom:var(--lb-bottom,0);
   left:var(--lb-left,0);
   right:var(--lb-right,0);
+
   border: 1px solid rgba(255,255,255,.10);
   box-shadow: 0 0 20px rgba(255,124,0,.14);
 }
 
-/* ===========================
-   SIDE-BY-SIDE
-   =========================== */
+/* FS enter — hide 1-2 frames */
+#comparisonWrapper.fs-entering #beforeImage,
+#comparisonWrapper.fs-entering #afterWrapper,
+#comparisonWrapper.fs-entering #slider,
+#comparisonWrapper.fs-entering #fsBars,
+#comparisonWrapper.fs-entering #sbsWrapper{
+  opacity: 0 !important;
+}
+#comparisonWrapper.fs-entering{ background:#000 !important; }
+
+/* =========================================================
+   SIDE-BY-SIDE MODE
+========================================================= */
 #sbsWrapper{
   position:absolute;
   inset:0;
@@ -593,13 +644,13 @@ body.dragging #slider::after{
   display:none;
 }
 
-/* Hide slider mode layers in sbs */
 body.sbs-mode #beforeImage,
 body.sbs-mode #afterWrapper,
 body.sbs-mode #slider,
 body.sbs-mode #fsBars{
   display:none !important;
 }
+
 body.sbs-mode #sbsWrapper{
   display:flex !important;
 }
@@ -609,6 +660,7 @@ body.sbs-mode #sbsWrapper .pane{
   flex:1 1 50%;
   overflow:hidden;
 }
+
 body.sbs-mode #sbsWrapper .pane:first-child{
   border-right:1px solid rgba(255,255,255,.08);
 }
@@ -632,25 +684,31 @@ body.sbs-mode #sbsWrapper .pane img{
     scale(calc(var(--sensor-scale) * var(--viewer-scale)))
     translate(var(--cal-tx), var(--cal-ty))
     scale(var(--cal-scale));
+
+  transform-origin:center;
+  will-change:transform;
 }
 
-/* ===========================
+/* =========================================================
    INFO / LABELS
-   =========================== */
+========================================================= */
 #infoContainer{
   width:100%;
   margin:14px 0 10px;
   padding:0 10px;
+
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
   gap:24px;
+
   color: var(--muted);
 }
 
 .infoCol{
   flex:1 1 0;
   min-width:0;
+
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -674,38 +732,37 @@ body.sbs-mode #sbsWrapper .pane img{
   border-bottom-color: rgba(255,124,0,.55);
 }
 
-/* ===========================
-   LENS INFO + NOTE
-   =========================== */
+/* =========================================================
+   LENS INFO + EXPLANATION
+========================================================= */
 #lensInfo{
   width:100%;
   margin:14px 0 0;
   padding:0 10px;
-  color: rgba(245,245,245,.78);
 
+  color: rgba(245,245,245,.78);
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap:12px;
 }
 
-/* Cards: works for any direct child (p/div/etc) */
 #lensInfo > *{
   margin:0;
   padding:12px 14px;
+
   border-radius: var(--radius-sm);
   border:1px solid rgba(255,255,255,.08);
   background: rgba(12,12,12,.55);
+
   color: rgba(245,245,245,.74);
 }
 
-/* Accent for strong/b */
 #lensInfo b,
 #lensInfo strong{
   color: rgba(255,124,0,.95);
   font-weight:700;
 }
 
-/* Small screens: stack cards */
 @media (max-width:860px){
   #lensInfo{ grid-template-columns: 1fr; }
 }
@@ -723,22 +780,15 @@ body.sbs-mode #sbsWrapper .pane img{
   font-size:12.5px;
 }
 
-/* Let users select/copy text in info areas */
+/* allow copy/select in info areas */
 #lensInfo, #lensInfo * , #explanationBox, #explanationBox *{
   user-select:text;
   -webkit-user-select:text;
 }
 
-/* ===========================
+/* =========================================================
    DETAIL VIEWER
-   =========================== */
-body.dragging,
-body.dragging *{
-  user-select:none !important;
-  -webkit-user-select:none !important;
-  -ms-user-select:none !important;
-}
-
+========================================================= */
 #detailOverlay{
   position:fixed;
   inset:0;
@@ -770,7 +820,7 @@ body.dragging *{
   transform-origin:top left;
 }
 
-/* Hard overrides for WP/theme */
+/* WP/theme hard overrides */
 #detailOverlay .detail-view-square,
 #detailOverlay #leftDetail,
 #detailOverlay #rightDetail{
@@ -786,7 +836,7 @@ body.dragging *{
   display:block !important;
 }
 
-/* Seam fix in SBS */
+/* SBS seam */
 body.sbs-mode #leftDetail{
   border-right:0 !important;
   border-top-right-radius:0 !important;
@@ -798,20 +848,12 @@ body.sbs-mode #rightDetail{
   border-bottom-left-radius:0 !important;
 }
 
-/* ===========================
+/* =========================================================
    MOBILE EMBED
-   =========================== */
+========================================================= */
 .lens-frame-outer,
 .lens-frame-outer.mobile-only{
   display:none !important;
-}
-
-/* ===========================
-   RESPONSIVE
-   =========================== */
-@media (max-width:1000px){
-  #scaleCtrl input[type="range"]{ width:140px; }
-  .controlsTop .lensRow{ flex-wrap:wrap; }
 }
 
 .controls.mobile-only{ display:none !important; }
@@ -819,7 +861,6 @@ body.sbs-mode #rightDetail{
 @media (max-width:767px){
   #fullscreenButton,#detailViewToggle{ display:none !important; }
 
-  /* desktop controls off, iframe on */
   .controlsStack.desktop-only{ display:none !important; }
   .controls.mobile-only{ display:block !important; }
   .lens-frame-outer{ display:block !important; }
@@ -828,126 +869,15 @@ body.sbs-mode #rightDetail{
   #lensInfo{ padding:0 12px; }
 }
 
-/* duplicate catch */
+/* guard against duplicate stacks */
 .controlsStack.desktop-only:not(:first-of-type),
 .controls.mobile-only:not(:first-of-type){
   display:none !important;
 }
 
-/* ===========================
-   PRINT
-   =========================== */
-@media print{
-  body{ background:#fff !important; color:#000 !important; }
-  .controlsStack,#explanationBox{ display:none !important; }
-  #comparisonWrapper{ width:100% !important; height:auto !important; }
-  #comparisonWrapper img{ object-fit:contain !important; }
-}
-
-/* Calibrate focus (calm, but not dead for keyboard) */
-#calibrateToggle:focus-visible:not(.active){
-  box-shadow: var(--focus) !important;
-  outline:none !important;
-}
-
-/* Respect reduced motion */
-@media (prefers-reduced-motion: reduce){
-  *{ transition:none !important; }
-}
-
-
-/* ===== Scale chip in toolbar (match button height) ===== */
-.controlsBottom .actionLeft{
-  align-items: center;
-}
-
-#scaleCtrl.chip{
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 999px;
-  flex: 0 0 auto;
-}
-
-#scaleCtrl #scaleVal{
-  min-width: 46px;
-}
-
-#scaleCtrl input[type="range"]{
-  width: 140px;
-}
-
-/* iets kleiner op medium screens */
-@media (max-width:1000px){
-  #scaleCtrl input[type="range"]{ width: 120px; }
-}
-/* === REMOVE SLIDER KNOB / CIRCLE === */
-#slider::after{
-  content: none !important;
-  display: none !important;
-}
-#comparisonWrapper:hover #slider::after,
-body.dragging #slider::after{
-  opacity: 0 !important;
-}
-/* === FIX: voorkom dat MF-alt / T-stop naar beneden wrappen === */
-
-/* 1) In de lens sides: nooit wrappen op desktop */
-.controlsTop .lensSide{
-  flex-wrap: nowrap;
-}
-
-/* 2) Laat de lens-select (eerste field) de flex-ruimte pakken */
-.controlsTop .lensSide .field:first-child{
-  flex: 1 1 auto;
-  min-width: 0; /* belangrijk: anders mag hij niet krimpen */
-}
-
-/* 3) De andere fields blijven “auto” */
-.controlsTop .lensSide .field{
-  flex: 0 0 auto;
-}
-
-/* 4) Haal harde min-width weg zodat het kan passen */
-#leftLens, #rightLens{
-  width: 100%;
-  min-width: 0;         /* override jouw 320px */
-}
-
-/* 5) Maak MF wrapper compacter (jij styled nu wrapper + select = te breed) */
-.mfAltWrap{
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-/* 6) Geef mfAlt select een nette (kleinere) vaste breedte */
-#mfAltLeft, #mfAltRight{
-  min-width: 96px;
-}
-
-/* 7) Eventueel ook T-stop iets compacter zodat het altijd past */
-#tStopLeftSelect, #tStopRightSelect{
-  min-width: 96px; /* was 110 */
-}
-
-/* Optioneel: op kleinere screens mag het wél wrappen */
-@media (max-width: 1000px){
-  .controlsTop .lensSide{ flex-wrap: wrap; }
-}
-/* Oranje rand om de hele image viewer */
-#comparisonWrapper{
-  position: relative; /* voor pseudo-element */
-}
-
-#comparisonWrapper::after{
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(255, 140, 0, 0.7); /* oranje, subtiel */
-  border-radius: 12px; /* match je UI als je rounding hebt */
-  pointer-events: none;
-  z-index: 50; /* boven images/overlay, onder UI knoppen */
-}
+/* =========================================================
+   FULLSCREEN GATE MODAL
+========================================================= */
 #fsGate{
   position:fixed;
   inset:0;
@@ -956,19 +886,22 @@ body.dragging #slider::after{
   align-items:center;
   justify-content:center;
   background: rgba(0,0,0,.72);
+
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
-
 #fsGate[aria-hidden="true"]{ display:none; }
 
 .fsGateCard{
   width:min(520px, 92vw);
   padding:18px 18px 16px;
+
   border-radius: 16px;
   border:1px solid rgba(255,255,255,.10);
+
   background: linear-gradient(180deg, rgba(14,14,14,.86), rgba(8,8,8,.86));
   box-shadow: 0 24px 70px rgba(0,0,0,.65);
+
   text-align:center;
 }
 
@@ -990,29 +923,23 @@ body.dragging #slider::after{
   font-size:12px;
   color: rgba(245,245,245,.55);
 }
-#slider {
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
+
+/* =========================================================
+   PRINT + REDUCED MOTION
+========================================================= */
+@media print{
+  body{ background:#fff !important; color:#000 !important; }
+  .controlsStack,#explanationBox{ display:none !important; }
+  #comparisonWrapper{ width:100% !important; height:auto !important; }
+  #comparisonWrapper img{ object-fit:contain !important; }
 }
 
-#comparisonWrapper {
-  touch-action: none; /* voorkomt page scroll tijdens slepen */
-}
-body.dragging {
-  cursor: ew-resize;
-  -webkit-user-select: none;
-  user-select: none;
-}
-/* --- FS enter: verberg 1-2 frames zodat je nooit de "volle crop" ziet --- */
-#comparisonWrapper.fs-entering #beforeImage,
-#comparisonWrapper.fs-entering #afterWrapper,
-#comparisonWrapper.fs-entering #slider,
-#comparisonWrapper.fs-entering #fsBars,
-#comparisonWrapper.fs-entering #sbsWrapper{
-  opacity: 0 !important;
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
 }
 
-#comparisonWrapper.fs-entering{
-  background:#000 !important;
+/* keyboard focus: calibrate button */
+#calibrateToggle:focus-visible:not(.active){
+  box-shadow: var(--focus) !important;
+  outline:none !important;
 }
