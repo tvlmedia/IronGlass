@@ -2313,7 +2313,27 @@ async function renderToSensorAR(imgOrURL, targetAR, outH, scale=1, yFrac=0){
 }
 function fitContain(sw,sh,bw,bh){ const sAR=sw/sh, bAR=bw/bh; let w,h; if(sAR>bAR){ w=bw; h=Math.round(w/sAR); } else { h=bh; w=Math.round(h*sAR); } return { w,h,x:Math.round((bw-w)/2), y:Math.round((bh-h)/2) }; }
 async function placeContain(pdf, dataURL, box){ const im=await loadHTMLImage(dataURL); const f=fitContain(im.naturalWidth||im.width,im.naturalHeight||im.height,box.w,box.h); pdf.addImage(dataURL,"JPEG",box.x+f.x,box.y+f.y,f.w,f.h); }
-const ensureAbsoluteUrl=url=>!url?"":(/^https?:\/\//i.test(url)?url:new URL(url,"https://tvlrental.nl/").href);
+
+// ===== PDF BRANDING (IronGlass) =====
+const PDF_BRAND = {
+  accent: { r: 255, g: 102, b: 0 }, // IronGlass orange
+  // Zet dit naar jouw “all lenses”/overzichtspagina:
+  allLensesUrl: "https://ironglassadapters.com/"
+};
+
+function pdfSetWhite(pdf){ pdf.setTextColor(255,255,255); }
+function pdfSetAccent(pdf){ pdf.setTextColor(PDF_BRAND.accent.r, PDF_BRAND.accent.g, PDF_BRAND.accent.b); }
+
+const ensureAbsoluteUrl = (url) => {
+  if(!url) return "";
+  // Als het al absolute URL is → laat staan
+  if(/^https?:\/\//i.test(url)) return url;
+
+  // Anders maak je er een absolute van op basis van de huidige pagina
+  // (werkt zowel op GitHub Pages als in je WordPress embed)
+  return new URL(url, location.href).href;
+};
+
 const pdfLinkRect=(pdf,x,y,w,h,url)=>{ const abs=ensureAbsoluteUrl(url); if(abs) pdf.link(x,y,w,h,{url:abs}); };
 function getSensorText(){ const cam=cameraSelect.value, fmt=sensorFormatSelect.value, label=cameras[cam]?.[fmt]?.label||""; return `${cam} – ${label}`; }
 
@@ -2349,7 +2369,13 @@ function drawBars(pdf,TOP_BAR,BOTTOM_BAR,PAGE_MARGIN){
       const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight(), bh=BOTTOM_BAR;
       pdf.setFillColor(0,0,0); pdf.rect(0,ph-bh,pw,bh,"F");
       if(text){ pdf.setFontSize(12); pdf.setTextColor(255,255,255); pdf.text(text,20,ph-bh+25,{maxWidth:pw-120}); }
-      if(link){ const disp="Klik hier voor alle info over deze lens"; pdf.setFontSize(10); pdf.setTextColor(0,102,255); const w=pdf.getTextWidth(disp); pdf.textWithLink(disp,20,ph-bh+55,{url:ensureAbsoluteUrl(link)}); }
+      if(link){
+  const disp = "Full lens details: Click here";
+  pdf.setFontSize(10);
+  pdfSetAccent(pdf); // ✅ IronGlass orange
+  pdf.textWithLink(disp, 20, ph - bh + 55, { url: ensureAbsoluteUrl(link) });
+  pdfSetWhite(pdf);
+}
       if(logo){ const th=50, ratio=logo.width/logo.height, tw=th*ratio, x=pw-tw-12, y=ph-th-12; pdf.addImage(logo,"PNG",x,y,tw,th); }
       if(ctaLabel&&ctaUrl){ const btnW=Math.min(320,pw-2*PAGE_MARGIN), btnH=32, x=Math.round((pw-btnW)/2), y=Math.round(ph-(bh/2)-(btnH/2)); pdf.setFillColor(0,0,0); pdf.roundedRect(x,y,btnW,btnH,4,4,"F"); pdf.setTextColor(255,255,255); pdf.setFontSize(18); pdf.setFont("helvetica","normal"); pdf.text(ctaLabel,x+btnW/2,y+btnH/2+6,{align:"center",baseline:"middle"}); pdfLinkRect(pdf,x,y,btnW,btnH,ctaUrl); }
     },
@@ -2357,7 +2383,21 @@ function drawBars(pdf,TOP_BAR,BOTTOM_BAR,PAGE_MARGIN){
       const pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight(), bh=BOTTOM_BAR;
       pdf.setFillColor(0,0,0); pdf.rect(0,ph-bh,pw,bh,"F");
       pdf.setTextColor(255,255,255); pdf.setFontSize(14); const yS=ph-bh+48; pdf.text(`Camera/Sensor mode: ${sensorText}`,pw/2,yS,{align:"center",baseline:"middle"});
-      const cta="Benieuwd naar alle lenzen? Klik hier"; pdf.setFontSize(16); const yC=ph-18; pdf.text(cta,pw/2,yC,{align:"center",baseline:"middle"}); const w=pdf.getTextWidth(cta), x=(pw-w)/2; pdfLinkRect(pdf,x,yC-10,w,20,"https://tvlrental.nl/lenses/");
+     const cta = "Explore all lenses: Click here";
+pdf.setFontSize(16);
+
+// kleur van CTA ook in accent (mooi en duidelijk)
+pdfSetAccent(pdf);
+
+const yC = ph - 18;
+pdf.text(cta, pw/2, yC, { align:"center", baseline:"middle" });
+
+const w = pdf.getTextWidth(cta), x = (pw - w) / 2;
+
+// ✅ link naar jouw IronGlass overzichtspagina
+pdfLinkRect(pdf, x, yC - 10, w, 20, PDF_BRAND.allLensesUrl);
+
+pdfSetWhite(pdf);
       if(logo){ const th=50, ratio=logo.width/logo.height, tw=th*ratio, xL=pw-tw-12, y=ph-th-12; pdf.addImage(logo,"PNG",xL,y,tw,th); }
     }
   };
@@ -2432,7 +2472,7 @@ async function exportLensPdf(){
 
   const JsPDF = getJsPDFCtor();
   if(!JsPDF){
-    alert("jsPDF is niet geladen (CDN).");
+    alert("jsPDF is not loaded (CDN).");
     return;
   }
 
@@ -2496,7 +2536,7 @@ async function exportLensPdf(){
     const rightURL = beforeImgTag?.src;  // right = before
 
     if(!leftURL || !rightURL){
-      alert("Images zijn nog niet geladen – probeer opnieuw zodra je beeld zichtbaar is.");
+      alert("Images are not loaded yet — try again once the viewer is showing the image.");
       return;
     }
 
@@ -2570,7 +2610,7 @@ async function exportLensPdf(){
     pdf.save(fname);
   } catch(err){
     console.error("PDF export failed:", err);
-    alert("PDF export faalde. Check console voor error.");
+    alert("PDF export failed. Check the console for details.");
   } finally {
     isExportingPdf = false;
   }
