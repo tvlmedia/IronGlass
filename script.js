@@ -1077,7 +1077,7 @@ const CALIBRATION = {
   },
 
   "ironglass_red_p": {
-    "85mm": { scale: 0.93, x: 0.930, y: 73.349 },
+    "85mm": { scale: 0.93, x: -57.000, y: 73.349 },
     "50mm": { scale: 0.87, x: 24.000, y: 12.000 },
     "35mm": { scale: 0.990, x: -10.860, y: 18.447 }         
   }
