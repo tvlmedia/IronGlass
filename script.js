@@ -406,6 +406,11 @@ if (advancedToggle && advancedPanel) {
   });
 }
 
+// ✅ Guard: als pulseFsBars niet bestaat → no-op
+const pulseFsBarsSafe = (opts) => {
+  if (typeof window.pulseFsBars === "function") window.pulseFsBars(opts);
+};
+
 function requestBrowserFullscreen(){
   const el = document.documentElement;
 
