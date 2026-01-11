@@ -960,3 +960,9 @@ body.sbs-mode #rightDetail{
   box-shadow: var(--focus) !important;
   outline:none !important;
 }
+/* ✅ Laat image-layers exact binnen de usable window vallen (geen padding hacks) */
+#beforeImage,
+#afterWrapper,
+#sbsWrapper{
+  inset: var(--lb-top,0px) var(--lb-right,0px) var(--lb-bottom,0px) var(--lb-left,0px);
+}
