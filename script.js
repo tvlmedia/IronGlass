@@ -2133,26 +2133,31 @@ showDetailBoxAt(
     return;
   }
 
-  // 2) rx/ry PER IMAGE op basis van de getransformeerde img rects
-  const rectL = getFittedImageRect(afterImgTag);
+ // 2) rx/ry PER IMAGE ...
+const rectL = getFittedImageRect(afterImgTag);
 const rectR = getFittedImageRect(beforeImgTag);
 
-  const rxL = (e.clientX - rectL.left) / rectL.width;
-  const ryL = (e.clientY - rectL.top)  / rectL.height;
+const rxL = (e.clientX - rectL.left) / rectL.width;
+const ryL = (e.clientY - rectL.top)  / rectL.height;
 
-  const rxR = (e.clientX - rectR.left) / rectR.width;
-  const ryR = (e.clientY - rectR.top)  / rectR.height;
+const rxR = (e.clientX - rectR.left) / rectR.width;
+const ryR = (e.clientY - rectR.top)  / rectR.height;
 
- const cfg = getDetailConfig();
+const cfg = getDetailConfig();
 
+// ✅ HIER: eerst uncalibrate
+const pL = uncalibrateRxRy(afterImgTag,  rectL, rxL, ryL);
+const pR = uncalibrateRxRy(beforeImgTag, rectR, rxR, ryR);
+
+// ✅ en dan pas showDetailBoxAt met pL/pR
 const showL = showDetailBoxAt(
   e, leftDetail, leftDetailImg, afterImgTag,
-  rectL, rxL, ryL, "left", cfg.zoom, cfg.size, 0
+  rectL, pL.rx, pL.ry, "left", cfg.zoom, cfg.size, 0
 );
 
 const showR = showDetailBoxAt(
   e, rightDetail, rightDetailImg, beforeImgTag,
-  rectR, rxR, ryR, "right", cfg.zoom, cfg.size, 0
+  rectR, pR.rx, pR.ry, "right", cfg.zoom, cfg.size, 0
 );
 
  if(!showL) leftDetail.style.display  = "none";
