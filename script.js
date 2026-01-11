@@ -992,6 +992,7 @@ const CALIBRATION = {
 const CAL_AUTOSCALE_WHITELIST = {
   "Fujifilm GFX Eterna": new Set([
     "Open Gate 4:3 4K (3840x2880)",
+    "4K 16:9 (3840x2160)",          // ✅ erbij
     "GF Cine 5.8K (5824x2436)",
     "Premista 5.4K (5440x2868)"
   ])
