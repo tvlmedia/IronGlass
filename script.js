@@ -406,6 +406,55 @@ if (advancedToggle && advancedPanel) {
   });
 }
 
+function requestBrowserFullscreen(){
+  const el = document.documentElement;
+
+  const req =
+    el.requestFullscreen ||
+    el.webkitRequestFullscreen ||
+    el.mozRequestFullScreen ||
+    el.msRequestFullscreen;
+
+  if(req) req.call(el);
+}
+
+(function fullscreenGateInit(){
+  const gate = document.getElementById("fsGate");
+  const btn  = document.getElementById("fsGateBtn");
+  if(!gate || !btn) return;
+
+  const isBrowserFullscreen = () =>
+    !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+  const closeGate = () => {
+    gate.setAttribute("aria-hidden", "true");
+  };
+
+  // Als user al in fullscreen zit: geen gate tonen
+  if(isBrowserFullscreen()){
+    closeGate();
+    return;
+  }
+
+  btn.addEventListener("click", async () => {
+    try{
+      requestBrowserFullscreen();
+      closeGate();
+    } catch(e){
+      // als browser weigert: laat gate staan
+      console.warn("Fullscreen request blocked:", e);
+    }
+  });
+
+  // Als user zelf fullscreen toggelt (F11 / menu): gate weg
+  document.addEventListener("fullscreenchange", () => {
+    if(isBrowserFullscreen()) closeGate();
+  });
+  document.addEventListener("webkitfullscreenchange", () => {
+    if(isBrowserFullscreen()) closeGate();
+  });
+})();
+
 const mfAltLeftWrap  = q("mfAltLeftWrap");
 const mfAltRightWrap = q("mfAltRightWrap");
 const mfAltLeftSel   = q("mfAltLeft");
