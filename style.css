@@ -846,233 +846,161 @@ body.sbs-mode #rightDetail{
 
 
 /* ===========================
-   IRONGLASS HARD-EDGE OVERRIDES
-   Paste this at the VERY END of your CSS
+   2026 CALM OVERRIDES (paste at very end)
    =========================== */
 
 :root{
-  /* Kill rounded UI */
-  --radius: 0px;
-  --radius-sm: 0px;
+  /* Calm hierarchy */
+  --bg: #050505;
 
-  /* Slightly cleaner + more "site-like" contrast */
-  --panel: rgba(12,12,12,.92);
-  --panel2: rgba(10,10,10,.92);
+  --surface: rgba(14,14,14,.78);
+  --surface2: rgba(10,10,10,.78);
 
-  --stroke: rgba(255,255,255,.12);
-  --stroke2: rgba(255,255,255,.08);
+  --hairline: rgba(255,255,255,.07);
+  --hairline2: rgba(255,255,255,.05);
 
-  /* Less "glow", more premium */
-  --shadow: 0 18px 48px rgba(0,0,0,.68);
-  --shadow2: 0 14px 34px rgba(0,0,0,.62);
+  --text: rgba(245,245,245,.92);
+  --muted: rgba(245,245,245,.60);
 
-  /* IronGlass-ish orange */
-  --accent: #ff7a00;
-  --accent2:#ff8a00;
+  /* Keep your brand */
+  --accent: #ff7c00;
 
-  /* Tighter UI feel */
-  --hpad: 14px;
+  /* Bring back “premium”, not square tool */
+  --radius: 14px;
+  --radius-sm: 12px;
+
+  --shadow: 0 18px 54px rgba(0,0,0,.62);
+  --shadow2: 0 10px 28px rgba(0,0,0,.45);
+
+  --focus: 0 0 0 2px rgba(255,124,0,.22), 0 0 0 6px rgba(0,0,0,.72);
 }
 
-/* Background: flatter, more IronGlass */
+/* Background: less “effects”, more depth */
 body{
   background:
-    radial-gradient(900px 500px at 50% -240px, rgba(255,122,0,.06), transparent 60%),
-    #000;
+    radial-gradient(900px 520px at 50% -260px, rgba(255,124,0,.06), transparent 62%),
+    #050505;
 }
 
-/* ===========================
-   PANELS: hard-edge, less glass
-   =========================== */
+/* ---------- CONTROLS: stop orange frames ---------- */
 .controlsStack .panel{
-  border-radius: 0 !important;
-  border: 1px solid rgba(255,122,0,.22);
-  background: linear-gradient(180deg, rgba(14,14,14,.96), rgba(8,8,8,.96));
-  box-shadow: var(--shadow2);
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--hairline) !important;
+  background: linear-gradient(180deg, var(--surface), var(--surface2)) !important;
+  box-shadow: var(--shadow2) !important;
 
-  /* Remove the "modern glass" vibe */
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  /* keep it premium but subtle */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  /* kill the “highlight line” chrome vibe */
+  overflow: hidden;
+}
+.controlsStack .panel::before{ display:none !important; }
+
+/* Make the whole control area feel like one calm toolbar */
+.controlsStack.desktop-only{
+  position: sticky;
+  top: 10px;
+  z-index: 50;
+  padding: 0;
+  margin: 14px 0 18px;
 }
 
-/* Make highlight line feel more "industrial" */
-.controlsStack .panel::before{
-  left: 0 !important;
-  right: 0 !important;
-  opacity: .35 !important;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10), transparent) !important;
-}
-
-/* Advanced panel also squared */
-#advancedPanel.advancedPanel{
-  border-radius: 0 !important;
-}
-
-/* ===========================
-   INPUTS: remove pill look
-   =========================== */
+/* ---------- INPUTS: stop uppercase cockpit typography ---------- */
 select,
 .control-button{
-  border-radius: 0 !important;
   height: 36px;
-  padding: 0 14px;
+  border-radius: 999px !important;
 
-  /* More IronGlass: darker + flatter */
-  background: rgba(9,9,9,.92) !important;
-  border: 1px solid rgba(255,255,255,.12) !important;
-  box-shadow: 0 12px 26px rgba(0,0,0,.55) !important;
+  background: rgba(15,15,15,.62) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
 
-  /* IronGlass typography: less "rounded UI" vibe */
-  font-size: 12px;
-  letter-spacing: .10em;
-  text-transform: uppercase;
+  color: var(--text) !important;
+
+  font-size: 13px !important;
+  letter-spacing: .02em !important;
+  text-transform: none !important;
+
+  box-shadow: 0 10px 26px rgba(0,0,0,.40) !important;
 }
 
-/* Hover: mostly border + subtle pop, not glow */
 select:hover,
 .control-button:hover{
-  border-color: rgba(255,122,0,.55) !important;
-  box-shadow: 0 14px 34px rgba(0,0,0,.62) !important;
-  filter: brightness(1.03) !important;
+  border-color: rgba(255,255,255,.16) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,.48) !important;
+  filter: brightness(1.04);
 }
 
-/* Active toggles: crisp orange stroke */
+/* Focus only when it matters */
+select:focus-visible,
+.control-button:focus-visible{
+  outline: none !important;
+  box-shadow: var(--focus) !important;
+  border-color: rgba(255,124,0,.55) !important;
+}
+
+/* ---------- ACTIVE STATE: orange only for state ---------- */
 button.active,
 .controls button.active{
-  border-color: rgba(255,122,0,.90) !important;
-  box-shadow: 0 14px 34px rgba(0,0,0,.62) !important;
+  background: rgba(255,124,0,.14) !important;
+  border-color: rgba(255,124,0,.70) !important;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.50),
+    0 0 0 1px rgba(255,124,0,.18) !important;
 }
 
-/* Focus: slimmer ring */
-select:focus,
-.control-button:focus{
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(255,122,0,.22), 0 14px 34px rgba(0,0,0,.62) !important;
-  border-color: rgba(255,122,0,.85) !important;
-}
-
-/* Scale chip: also square */
-#scaleCtrl.chip{
-  border-radius: 0 !important;
-  background: rgba(9,9,9,.92) !important;
-  border: 1px solid rgba(255,255,255,.12) !important;
-  box-shadow: 0 12px 26px rgba(0,0,0,.55) !important;
-}
-
-/* MF alt wrap: square */
-.mfAltWrap{
-  border-radius: 0 !important;
-  background: rgba(9,9,9,.78) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
-}
-
-/* ===========================
-   VIEWER: hard-edge frame
-   =========================== */
+/* ---------- VIEWER: remove orange frame, keep it image-first ---------- */
 #comparisonWrapper{
-  border-radius: 0 !important;
-  border: 1px solid rgba(255,122,0,.28) !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
   box-shadow: var(--shadow) !important;
 }
 
-/* Fullscreen remains square already; keep */
-#comparisonWrapper:fullscreen,
-#comparisonWrapper:-webkit-full-screen{
-  border-radius: 0 !important;
-}
-
-/* ===========================
-   SLIDER: less "app", more "tool"
-   =========================== */
+/* slider stays brand (functioneel) */
 #slider{
-  width: 2px;
-  box-shadow: 0 0 18px rgba(255,122,0,.25) !important;
+  background: rgba(255,124,0,.92) !important;
+  box-shadow: 0 0 18px rgba(255,124,0,.28) !important;
 }
-
-/* Replace round knob with square handle */
 #slider::after{
-  width: 26px !important;
-  height: 26px !important;
-  border-radius: 0 !important;
-  background: rgba(0,0,0,.72) !important;
-  border: 1px solid rgba(255,122,0,.65) !important;
-  box-shadow: 0 14px 34px rgba(0,0,0,.65), 0 0 14px rgba(255,122,0,.12) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,124,0,.55) !important;
+  background: rgba(10,10,10,.55) !important;
 }
 
-/* ===========================
-   INFO / BOXES: hard-edge
-   =========================== */
+/* ---------- LENS INFO: maak er 2 cards van (zonder JS/HTML rewrite) ---------- */
+#lensInfo{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 10px;
+}
+#lensInfo p{
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(12,12,12,.55);
+  color: rgba(245,245,245,.74);
+}
+#lensInfo strong{
+  color: rgba(255,124,0,.95);
+}
+
+/* Small screens: stack cards */
+@media (max-width: 860px){
+  #lensInfo{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Explanation box calmer ---------- */
 #explanationBox{
-  border-radius: 0 !important;
-  background: rgba(8,8,8,.92) !important;
-  border: 1px solid rgba(255,255,255,.10) !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  background: rgba(12,12,12,.50) !important;
+  color: rgba(245,245,245,.62) !important;
 }
 
-/* Detail viewer: square */
-.detail-view-square{
-  border-radius: 0 !important;
-  background: rgba(0,0,0,.92) !important;
-  border: 1px solid rgba(255,122,0,.48) !important;
-  box-shadow: 0 22px 60px rgba(0,0,0,.72), 0 0 18px rgba(255,122,0,.10) !important;
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
 }
-
-/* SBS pane borders: crisp */
-body.sbs-mode #sbsWrapper .pane:first-child{
-  border-right: 1px solid rgba(255,122,0,.28) !important;
-}
-body.sbs-mode #sbsWrapper .pane:last-child{
-  border-left: 1px solid rgba(255,122,0,.28) !important;
-}
-
-/* Remove rounded seam fixes (not needed when square) */
-body.sbs-mode #leftDetail,
-body.sbs-mode #rightDetail{
-  border-top-left-radius: 0 !important;
-  border-top-right-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-}
-
-
-/* ===========================
-   MF MATCH: NO WRAP + SHRINK LENS SELECT (FIX JUMP)
-   =========================== */
-
-/* Zorg dat items binnen elke lensSide NOOIT naar een 2e regel wrappen */
-.controlsTop .lensSide{
-  flex-wrap: nowrap !important;
-}
-
-/* Laat fields en selects krimpen (BELANGRIJK) */
-.controlsTop .lensSide .field{
-  min-width: 0 !important;
-}
-
-/* Lens dropdown (eerste field) mag groeien/krimpen */
-.controlsTop .lensSide .field:first-child{
-  flex: 1 1 0 !important;
-}
-
-/* MF dropdown + T-stop blijven “auto” breedte */
-.controlsTop .lensSide .field:not(:first-child){
-  flex: 0 0 auto !important;
-}
-
-/* Kill die harde min-width die je wrap veroorzaakt */
-#leftLens, #rightLens{
-  min-width: 0 !important;
-  width: 100% !important; /* vult z’n flex-bak, maar kan krimpen */
-}
-
-/* MF dropdown zelf: dezelfde vibe als T-stop */
-#mfAltLeft, #mfAltRight{
-  min-width: 110px;
-}
-
-/* Oude MF pill-wrap styling uitzetten (nu is het gewoon een normale select) */
-.mfAltWrap{
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-}
-.mfAltLabel{ display: none !important; }
