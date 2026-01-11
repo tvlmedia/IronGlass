@@ -450,18 +450,17 @@ function requestBrowserFullscreen(){
     closeGate();
   }
 
-  btn.addEventListener("click", () => {
-    // return-gate mode: jouw code gebruikt die elders
-    if(gate.dataset.mode === "return") return;
+  btn.onclick = () => {
+  // return-gate mode: jouw code gebruikt die elders
+  if(gate.dataset.mode === "return") return; // showFsReturnGate zet dan z’n eigen onclick
 
-    try{
-      // jouw bestaande functie
-      requestBrowserFullscreen();
-      closeGate();
-    } catch(e){
-      console.warn("Fullscreen request blocked:", e);
-    }
-  });
+  try{
+    requestBrowserFullscreen();
+    closeGate();
+  } catch(e){
+    console.warn("Fullscreen request blocked:", e);
+  }
+};
 
   document.addEventListener("fullscreenchange", () => {
     if(isBrowserFullscreen()) closeGate();
@@ -1564,19 +1563,19 @@ function showFsReturnGate(){
   const closeGate = () => gate.setAttribute("aria-hidden", "true");
   const openGate  = () => gate.setAttribute("aria-hidden", "false");
 
-  const goBackFullscreen = async () => {
-    closeGate();
+ const goBackFullscreen = async () => {
+  closeGate();
 
-    // user gesture -> fullscreen mag nu wél
-    beginFsEnterMask();
-    try{
-      await enterWrapperFullscreen();
-    } catch(e){
-      // fullscreen request blocked -> masker weg
-      endFsEnterMask();
-      return;
-    }
-  };
+  // ✅ BELANGRIJK:
+  // Niet terug naar jouw viewer (comparisonWrapper),
+  // maar "browser/document fullscreen" proberen.
+  // (macOS echte window-fullscreen kun je niet via JS forceren)
+  try{
+    requestBrowserFullscreen();  // document.documentElement.requestFullscreen
+  } catch(e){
+    console.warn("Browser fullscreen request blocked:", e);
+  }
+};
 
   // knop + klik op backdrop
   btn.onclick = goBackFullscreen;
@@ -1594,8 +1593,18 @@ function armReturnToFullscreenIfNeeded(){
 }
 
 /* === Resizes + fullscreen === */
+/* === Resizes + fullscreen === */
+let _lastFs = null;
+let _lastFsTs = 0;
+
 function onFsChange(){
   const fs = isWrapperFullscreen();
+  const now = performance.now();
+
+  // ✅ voorkomt dubbel afgaan (fullscreenchange + webkitfullscreenchange)
+  if(_lastFs === fs && (now - _lastFsTs) < 80) return;
+  _lastFs = fs;
+  _lastFsTs = now;
 
   const exitedFullscreen = (prevWrapperFullscreen && !fs);
   prevWrapperFullscreen = fs;
@@ -1606,7 +1615,7 @@ function onFsChange(){
     clearInlineHeights();
     pulseFsBarsSafe({duration:1400});
   } else {
-    comparisonWrapper.style.padding = "0px";          // ✅ stap 4
+    comparisonWrapper.style.padding = "0px";
     const {w,h}=getCurrentWH();
     comparisonWrapper.style.setProperty("aspect-ratio","auto");
     setWrapperSizeByAR(w,h);
@@ -1617,12 +1626,11 @@ function onFsChange(){
     slider.style.bottom="0";
   }
 
-  // ✅ Alleen als je écht net fullscreen verliet: check of dat door ESC was
- if(exitedFullscreen){
-  if(!exitRequestedByButton){
-    showFsReturnGate(); // toon gate bij ESC / browser UI / etc.
+  if(exitedFullscreen){
+    if(!exitRequestedByButton){
+      showFsReturnGate();
+    }
   }
-}
 
   scheduleLayoutStabilize();
 }
