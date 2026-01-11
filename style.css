@@ -69,15 +69,35 @@ body.sbs-mode .frame-1200{
 }
 
 /* ===========================
-   CONTROLS
+   CONTROLS STACK (NEW)
    =========================== */
-.controls.desktop-only{
+.controlsStack.desktop-only{
   position:sticky;
   top:0;
   z-index:50;
 
   width:100%;
   margin:18px 0 20px;
+  box-sizing:border-box;
+
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+
+  /* klein beetje padding rond panels zodat het “1 blok” blijft */
+  padding:0;
+}
+
+/* Controls in SxS: max 1200 en gecentreerd */
+body.sbs-mode .controlsStack.desktop-only{
+  max-width:1200px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* Panel styling (top + bottom) */
+.controlsStack .panel{
+  width:100%;
   padding:14px 16px;
   box-sizing:border-box;
 
@@ -91,14 +111,8 @@ body.sbs-mode .frame-1200{
   -webkit-backdrop-filter:blur(8px);
 }
 
-/* Controls in SxS: max 1200 en gecentreerd */
-body.sbs-mode .controls.desktop-only{
-  max-width:1200px;
-  margin-left:auto;
-  margin-right:auto;
-}
-
-.controls.desktop-only .row{
+/* Elke row in panels */
+.controlsStack .row{
   display:flex;
   align-items:center;
   justify-content:center;
@@ -106,18 +120,83 @@ body.sbs-mode .controls.desktop-only{
   flex-wrap:wrap;
 }
 
-.controls.desktop-only .row-2{ margin-top:6px; }
+/* === TOP PANEL ROWS === */
+.controlsTop .camRow{
+  justify-content:center;
+  gap:10px;
+  margin-bottom:10px;
+}
 
-/* Row-1: niet wrappen, maar wél scrollbaar als het krap wordt */
-.controls.desktop-only .row-1{
+/* LensRow: 3 kolommen (L / C / R) */
+.controlsTop .lensRow{
   flex-wrap:nowrap;
+  gap:12px;
+}
+
+.controlsTop .lensSide{
+  flex:1 1 0;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.controlsTop .lensCenter{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* === BOTTOM PANEL ROWS === */
+.controlsBottom .actionRow{
+  justify-content:space-between;
+  gap:10px;
+}
+
+.controlsBottom .actionLeft{
+  flex:1 1 auto;
+  min-width:0;
+
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:nowrap;
+
   overflow-x:auto;
   overflow-y:hidden;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:none;
-  gap:6px;
 }
-.controls.desktop-only .row-1::-webkit-scrollbar{ display:none; }
+.controlsBottom .actionLeft::-webkit-scrollbar{ display:none; }
+
+.controlsBottom .actionRight{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+/* Advanced panel dropdown */
+#advancedPanel.advancedPanel{
+  display:none;
+  margin-top:10px;
+  gap:10px;
+  justify-content:center;
+  flex-wrap:wrap;
+}
+#advancedPanel.advancedPanel.open{
+  display:flex;
+}
+
+/* Scale row onderaan */
+.controlsBottom .scaleRow{
+  margin-top:10px;
+  justify-content:center;
+}
 
 /* ===========================
    INPUT STYLES
@@ -212,26 +291,18 @@ select:focus{
 #leftLens,#rightLens{ min-width:200px; }
 #tStopLeftSelect,#tStopRightSelect{ min-width:90px; }
 
-/* Row-1 compacter */
-.controls.desktop-only .row-1 select,
-.controls.desktop-only .row-1 .control-button,
-.controls.desktop-only .row-1 #scaleCtrl,
-.controls.desktop-only .row-1 #calibrateToggle{
-  min-width:auto;
-  padding:0 8px;
-  font-size:12px;
-  height:32px;
-}
-
-/* Selects in row-1 nooit “line-height 1” meegeven */
-.controls.desktop-only .row-1 select{
-  line-height:normal;
-}
-
-/* camera/sensor iets smaller */
-.controls.desktop-only .row-1 #cameraSelect,
-.controls.desktop-only .row-1 #sensorFormatSelect{
+/* TOP panel: camera/sensor iets smaller */
+.controlsTop #cameraSelect,
+.controlsTop #sensorFormatSelect{
   min-width:110px;
+}
+
+/* Bottom row: compacter text */
+.controlsBottom .control-button,
+.controlsBottom select,
+.controlsBottom #scaleCtrl{
+  font-size:12px;
+  padding:0 9px;
 }
 
 #flareToggle{
@@ -317,6 +388,23 @@ button.active,
   background:var(--ig-accent);
   border:2px solid #000;
   cursor:pointer;
+}
+
+/* ===========================
+   MF MATCH WRAPS
+   =========================== */
+.mfAltWrap{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-left:10px;
+}
+
+.mfAltLabel{
+  opacity:.85;
+  font-size:12px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
 }
 
 /* ===========================
@@ -710,6 +798,9 @@ body.sbs-mode #rightDetail{
 @media (max-width:1000px){
   #cameraSelect,#sensorFormatSelect,#focalLength{ min-width:120px; }
   #scaleCtrl input[type="range"]{ width:100px; }
+
+  /* LensRow mag wrap op smallere schermen zodat het niet breekt */
+  .controlsTop .lensRow{ flex-wrap:wrap; }
 }
 
 /* default: mobile-only controls uit */
@@ -731,12 +822,13 @@ body.sbs-mode #rightDetail{
   }
 
   /* desktop controls weg, mobile iframe aan */
+  .controlsStack.desktop-only{ display:none !important; }
   .controls.mobile-only{ display:block !important; }
   .lens-frame-outer{ display:block !important; }
 }
 
 /* duplicaat-vangnet */
-.controls.desktop-only:not(:first-of-type),
+.controlsStack.desktop-only:not(:first-of-type),
 .controls.mobile-only:not(:first-of-type){
   display:none !important;
 }
@@ -746,7 +838,7 @@ body.sbs-mode #rightDetail{
    =========================== */
 @media print{
   body{ background:#fff !important; color:#000 !important; }
-  .controls,#explanationBox{ display:none !important; }
+  .controlsStack,#explanationBox{ display:none !important; }
   #comparisonWrapper{ width:100% !important; height:auto !important; aspect-ratio:auto !important; }
   #infoContainer{ color:#000 !important; }
   #comparisonWrapper img{ object-fit:contain !important; }
@@ -756,16 +848,4 @@ body.sbs-mode #rightDetail{
 #calibrateToggle:focus-visible:not(.active){
   box-shadow: none !important;
   outline: none !important;
-}
-.mfAltWrap{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 10px;
-}
-.mfAltLabel{
-  opacity: .85;
-  font-size: 12px;
-  letter-spacing: .06em;
-  text-transform: uppercase;
 }
