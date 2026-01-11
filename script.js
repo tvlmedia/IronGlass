@@ -389,6 +389,9 @@ const reframeBtn = q("reframeToggle");
 const calibrateBtn = q("calibrateToggle");
 let calibrateActive = false;
 let calibrateUserTouchedScale = false;
+const exposureBtn = q("exposureToggle");
+let exposureCorrectionActive = true; // ✅ default ON
+
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 
@@ -442,6 +445,11 @@ function fillAltSelect(sel, options, preferred){
   } else {
     sel.value = options[0];
   }
+}
+
+if(exposureBtn){
+  exposureBtn.textContent = "Exposure Correction";
+  setToggleActive(exposureBtn, exposureCorrectionActive);
 }
 
 function updateMfAltUI(){
@@ -730,6 +738,12 @@ bokehToggle.addEventListener("click", () => {
   updateToggleHighlights();
 });
 
+exposureBtn?.addEventListener("click", () => {
+  exposureCorrectionActive = !exposureCorrectionActive;
+  updateImages();
+  updateToggleHighlights();
+});
+
 /* Flare: 3 standen */
 flareToggle.dataset.mode = flareToggle.dataset.mode || "noflare";
 const flareLabel = (m)=> m==="noflare" ? "Flare: OFF" : (m==="flare" ? "Flare: ON" : "Double Flare: ON");
@@ -926,6 +940,7 @@ function updateToggleHighlights(){
   setToggleActive(sbsBtn, !!sbsActive);
   setToggleActive(detailToggleButton, isDetailOn);
   setToggleActive(calibrateBtn, !!calibrateActive);
+  setToggleActive(exposureBtn, !!exposureCorrectionActive);
 }
 
 
@@ -1107,6 +1122,30 @@ function setImageWithFallback(imgEl, urls){
   imgEl.src = urls[i];
 }
 
+function preferCorrectedUrls(urls){
+  const out = [];
+  const seen = new Set();
+
+  const push = (u) => {
+    if(!u || seen.has(u)) return;
+    seen.add(u);
+    out.push(u);
+  };
+
+  urls.forEach(u => {
+    // voeg _c toe vóór extensie: .jpg/.jpeg/.png etc
+    const corrected = u.replace(/(\.[a-z0-9]+)(\?.*)?$/i, (m, ext, qs="") => `_c${ext}${qs}`);
+
+    // alleen “corrected first” als het nog niet al _c is
+    if(corrected !== u && !/_c\.[a-z0-9]+(\?.*)?$/i.test(u)){
+      push(corrected);
+    }
+    push(u);
+  });
+
+  return out;
+}
+
 function resolveImageCandidates(lens, nominalFocal, tStr, flareMode, sceneMode, tStrFallback = null){
   const alias = aliasFor(lens, nominalFocal);
 
@@ -1196,8 +1235,13 @@ function updateImages(){
  const tLFallback = String((TSTOP_FILE_ALIAS?.[LL]?.[uiTL] ?? uiTL)).replace(/\./g, "_");
 const tRFallback = String((TSTOP_FILE_ALIAS?.[RR]?.[uiTR] ?? uiTR)).replace(/\./g, "_");
 
-  const leftCandidates  = resolveImageCandidates(LL, leftFocal,  tL, flareMode, sceneMode, tLFallback);
-  const rightCandidates = resolveImageCandidates(RR, rightFocal, tR, flareMode, sceneMode, tRFallback);
+ let leftCandidates  = resolveImageCandidates(LL, leftFocal,  tL, flareMode, sceneMode, tLFallback);
+let rightCandidates = resolveImageCandidates(RR, rightFocal, tR, flareMode, sceneMode, tRFallback);
+
+if(exposureCorrectionActive){
+  leftCandidates  = preferCorrectedUrls(leftCandidates);
+  rightCandidates = preferCorrectedUrls(rightCandidates);
+}
 
   // jouw tool: before = rechts, after = links
   setImageWithFallback(beforeImgTag, rightCandidates);
