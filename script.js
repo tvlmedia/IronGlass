@@ -2448,3 +2448,33 @@ forceCaptureCamera();
 setTimeout(forceCaptureCamera, 50);
 window.addEventListener("load", () => setTimeout(forceCaptureCamera, 250));
 window.addEventListener("pageshow", () => setTimeout(forceCaptureCamera, 0));
+
+document.addEventListener("DOMContentLoaded", () => {
+  const controls = document.querySelector(".controlsStack.desktop-only");
+  const sentinel = document.getElementById("controlsSentinel");
+  const spacer = document.getElementById("controlsSpacer");
+  if (!controls || !sentinel || !spacer) return;
+
+  const setControlsHeight = () => {
+    const h = Math.ceil(controls.getBoundingClientRect().height);
+    // +16 voor je top-gap / ademruimte
+    document.documentElement.style.setProperty("--controls-stack-h", `${h + 16}px`);
+  };
+
+  setControlsHeight();
+
+  // update hoogte als Advanced open/dicht gaat of als layout verandert
+  const ro = new ResizeObserver(setControlsHeight);
+  ro.observe(controls);
+
+  // detecteer wanneer sticky actief is
+  const io = new IntersectionObserver(
+    ([entry]) => {
+      document.body.classList.toggle("controls-stuck", !entry.isIntersecting);
+    },
+    { threshold: 0 }
+  );
+  io.observe(sentinel);
+});
+
+
