@@ -2415,3 +2415,166 @@ document.addEventListener("DOMContentLoaded", () => {
   new ResizeObserver(setControlsHeight).observe(controls);
   window.addEventListener("resize", setControlsHeight);
 });
+/* ============================
+   PDF EXPORT – CLICK HANDLER
+   (page 1: split, page 2: left, page 3: right)
+   ============================ */
+
+function safeFileName(s){
+  return String(s || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_\-]/gi, "");
+}
+
+async function exportLensPdf(){
+  if(isExportingPdf) return;
+
+  const JsPDF = getJsPDFCtor();
+  if(!JsPDF){
+    alert("jsPDF is niet geladen (CDN).");
+    return;
+  }
+
+  isExportingPdf = true;
+
+  try{
+    // PDF setup
+    const pdf = new JsPDF({
+      orientation: "landscape",
+      unit: "pt",
+      format: "a4",
+      compress: true
+    });
+
+    const pw = pdf.internal.pageSize.getWidth();
+    const ph = pdf.internal.pageSize.getHeight();
+
+    // Layout constants
+    const PAGE_MARGIN = 24;
+    const TOP_BAR = 58;
+    const BOTTOM_BAR = 94;
+
+    // “usable” box voor de image
+    const imgBox = {
+      x: PAGE_MARGIN,
+      y: TOP_BAR + PAGE_MARGIN,
+      w: pw - (PAGE_MARGIN * 2),
+      h: ph - TOP_BAR - BOTTOM_BAR - (PAGE_MARGIN * 2)
+    };
+
+    // Load logo (encode spaces safely)
+    let logoImg = null;
+    try{
+      const logoUrl = new URL("images/IRONGLASS LOGO.png", location.href).href; // URL encodes spaces
+      logoImg = await loadHTMLImage(logoUrl);
+    } catch(e){
+      // logo is nice-to-have, export must still work
+      logoImg = null;
+    }
+
+    // Current selection
+    const uiFocal = focalLengthSelect?.value || "50mm";
+    const L_label = leftSelect?.value || "";
+    const R_label = rightSelect?.value || "";
+
+    const L_slug = lensSlugFromLabel(L_label);
+    const R_slug = lensSlugFromLabel(R_label);
+
+    const L_effFocal = getEffectiveFocal(L_slug, uiFocal, "left");
+    const R_effFocal = getEffectiveFocal(R_slug, uiFocal, "right");
+
+    const uiTL = tStopLeftSelect?.value || "2.8";
+    const uiTR = tStopRightSelect?.value || "2.8";
+
+    // Visible focal label (uses your alias mapping, shows e.g. 58MM for “50mm” on MKII/RedP)
+    const focalShownLeft  = displayFocalForUI(L_slug, uiFocal);
+    const focalShownRight = displayFocalForUI(R_slug, uiFocal);
+
+    // Sources: take what viewer currently shows (includes flare/bokeh/exposure corrected variant)
+    const leftURL  = afterImgTag?.src;   // left = after
+    const rightURL = beforeImgTag?.src;  // right = before
+
+    if(!leftURL || !rightURL){
+      alert("Images zijn nog niet geladen – probeer opnieuw zodra je beeld zichtbaar is.");
+      return;
+    }
+
+    // Sensor AR (single frame)
+    const { w, h } = getCurrentWH();
+    const sensorAR = w / h;
+
+    // Bars helper (uses your drawBars)
+    const bars = drawBars(pdf, TOP_BAR, BOTTOM_BAR, PAGE_MARGIN);
+
+    // ---------- PAGE 1: SPLIT ----------
+    pdf.setFillColor(0,0,0);
+    pdf.rect(0,0,pw,ph,"F");
+
+    const titleP1 = `${L_label} vs ${R_label} — ${focalShownLeft} / ${focalShownRight}`;
+    bars.top(titleP1);
+
+    // Build split at current slider position (or 50/50 if SBS)
+    const splitOutH = 2200; // quality vs file size
+    const renderedL = await renderToSensorAR(leftURL,  sensorAR, splitOutH, 1, 0);
+    const renderedR = await renderToSensorAR(rightURL, sensorAR, splitOutH, 1, 0);
+
+    const splitData = await buildSplitFromSensor(renderedL.dataURL, renderedR.dataURL, renderedL.W, renderedL.H);
+
+    // Place split image (contain into imgBox)
+    await placeContain(pdf, splitData, imgBox);
+
+    // Bottom bar page 1 (no logo if you want: pass null)
+    bars.bottomP1(null, getSensorText());
+
+    // ---------- PAGE 2: LEFT ----------
+    pdf.addPage();
+    pdf.setFillColor(0,0,0);
+    pdf.rect(0,0,pw,ph,"F");
+
+    const titleL = `${L_label} — ${focalShownLeft} — T${uiTL}`;
+    bars.top(titleL);
+
+    const leftOutH = 2200;
+    const leftRender = await renderToSensorAR(leftURL, sensorAR, leftOutH, 1, 0);
+    await placeContain(pdf, leftRender.dataURL, imgBox);
+
+    bars.bottom({
+      text: (lensDescriptions?.[L_label]?.text || ""),
+      link: (lensDescriptions?.[L_label]?.url  || ""),
+      logo: logoImg
+    });
+
+    // ---------- PAGE 3: RIGHT ----------
+    pdf.addPage();
+    pdf.setFillColor(0,0,0);
+    pdf.rect(0,0,pw,ph,"F");
+
+    const titleR = `${R_label} — ${focalShownRight} — T${uiTR}`;
+    bars.top(titleR);
+
+    const rightOutH = 2200;
+    const rightRender = await renderToSensorAR(rightURL, sensorAR, rightOutH, 1, 0);
+    await placeContain(pdf, rightRender.dataURL, imgBox);
+
+    bars.bottom({
+      text: (lensDescriptions?.[R_label]?.text || ""),
+      link: (lensDescriptions?.[R_label]?.url  || ""),
+      logo: logoImg
+    });
+
+    // Save
+    const fname =
+      `IronGlass_Compare_${safeFileName(L_label)}_vs_${safeFileName(R_label)}_${safeFileName(uiFocal)}_TL${safeFileName(uiTL)}_TR${safeFileName(uiTR)}.pdf`;
+
+    pdf.save(fname);
+  } catch(err){
+    console.error("PDF export failed:", err);
+    alert("PDF export faalde. Check console voor error.");
+  } finally {
+    isExportingPdf = false;
+  }
+}
+
+// ✅ hook up the button
+downloadPdfButton?.addEventListener("click", exportLensPdf);
