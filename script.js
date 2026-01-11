@@ -1513,6 +1513,8 @@ rightLabel.innerHTML = `Lens: <a href="${ru}" target="_blank" rel="noopener nore
   setDownloadButton(downloadLeftRawButton,  `${LL}_${lf}_t${tL}`);
   setDownloadButton(downloadRightRawButton, `${RR}_${rf}_t${tR}`);
 
+
+  
   // SBS ook updaten
   if(sbsActive){
     setImageWithFallback(sbsLeftImg,  leftCandidates);
@@ -2214,6 +2216,8 @@ function updateSliderPosition(clientX){
   slider.style.bottom = "auto";
 }
 
+
+
 /* === SLIDER DRAG (Pointer Events, rock solid) === */
 let isDraggingSlider = false;
 
@@ -2254,6 +2258,16 @@ slider.addEventListener("pointerdown", startSliderDrag, { passive:false });
 window.addEventListener("pointermove", moveSliderDrag, { passive:false });
 window.addEventListener("pointerup", endSliderDrag, { passive:false });
 window.addEventListener("pointercancel", endSliderDrag, { passive:false });
+
+// --- extra failsafes: nooit "dragging" vast laten hangen ---
+slider.addEventListener("lostpointercapture", endSliderDrag, { passive:false });
+window.addEventListener("blur", endSliderDrag, { passive:false });
+window.addEventListener("pointerleave", endSliderDrag, { passive:false });
+
+// Als user van tab wisselt / screen lock → kill drag
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) endSliderDrag({ pointerId: 1, preventDefault(){} });
+});
 
 // Optioneel: klik in het beeld = slider jump (nice UX)
 comparisonWrapper.addEventListener("pointerdown", (e) => {
@@ -2309,14 +2323,11 @@ function getCurrentSplitFraction(){
   if(sbsActive) return 0.5;
 
   const rect = comparisonWrapper.getBoundingClientRect();
-  const lbL  = comparisonWrapper._lbLeft  || 0;
-  const lbR  = comparisonWrapper._lbRight || 0;
+  const usableW = Math.max(1, Math.round(comparisonWrapper._usableW ?? rect.width));
 
-  const usableW = Math.max(1, rect.width - lbL - lbR);
-
-  // slider.style.left is: (lbL + clamped) + "px"
+  // slider.style.left is al in "usable/content" coördinaten (0..usableW)
   const sliderLeftPx = parseFloat(slider.style.left || "0");
-  const xInUsable = clamp(sliderLeftPx - lbL, 0, usableW);
+  const xInUsable = clamp(sliderLeftPx, 0, usableW);
 
   return clamp(xInUsable / usableW, 0, 1);
 }
