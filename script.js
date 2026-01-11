@@ -423,7 +423,7 @@ function requestBrowserFullscreen(){
   if(req) req.call(el);
 }
 
-((function fullscreenGateInit(){
+(function fullscreenGateInit(){
   const gate = document.getElementById("fsGate");
   const btn  = document.getElementById("fsGateBtn");
   if(!gate || !btn) return;
