@@ -395,6 +395,18 @@ let exposureCorrectionActive = true; // ✅ default ON
 const fullscreenBtn=q("fullscreenButton"), sbsBtn=q("sbsToggle"), toggleBtn=q("toggleButton"), infoContainer=q("infoContainer");
 const detailOverlay=q("detailOverlay"), leftDetail=q("leftDetail"), rightDetail=q("rightDetail"), detailToggleButton=q("detailViewToggle");
 
+const advancedToggle = q("advancedToggle");
+const advancedPanel  = q("advancedPanel");
+
+if (advancedToggle && advancedPanel) {
+  advancedToggle.addEventListener("click", () => {
+    const open = advancedPanel.classList.toggle("open");
+    advancedPanel.setAttribute("aria-hidden", open ? "false" : "true");
+    advancedToggle.textContent = open ? "Advanced ▴" : "Advanced ▾";
+    advancedToggle.blur();
+  });
+}
+
 const mfAltLeftWrap  = q("mfAltLeftWrap");
 const mfAltRightWrap = q("mfAltRightWrap");
 const mfAltLeftSel   = q("mfAltLeft");
