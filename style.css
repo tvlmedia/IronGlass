@@ -1032,3 +1032,34 @@ body.sbs-mode #rightDetail{
     grid-template-columns: 1fr;
   }
 }
+/* Make the notes breathe */
+#explanationBox{
+  margin-top: 16px;
+  padding: 18px 20px;              /* meer ruimte rondom */
+  border-radius: 16px;
+}
+
+#explanationBox p{
+  margin: 0;
+  font-size: 13px;                 /* net iets groter */
+  line-height: 1.65;               /* veel minder krap */
+  letter-spacing: 0.1px;
+  opacity: 0.95;
+}
+
+/* Als je de noteItem markup gebruikt (aanrader): maak ze los van elkaar */
+#explanationBox .noteItem{
+  padding: 12px 14px;              /* ruimte per note */
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+}
+
+#explanationBox .noteItem + .noteItem{
+  margin-top: 12px;                /* duidelijke scheiding */
+}
+
+#explanationBox .noteIcon{
+  transform: translateY(3px);
+  opacity: 0.9;
+}
