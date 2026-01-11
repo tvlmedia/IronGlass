@@ -659,6 +659,14 @@ function getCurrentWH(){
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
+function beginFsEnterMask(){
+  comparisonWrapper.classList.add("fs-entering");
+}
+
+function endFsEnterMask(){
+  comparisonWrapper.classList.remove("fs-entering");
+}
+
 function scheduleLayoutStabilize(){
   // 2x RAF: wacht tot fullscreen layout echt staat
   requestAnimationFrame(() => {
@@ -672,15 +680,12 @@ function scheduleLayoutStabilize(){
       } else {
         applyCalibrationTransforms();
       }
+
+      // ✅ NU pas tonen (geen flash)
+      endFsEnterMask();
     });
   });
-function beginFsEnterMask(){
-  comparisonWrapper.classList.add("fs-entering");
-}
 
-function endFsEnterMask(){
-  comparisonWrapper.classList.remove("fs-entering");
-}
   // Safari: soms nog een late reflow
   setTimeout(() => {
     updateFullscreenBars();
@@ -694,7 +699,6 @@ function endFsEnterMask(){
     }
   }, 120);
 }
-
 /* === AUTO REFAME (viewer + PDF) – per focal, afhankelijk van sensor hoogte ===
    - startH: vanaf welke sensorhoogte hij begint te shiften
    - endH:   bij welke hoogte hij max shift bereikt
@@ -1567,8 +1571,33 @@ window.addEventListener("resize",()=>{
     setWrapperSizeByAR(w,h);
   }
 });
-function toggleFullscreen(){ (async()=>{ if(isWrapperFullscreen()){ await exitAnyFullscreen(); const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h)); ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px")); } else { clearInlineHeights(); await enterWrapperFullscreen(); pulseFsBars({duration:1400}); } updateFullscreenBars(); requestAnimationFrame(()=>{ updateFullscreenBars(); resetSplitToMiddle(); }); })(); }
-fullscreenBtn?.addEventListener("click",toggleFullscreen);
+async function toggleFullscreen(){
+  if(isWrapperFullscreen()){
+    await exitAnyFullscreen();
+    endFsEnterMask(); // safety
+
+    const {w,h}=getCurrentWH();
+    comparisonWrapper.style.setProperty("aspect-ratio","auto");
+    setWrapperSizeByAR(w,h);
+    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
+    return;
+  }
+
+  // ✅ ENTER: mask vóórdat fullscreen ingaat (dus geen flash-frame)
+  beginFsEnterMask();
+
+  try{
+    clearInlineHeights();
+    await enterWrapperFullscreen();
+    pulseFsBarsSafe({duration:1400});
+  } catch(e){
+    // als fullscreen geblokkeerd is → mask weer weg
+    endFsEnterMask();
+    return;
+  }
+}
+fullscreenBtn?.addEventListener("click", toggleFullscreen);
 
 /* === SxS toggle === */
 function setSideBySide(on,{force=false}={}) {
