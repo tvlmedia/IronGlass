@@ -939,3 +939,30 @@ body.sbs-mode #rightDetail{
   box-shadow: var(--focus) !important;
   outline:none !important;
 }
+/* ===============================
+   FIX: Controls gewoon in flow
+   (logo -> controls -> viewer)
+================================ */
+
+.controlsStack.desktop-only{
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+
+  width: 100% !important;          /* binnen .frame-1200 */
+  z-index: 2 !important;
+
+  margin: 14px 0 16px !important;  /* ruimte onder logo */
+}
+
+/* SBS breedte niet meer nodig als het in flow staat */
+body.sbs-mode .controlsStack.desktop-only{
+  width: 100% !important;
+}
+
+/* Spacer uitzetten (anders krijg je een rare lege gap) */
+#controlsSpacer{
+  display: none !important;
+  height: 0 !important;
+}
