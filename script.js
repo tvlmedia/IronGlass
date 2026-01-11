@@ -521,6 +521,16 @@ function closestUIFocal(options, preferred){
   return best;
 }
 
+function displayFocalForUI(lensSlug, uiFocal){
+  // aliasFor geeft bijv. "58mm" voor ("ironglass_sovjet_mkii", "50mm")
+  let f = aliasFor(lensSlug, uiFocal);
+
+  // als er ooit _m35/_m50 in zit: toon als "45mm"
+  f = String(f).replace(/_m(35|50)$/i, "");
+
+  return String(f).toUpperCase();
+}
+
 // Bouw focal dropdown op basis van de *huidige* lens links+rechts.
 // Alleen focals die beide lenzen echt hebben blijven zichtbaar.
 function updateFocalOptionsForCurrentLenses(){
@@ -540,8 +550,14 @@ function updateFocalOptionsForCurrentLenses(){
   if(!valids.length) valids = UI_FOCALS.slice();
 
   // rebuild dropdown
-  focalLengthSelect.innerHTML = "";
-  valids.forEach(f => focalLengthSelect.add(new Option(f, f)));
+ // 👇 kies “referentie lens” voor de labels (links voelt logisch)
+const refSlug = lensSlugFromLabel(leftSelect?.value || "");
+
+focalLengthSelect.innerHTML = "";
+valids.forEach(f => {
+  const label = displayFocalForUI(refSlug, f); // bijv. UI "50mm" -> label "58MM"
+  focalLengthSelect.add(new Option(label, f));
+});
 
   // behoud huidige als het kan, anders kies dichtstbijzijnde
   const next = valids.includes(prev) ? prev : closestUIFocal(valids, prev);
