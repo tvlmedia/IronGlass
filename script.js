@@ -654,7 +654,35 @@ function getCurrentWH(){
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
+function scheduleLayoutStabilize(){
+  // 2x RAF: wacht tot fullscreen layout echt staat
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      updateFullscreenBars();
+      resetSplitToMiddle();
 
+      if(calibrateActive){
+        if(!calibrateUserTouchedScale) autoScaleForCalibration();
+        else applyCalibrationTransforms();
+      } else {
+        applyCalibrationTransforms();
+      }
+    });
+  });
+
+  // Safari: soms nog een late reflow
+  setTimeout(() => {
+    updateFullscreenBars();
+    resetSplitToMiddle();
+
+    if(calibrateActive){
+      if(!calibrateUserTouchedScale) autoScaleForCalibration();
+      else applyCalibrationTransforms();
+    } else {
+      applyCalibrationTransforms();
+    }
+  }, 120);
+}
 
 /* === AUTO REFAME (viewer + PDF) – per focal, afhankelijk van sensor hoogte ===
    - startH: vanaf welke sensorhoogte hij begint te shiften
@@ -1493,26 +1521,23 @@ function onFsChange(){
   const fs = isWrapperFullscreen();
   setFullscreenImageFit(fs);
 
-  if(fs){ clearInlineHeights(); pulseFsBars({duration:1400}); }
-  else { const {w,h}=getCurrentWH(); comparisonWrapper.style.setProperty("aspect-ratio","auto"); setWrapperSizeByAR(w,h); requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
-    slider.style.top="0px"; slider.style.height="100%"; slider.style.bottom="0";
-  }
-  updateFullscreenBars();
-requestAnimationFrame(()=>{
-  updateFullscreenBars();
-  resetSplitToMiddle();
-
-  if(calibrateActive){
-  if(!calibrateUserTouchedScale){
-    autoScaleForCalibration();
+  if(fs){
+    clearInlineHeights();
+    pulseFsBars({duration:1400});
   } else {
-    applyCalibrationTransforms();
+    const {w,h}=getCurrentWH();
+    comparisonWrapper.style.setProperty("aspect-ratio","auto");
+    setWrapperSizeByAR(w,h);
+    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
+    slider.style.top="0px";
+    slider.style.height="100%";
+    slider.style.bottom="0";
   }
-} else {
-  applyCalibrationTransforms();
+
+  // 👇 vervangt je huidige “meerdere updateFullscreenBars + RAF” gedoe
+  scheduleLayoutStabilize();
 }
-});
   requestAnimationFrame(()=>{ if(!isWrapperFullscreen()){ const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
 }
 document.addEventListener("fullscreenchange",onFsChange);
@@ -1575,40 +1600,25 @@ toggleBtn?.addEventListener("click",()=>{
   updateImages(); 
 });
 /* === Slider drag (mouse/touch) === */
-let isDragging = false;
+function onFsChange(){
+  const fs = isWrapperFullscreen();
+  setFullscreenImageFit(fs);
 
-if(slider && comparisonWrapper && afterWrapper){
-  slider.addEventListener("mousedown", () => {
-    isDragging = true;
-    document.body.classList.add("dragging");
-  });
+  if(fs){
+    clearInlineHeights();
+    pulseFsBars({duration:1400});
+  } else {
+    const {w,h}=getCurrentWH();
+    comparisonWrapper.style.setProperty("aspect-ratio","auto");
+    setWrapperSizeByAR(w,h);
+    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
+    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
+    slider.style.top="0px";
+    slider.style.height="100%";
+    slider.style.bottom="0";
+  }
 
-  window.addEventListener("mouseup", () => {
-    isDragging = false;
-    document.body.classList.remove("dragging");
-  });
-
-  window.addEventListener("mousemove", (e) => {
-    if(isDragging) updateSliderPosition(e.clientX);
-  });
-
-  slider.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    isDragging = true;
-    document.body.classList.add("dragging");
-  }, { passive:false });
-
-  window.addEventListener("touchend", () => {
-    isDragging = false;
-    document.body.classList.remove("dragging");
-  });
-
-  window.addEventListener("touchmove", (e) => {
-    if(isDragging && e.touches.length === 1){
-      e.preventDefault();
-      updateSliderPosition(e.touches[0].clientX);
-    }
-  }, { passive:false });
+  scheduleLayoutStabilize();
 }
 
 function recalcLayout(){
