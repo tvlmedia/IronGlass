@@ -883,3 +883,12 @@ body.sbs-mode #rightDetail{
 @media (max-width:1000px){
   #scaleCtrl input[type="range"]{ width: 120px; }
 }
+/* === REMOVE SLIDER KNOB / CIRCLE === */
+#slider::after{
+  content: none !important;
+  display: none !important;
+}
+#comparisonWrapper:hover #slider::after,
+body.dragging #slider::after{
+  opacity: 0 !important;
+}
