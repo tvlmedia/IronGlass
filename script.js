@@ -674,7 +674,13 @@ function scheduleLayoutStabilize(){
       }
     });
   });
+function beginFsEnterMask(){
+  comparisonWrapper.classList.add("fs-entering");
+}
 
+function endFsEnterMask(){
+  comparisonWrapper.classList.remove("fs-entering");
+}
   // Safari: soms nog een late reflow
   setTimeout(() => {
     updateFullscreenBars();
