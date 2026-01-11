@@ -245,7 +245,7 @@ const MEASURED_TSTOPS = {
     "30mm":  ["4", "3.8"]
   },
 
-  "ironglass_zeiss_": {
+  "ironglass_zeiss_jena": {
     // jouw nieuwe files: 50mm t1_9 / t2_8 / t4
     "120mm": ["4", "2.9"],
     "80mm":  ["4", "2.8", "1.9"],
@@ -293,7 +293,7 @@ const TSTOP_FILE_ALIAS = {
     "4":  "4"
   },
 
-  "ironglass_zeiss_": {
+  "ironglass_zeiss_jena": {
     // files: t1_9, t2_8, t4
    
     "2":  "1.9",
@@ -317,7 +317,7 @@ const lensImageMap = {
 
 const lensDescriptions = {
   "IronGlass Red P": { text:"Extremely vintage Soviet optics with single coating, heavy character, flare and distortion. Pure, raw, unpolished glass for maximum personality.", url:"https://ironglassadapters.com/rehousing/red-p-limited-edition-soviet-lens-rehousing/" },
-  "IronGlass Zeiss ": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss--rehousing/" },
+  "IronGlass Zeiss Jena": { text:"Soft vintage signature without heavy distortion or wild flares. Adds character while keeping faces natural and flattering.", url:"https://ironglassadapters.com/rehousing/carl-zeiss-jena-rehousing/" },
   "IronGlass Sovjet MKII": { text:"The IronGlass MKII Soviet set is, after the RED P, the most intense variant: heavily-tweaked vintage Soviet lenses with extreme character, flare and distortion. Ideal for a raw, experimental look.", url:"https://ironglassadapters.com/rehoused-soviet-lenses/mkii/" },
   "IronGlass Titan Zoom": { text:"The IronGlass Titan Zoom is a cleaner zoom lens, which covers big sensors", url:"https://ironglassadapters.com/id/23/" },
   "IronGlass Sovjet Medium Format": { text:"The IronGlass Sovjet Medium Format is a 8 lens set, which covers medium format sensors like GFX Eterna, Blackmagic Ursa 17K & Arri Alexa 265", url:"https://ironglassadapters.com/id/23/" },
@@ -1190,9 +1190,9 @@ function updateToggleHighlights(){
 /* === RAW map + download === */
 const rawFileMap={
   "ironglass_red_p_35mm_t2_8":"images/raw/RedP_37mm_T2.8_RAW.tif",
-  "ironglass_zeiss__35mm_t2_8":"images/raw/Zeiss_35mm_T2.8_RAW.tif",
+  "ironglass_zeiss_jena_35mm_t2_8":"images/raw/ZeissJena_35mm_T2.8_RAW.tif",
   "ironglass_red_p_50mm_t2_8":"images/raw/RedP_58mm_T2.8_RAW.tif",
-  "ironglass_zeiss__50mm_t2_8":"images/raw/Zeiss_50mm_T2.8_RAW.tif",
+  "ironglass_zeiss_jena_50mm_t2_8":"images/raw/ZeissJena_50mm_T2.8_RAW.tif",
   "cooke_panchro_ff_50mm_t2_8":"images/raw/CookeFF_50mm_T2.8_RAW.tif"
 };
 function setDownloadButton(btn,key){
