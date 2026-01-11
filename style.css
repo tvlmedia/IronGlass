@@ -1032,3 +1032,47 @@ body.sbs-mode #rightDetail{
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
+
+/* ===========================
+   MF MATCH: NO WRAP + SHRINK LENS SELECT (FIX JUMP)
+   =========================== */
+
+/* Zorg dat items binnen elke lensSide NOOIT naar een 2e regel wrappen */
+.controlsTop .lensSide{
+  flex-wrap: nowrap !important;
+}
+
+/* Laat fields en selects krimpen (BELANGRIJK) */
+.controlsTop .lensSide .field{
+  min-width: 0 !important;
+}
+
+/* Lens dropdown (eerste field) mag groeien/krimpen */
+.controlsTop .lensSide .field:first-child{
+  flex: 1 1 0 !important;
+}
+
+/* MF dropdown + T-stop blijven “auto” breedte */
+.controlsTop .lensSide .field:not(:first-child){
+  flex: 0 0 auto !important;
+}
+
+/* Kill die harde min-width die je wrap veroorzaakt */
+#leftLens, #rightLens{
+  min-width: 0 !important;
+  width: 100% !important; /* vult z’n flex-bak, maar kan krimpen */
+}
+
+/* MF dropdown zelf: dezelfde vibe als T-stop */
+#mfAltLeft, #mfAltRight{
+  min-width: 110px;
+}
+
+/* Oude MF pill-wrap styling uitzetten (nu is het gewoon een normale select) */
+.mfAltWrap{
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.mfAltLabel{ display: none !important; }
