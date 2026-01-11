@@ -471,29 +471,32 @@ function updateMfAltUI(){
   const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
 
   // LEFT
-  const leftOpts = ALT_FOCAL_OPTIONS?.[leftSlug]?.[focal];
-  if(mfAltLeftWrap && mfAltLeftSel){
-    if(leftOpts && leftOpts.length > 1){
-      mfAltLeftWrap.style.display = "inline-flex";
-      fillAltSelect(mfAltLeftSel, leftOpts, mfAltState.left);
-      mfAltState.left = mfAltLeftSel.value;
-    } else {
-      mfAltLeftWrap.style.display = "none";
-      mfAltState.left = null;
-    }
-  }
+if(mfAltLeftWrap && mfAltLeftSel){
+  if(leftOpts && leftOpts.length > 1){
+    mfAltLeftWrap.style.display = "flex";
+    mfAltLeftSel.disabled = false;
 
-  // RIGHT
-  const rightOpts = ALT_FOCAL_OPTIONS?.[rightSlug]?.[focal];
-  if(mfAltRightWrap && mfAltRightSel){
-    if(rightOpts && rightOpts.length > 1){
-      mfAltRightWrap.style.display = "inline-flex";
-      fillAltSelect(mfAltRightSel, rightOpts, mfAltState.right);
-      mfAltState.right = mfAltRightSel.value;
-    } else {
-      mfAltRightWrap.style.display = "none";
-      mfAltState.right = null;
-    }
+    fillAltSelect(mfAltLeftSel, leftOpts, mfAltState.left);
+    mfAltState.left = mfAltLeftSel.value;
+  } else {
+    mfAltLeftWrap.style.display = "none";
+    mfAltLeftSel.disabled = true;
+    mfAltState.left = null;
+  }
+}
+
+// RIGHT
+if(mfAltRightWrap && mfAltRightSel){
+  if(rightOpts && rightOpts.length > 1){
+    mfAltRightWrap.style.display = "flex";
+    mfAltRightSel.disabled = false;
+
+    fillAltSelect(mfAltRightSel, rightOpts, mfAltState.right);
+    mfAltState.right = mfAltRightSel.value;
+  } else {
+    mfAltRightWrap.style.display = "none";
+    mfAltRightSel.disabled = true;
+    mfAltState.right = null;
   }
 }
 
