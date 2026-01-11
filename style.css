@@ -556,7 +556,7 @@ body.dragging #slider::after{
   border:none;
   box-shadow:none;
   background:#000;
-  padding:var(--lb-top,0) var(--lb-right,0) var(--lb-bottom,0) var(--lb-left,0);
+  padding:0;
   overflow:hidden;
 }
 
