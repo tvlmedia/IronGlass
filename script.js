@@ -423,7 +423,7 @@ function requestBrowserFullscreen(){
   if(req) req.call(el);
 }
 
-(function fullscreenGateInit(){
+((function fullscreenGateInit(){
   const gate = document.getElementById("fsGate");
   const btn  = document.getElementById("fsGateBtn");
   if(!gate || !btn) return;
@@ -431,21 +431,30 @@ function requestBrowserFullscreen(){
   const isBrowserFullscreen = () =>
     !!(document.fullscreenElement || document.webkitFullscreenElement);
 
-  const closeGate = () => {
-    gate.setAttribute("aria-hidden", "true");
-    gate.dataset.mode = ""; // reset mode
+  const openGate = () => {
+    gate.dataset.mode = ""; // reset
+    gate.setAttribute("aria-hidden", "false");
   };
 
-  if(isBrowserFullscreen()){
+  const closeGate = () => {
+    gate.setAttribute("aria-hidden", "true");
+    gate.dataset.mode = "";
+  };
+
+  // ✅ Default: alleen tonen als je NIET fullscreen bent
+  if(!isBrowserFullscreen()){
+    // als je hem niet meer standaard wil bij load: comment deze regel uit
+    openGate();
+  } else {
     closeGate();
-    return;
   }
 
-  btn.addEventListener("click", async () => {
-    // Als return-gate actief is, niet de “browser fullscreen” actie doen
+  btn.addEventListener("click", () => {
+    // return-gate mode: jouw code gebruikt die elders
     if(gate.dataset.mode === "return") return;
 
     try{
+      // jouw bestaande functie
       requestBrowserFullscreen();
       closeGate();
     } catch(e){
@@ -453,7 +462,6 @@ function requestBrowserFullscreen(){
     }
   });
 
-  // Als user zelf fullscreen toggelt (F11 / menu): gate weg
   document.addEventListener("fullscreenchange", () => {
     if(isBrowserFullscreen()) closeGate();
   });
@@ -462,14 +470,6 @@ function requestBrowserFullscreen(){
   });
 })();
 
-  // Als user zelf fullscreen toggelt (F11 / menu): gate weg
-  document.addEventListener("fullscreenchange", () => {
-    if(isBrowserFullscreen()) closeGate();
-  });
-  document.addEventListener("webkitfullscreenchange", () => {
-    if(isBrowserFullscreen()) closeGate();
-  });
-})();
 
 const mfAltLeftWrap  = q("mfAltLeftWrap");
 const mfAltRightWrap = q("mfAltRightWrap");
