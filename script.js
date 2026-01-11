@@ -1531,9 +1531,62 @@ updateLensInfo();
 updateFocalOptionsForCurrentLenses();
 updateLensOptionsForCurrentFocal(); // ✅ bouwt lens dropdowns op basis van focal + updateMfAltUI + T-stops + images
 
+/* === AUTO: na ESC fullscreen exit -> 1 klik om terug te gaan === */
+const AUTO_RETURN_FULLSCREEN_ON_ESC = true;
+
+let fsExitWasEsc = false;
+let prevWrapperFullscreen = false;
+
+function showFsReturnGate(){
+  const gate  = document.getElementById("fsGate");
+  const btn   = document.getElementById("fsGateBtn");
+  if(!gate || !btn) return;
+
+  // (optioneel) copy aanpassen als je die elementen hebt
+  const title = gate.querySelector(".fsGateTitle");
+  const text  = gate.querySelector(".fsGateText");
+  if(title) title.textContent = "Fullscreen verlaten";
+  if(text)  text.textContent  = "Klik om direct weer fullscreen te gaan.";
+
+  const closeGate = () => gate.setAttribute("aria-hidden", "true");
+  const openGate  = () => gate.setAttribute("aria-hidden", "false");
+
+  const goBackFullscreen = async () => {
+    closeGate();
+
+    // user gesture -> fullscreen mag nu wél
+    beginFsEnterMask();
+    try{
+      await enterWrapperFullscreen();
+    } catch(e){
+      // fullscreen request blocked -> masker weg
+      endFsEnterMask();
+      return;
+    }
+  };
+
+  // knop + klik op backdrop
+  btn.onclick = goBackFullscreen;
+  gate.onclick = (e) => { if(e.target === gate) goBackFullscreen(); };
+
+  openGate();
+}
+
+function armReturnToFullscreenIfNeeded(){
+  if(!AUTO_RETURN_FULLSCREEN_ON_ESC) return;
+  if(!fsExitWasEsc) return;
+
+  fsExitWasEsc = false;
+  showFsReturnGate();
+}
+
 /* === Resizes + fullscreen === */
 function onFsChange(){
   const fs = isWrapperFullscreen();
+
+  const exitedFullscreen = (prevWrapperFullscreen && !fs);
+  prevWrapperFullscreen = fs;
+
   setFullscreenImageFit(fs);
 
   if(fs){
@@ -1550,7 +1603,11 @@ function onFsChange(){
     slider.style.bottom="0";
   }
 
-  // 👇 vervangt je huidige “meerdere updateFullscreenBars + RAF” gedoe
+  // ✅ Alleen als je écht net fullscreen verliet: check of dat door ESC was
+  if(exitedFullscreen){
+    armReturnToFullscreenIfNeeded();
+  }
+
   scheduleLayoutStabilize();
 }
 
@@ -1763,13 +1820,23 @@ function getDetailConfig(){
 }
 
 document.addEventListener("keydown", (e) => {
-  if(e.key === "Escape" && detailActive){
+  if(e.key !== "Escape") return;
+
+  // 1) Als detail aan staat: sluit detail (zoals je al deed)
+  if(detailActive){
     detailActive = false;
     detailOverlay?.classList.remove("active");
     detailToggleButton?.classList.remove("active");
     leftDetail && (leftDetail.style.display = "none");
     rightDetail && (rightDetail.style.display = "none");
     updateToggleHighlights();
+    return;
+  }
+
+  // 2) Als we in wrapper fullscreen zitten: markeer "exit was esc"
+  //    (ESC zal fullscreen verlaten; dat kunnen we niet blokkeren)
+  if(isWrapperFullscreen()){
+    fsExitWasEsc = true;
   }
 });
 // Helper: force box square + force img sizing (ignore theme constraints)
