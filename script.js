@@ -518,6 +518,8 @@ function getCurrentWH(){
 function getTargetAR(){ const {w,h}=getCurrentWH(); return sbsActive?(2*w)/h:w/h; }
 const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
 
+
+
 /* === AUTO REFAME (viewer + PDF) – per focal, afhankelijk van sensor hoogte ===
    - startH: vanaf welke sensorhoogte hij begint te shiften
    - endH:   bij welke hoogte hij max shift bereikt
@@ -723,6 +725,52 @@ function syncTStopsOnContextChange(){
   updateTStopDropdowns();
 }
 
+// Alleen focal length die erin staat
+
+function lensSupportsUIFocal(lensSlug, uiFocal, side /* "left"|"right" */){
+  // MF kan meerdere "echte" focals mappen → pak de effective focal (incl. 45mm_m35/m50)
+  const effective = getEffectiveFocal(lensSlug, uiFocal, side);
+
+  // We gebruiken measured data als “source of truth” voor: bestaat die focal echt?
+  const stops = getMeasuredStops(lensSlug, effective);
+  return !!(stops && stops.length);
+}
+
+function refillLensSelectForFocal(sel, side, uiFocal){
+  if(!sel) return;
+
+  const prev = sel.value;
+  sel.innerHTML = "";
+
+  const validLabels = [];
+  for(const label of lenses){
+    const slug = lensSlugFromLabel(label);
+    if(lensSupportsUIFocal(slug, uiFocal, side)){
+      validLabels.push(label);
+      sel.add(new Option(label, label));
+    }
+  }
+
+  // behoud selection als het nog kan, anders fallback naar 1e
+  if(validLabels.includes(prev)) sel.value = prev;
+  else sel.value = validLabels[0] || "";
+}
+
+function updateLensOptionsForCurrentFocal(){
+  const uiFocal = focalLengthSelect?.value || "50mm";
+
+  refillLensSelectForFocal(leftSelect,  "left",  uiFocal);
+  refillLensSelectForFocal(rightSelect, "right", uiFocal);
+
+  // MF alt UI moet nu ook kloppen voor nieuwe lensset
+  updateMfAltUI();
+
+  // en dan T-stops weer syncen met de (mogelijk) nieuwe lenskeuze
+  updateTStopDropdowns();
+
+  updateLensInfo();
+  updateImages();
+}
 
 // === Bokeh toggle (zonder ON/OFF tekst) ===
 bokehToggle.dataset.mode = bokehToggle.dataset.mode || "portrait";
@@ -1289,6 +1337,7 @@ resetSplitToMiddle();
 }
 
 /* === Init defaults === */
+/* === Init defaults === */
 leftSelect.value  = "IronGlass Sovjet MKII";
 rightSelect.value = "IronGlass Zeiss Jena";
 focalLengthSelect.value = "50mm";
@@ -1296,8 +1345,7 @@ tStopLeftSelect.value   = "2.8";
 tStopRightSelect.value  = "2.8";
 
 updateLensInfo();
-updateMfAltUI();   // ✅ HIER
-updateImages();
+updateLensOptionsForCurrentFocal(); // ✅ bouwt lens dropdowns op basis van focal + updateMfAltUI + T-stops + images
 
 /* === Resizes + fullscreen === */
 function onFsChange(){
@@ -1493,12 +1541,11 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 [focalLengthSelect,tStopLeftSelect,tStopRightSelect].forEach(el =>
   el.addEventListener("change",()=>{
     if(el === focalLengthSelect){
-      updateMfAltUI();            // ✅ HIER
-      calibrateUserTouchedScale = false;
-      syncTStopsOnContextChange();
-    }
-    updateImages();
-  })
+  calibrateUserTouchedScale = false;
+  updateLensOptionsForCurrentFocal(); // ✅ dit doet alles al
+  return;
+}
+updateImages();
 );
 // ===== DETAIL (zoom) viewer =====
 let detailActive = false;
