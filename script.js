@@ -740,12 +740,6 @@ bokehToggle.addEventListener("click", () => {
 
 exposureBtn?.addEventListener("click", () => {
   exposureCorrectionActive = !exposureCorrectionActive;
-  updateImages();
-  updateToggleHighlights();
-});
-
-exposureBtn?.addEventListener("click", () => {
-  exposureCorrectionActive = !exposureCorrectionActive;
   exposureBtn.blur();
   updateImages();
   updateToggleHighlights();
