@@ -744,6 +744,13 @@ exposureBtn?.addEventListener("click", () => {
   updateToggleHighlights();
 });
 
+exposureBtn?.addEventListener("click", () => {
+  exposureCorrectionActive = !exposureCorrectionActive;
+  exposureBtn.blur();
+  updateImages();
+  updateToggleHighlights();
+});
+
 /* Flare: 3 standen */
 flareToggle.dataset.mode = flareToggle.dataset.mode || "noflare";
 const flareLabel = (m)=> m==="noflare" ? "Flare: OFF" : (m==="flare" ? "Flare: ON" : "Double Flare: ON");
