@@ -1538,8 +1538,7 @@ function onFsChange(){
   // 👇 vervangt je huidige “meerdere updateFullscreenBars + RAF” gedoe
   scheduleLayoutStabilize();
 }
-  requestAnimationFrame(()=>{ if(!isWrapperFullscreen()){ const {w,h}=getCurrentWH(); setWrapperSizeByAR(w,h); } });
-}
+
 document.addEventListener("fullscreenchange",onFsChange);
 document.addEventListener("webkitfullscreenchange",onFsChange);
 window.addEventListener("resize",()=>{
@@ -1599,27 +1598,7 @@ toggleBtn?.addEventListener("click",()=>{
   updateLensInfo(); 
   updateImages(); 
 });
-/* === Slider drag (mouse/touch) === */
-function onFsChange(){
-  const fs = isWrapperFullscreen();
-  setFullscreenImageFit(fs);
 
-  if(fs){
-    clearInlineHeights();
-    pulseFsBars({duration:1400});
-  } else {
-    const {w,h}=getCurrentWH();
-    comparisonWrapper.style.setProperty("aspect-ratio","auto");
-    setWrapperSizeByAR(w,h);
-    requestAnimationFrame(()=>setWrapperSizeByAR(w,h));
-    ["--lb-top","--lb-bottom","--lb-left","--lb-right"].forEach(v=>comparisonWrapper.style.setProperty(v,"0px"));
-    slider.style.top="0px";
-    slider.style.height="100%";
-    slider.style.bottom="0";
-  }
-
-  scheduleLayoutStabilize();
-}
 
 function recalcLayout(){
   updateFullscreenBars();
