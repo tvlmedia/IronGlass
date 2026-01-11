@@ -1075,3 +1075,14 @@ body.sbs-mode #rightDetail{
   background: rgba(0,0,0,0.78);
   backdrop-filter: blur(10px);
 }
+#controlsSentinel{
+  height: 1px;
+}
+
+#controlsSpacer{
+  height: 0;
+}
+
+body.controls-stuck #controlsSpacer{
+  height: var(--controls-stack-h, 0px);
+}
