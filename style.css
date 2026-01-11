@@ -1086,3 +1086,35 @@ body.sbs-mode #rightDetail{
 body.controls-stuck #controlsSpacer{
   height: var(--controls-stack-h, 0px);
 }
+/* ===== Sticky/fixed controls (bulletproof) ===== */
+
+/* default: gewoon in de flow */
+.controlsStack.desktop-only{
+  position: relative;      /* niet sticky */
+  top: auto;
+  z-index: 9999;
+}
+
+/* als stuck: FIXED bovenin viewport */
+body.controls-stuck .controlsStack.desktop-only{
+  position: fixed;
+  top: 0;                  /* wil je 12px? zet hier 12px */
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1200px, 94vw);
+  margin: 0;               /* voorkomt “gap” door margins */
+}
+
+/* SBS variant bredere container */
+body.sbs-mode.controls-stuck .controlsStack.desktop-only{
+  width: min(1600px, 94vw);
+}
+
+/* spacer: ruimte reserveren zodat viewer niet omhoog “klapt” */
+#controlsSpacer{ height: 0; }
+body.controls-stuck #controlsSpacer{
+  height: var(--controls-stack-h, 0px);
+}
+
+/* sentinel hoeft alleen maar te bestaan */
+#controlsSentinel{ height: 1px; }
