@@ -1428,7 +1428,7 @@ resetSplitToMiddle();
 /* === Init defaults === */
 leftSelect.value  = "IronGlass Sovjet MKII";
 rightSelect.value = "IronGlass Zeiss Jena";
-focalLengthSelect.value = "50mm";
+focalLengthSelect.value = "35mm";
 tStopLeftSelect.value   = "2.8";
 tStopRightSelect.value  = "2.8";
 
