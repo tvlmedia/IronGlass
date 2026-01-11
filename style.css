@@ -1,37 +1,65 @@
 /* ===========================
-   GLOBAL / BASICS
+   PREMIUM / HIGH-END UI CSS
+   (TVL / IronGlass vibe)
    =========================== */
+
+/* --- Reset-ish --- */
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  color:rgba(245,245,245,.92);
+  font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size:13.5px;
+  line-height:1.45;
+  letter-spacing:.01em;
+
+  /* Premium dark: depth + subtle noise-ish feel (no image needed) */
+  background:
+    radial-gradient(1200px 600px at 50% -200px, rgba(255,124,0,.08), transparent 55%),
+    radial-gradient(900px 500px at 20% 10%, rgba(255,255,255,.04), transparent 50%),
+    radial-gradient(900px 500px at 80% 20%, rgba(255,255,255,.03), transparent 50%),
+    #050505;
+}
+
+/* prevent drag select in UI */
 *{
   -webkit-user-drag:none;
   user-select:none;
 }
 
+/* --- Tokens --- */
 :root{
   --sensor-scale: 1;
   --viewer-scale: 1;
 
-  /* IronGlass-ish branding */
-  --ig-bg: #050505;
-  --ig-panel: #101010;
-  --ig-panel-soft: rgba(10,10,10,0.9);
-  --ig-border: #222;
-  --ig-border-soft: rgba(255,255,255,0.08);
-  --ig-accent: #ff7c00;
-  --ig-accent-soft: rgba(255,124,0,0.18);
-  --ig-text: #f5f5f5;
-  --ig-text-muted: #9c9c9c;
+  --bg: #050505;
 
-  /* Active accent (toggle glow) */
-  --tvl-accent:#ff8a00;
-}
+  --panel: rgba(18,18,18,.72);
+  --panel2: rgba(14,14,14,.78);
 
-body{
-  margin:0;
-  background:var(--ig-bg);
-  color:var(--ig-text);
-  font-family:"Inter","Helvetica Neue",sans-serif;
-  font-size:14px;
-  line-height:1.6;
+  --stroke: rgba(255,255,255,.10);
+  --stroke2: rgba(255,255,255,.06);
+
+  --shadow: 0 16px 48px rgba(0,0,0,.55);
+  --shadow2: 0 10px 28px rgba(0,0,0,.45);
+
+  --accent: #ff7c00;
+  --accent2:#ff8a00;
+
+  --text: rgba(245,245,245,.92);
+  --muted: rgba(245,245,245,.56);
+
+  --radius: 16px;
+  --radius-sm: 12px;
+
+  --chip-bg: rgba(15,15,15,.65);
+  --chip-stroke: rgba(255,255,255,.10);
+  --chip-stroke-hover: rgba(255,124,0,.40);
+
+  --focus: 0 0 0 2px rgba(255,124,0,.22), 0 0 0 6px rgba(0,0,0,.75);
+
+  --hpad: 16px;
 }
 
 /* ===========================
@@ -41,17 +69,19 @@ body{
   width:100%;
   display:flex;
   justify-content:center;
-  padding:20px 0 6px;
+  padding:18px 0 10px;
 }
-
 #igHeader img{
-  height:64px;
+  height:58px;
   width:auto;
   opacity:.95;
-  filter:drop-shadow(0 0 10px rgba(0,0,0,.6));
-  transition:opacity .2s ease;
+  filter: drop-shadow(0 18px 22px rgba(0,0,0,.55));
+  transition:opacity .2s ease, transform .2s ease;
 }
-#igHeader img:hover{ opacity:1; }
+#igHeader img:hover{
+  opacity:1;
+  transform: translateY(-1px);
+}
 
 /* ===========================
    OUTER LAYOUT
@@ -59,75 +89,104 @@ body{
 #toolRoot{ width:100%; }
 
 .frame-1200{
-  width:min(1200px,96vw);
+  width:min(1200px, 94vw);
   margin:0 auto;
+  padding-bottom:34px;
 }
 
-/* In SxS mag de viewer breder, maar controls blijven “normaal” */
+/* Side-by-side can be wider */
 body.sbs-mode .frame-1200{
-  width:min(1600px,96vw);
+  width:min(1600px, 94vw);
 }
 
 /* ===========================
-   CONTROLS STACK (NEW)
+   UTILITIES
+   =========================== */
+.sr-only{
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+}
+
+.field{ display:flex; }
+
+/* ===========================
+   CONTROLS STACK
    =========================== */
 .controlsStack.desktop-only{
   position:sticky;
   top:0;
   z-index:50;
-
-  width:100%;
-  margin:18px 0 20px;
-  box-sizing:border-box;
-
+  margin:16px 0 18px;
   display:flex;
   flex-direction:column;
   gap:10px;
 
-  /* klein beetje padding rond panels zodat het “1 blok” blijft */
-  padding:0;
+  /* give it breathing room */
+  padding:10px 0 0;
 }
 
-/* Controls in SxS: max 1200 en gecentreerd */
+/* When in sbs, keep controls centered */
 body.sbs-mode .controlsStack.desktop-only{
   max-width:1200px;
   margin-left:auto;
   margin-right:auto;
 }
 
-/* Panel styling (top + bottom) */
+/* Panels: glass */
 .controlsStack .panel{
   width:100%;
-  padding:14px 16px;
-  box-sizing:border-box;
+  padding:14px var(--hpad);
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,124,0,.18);
 
-  border-radius:12px;
-  background:linear-gradient(145deg,#0a0a0a,#141414);
-  border:1px solid rgba(255,124,0,0.18);
-  box-shadow:
-    0 0 22px rgba(255,124,0,0.15),
-    0 4px 10px rgba(0,0,0,0.6);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  background:
+    radial-gradient(1200px 500px at 50% -200px, rgba(255,124,0,.10), transparent 60%),
+    linear-gradient(180deg, rgba(20,20,20,.78), rgba(10,10,10,.72));
+  box-shadow: var(--shadow2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  position:relative;
+  overflow:hidden;
 }
 
-/* Elke row in panels */
+/* subtle highlight line */
+.controlsStack .panel::before{
+  content:"";
+  position:absolute;
+  left:14px;
+  right:14px;
+  top:0;
+  height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.14), transparent);
+  opacity:.55;
+  pointer-events:none;
+}
+
+/* Rows */
 .controlsStack .row{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:8px 10px;
+  gap:10px;
   flex-wrap:wrap;
 }
 
-/* === TOP PANEL ROWS === */
+/* TOP panel layout */
 .controlsTop .camRow{
   justify-content:center;
   gap:10px;
   margin-bottom:10px;
 }
 
-/* LensRow: 3 kolommen (L / C / R) */
+/* LensRow: 3 columns, keep crisp */
 .controlsTop .lensRow{
   flex-wrap:nowrap;
   gap:12px;
@@ -150,10 +209,10 @@ body.sbs-mode .controlsStack.desktop-only{
   justify-content:center;
 }
 
-/* === BOTTOM PANEL ROWS === */
+/* BOTTOM panel layout */
 .controlsBottom .actionRow{
   justify-content:space-between;
-  gap:10px;
+  gap:12px;
 }
 
 .controlsBottom .actionLeft{
@@ -162,13 +221,14 @@ body.sbs-mode .controlsStack.desktop-only{
 
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:8px;
   flex-wrap:nowrap;
 
   overflow-x:auto;
   overflow-y:hidden;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:none;
+  padding-bottom:2px;
 }
 .controlsBottom .actionLeft::-webkit-scrollbar{ display:none; }
 
@@ -177,13 +237,19 @@ body.sbs-mode .controlsStack.desktop-only{
   display:flex;
   align-items:center;
   justify-content:flex-end;
-  gap:10px;
 }
 
 /* Advanced panel dropdown */
 #advancedPanel.advancedPanel{
   display:none;
   margin-top:10px;
+  padding:10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+
+  background:
+    linear-gradient(180deg, rgba(14,14,14,.85), rgba(8,8,8,.85));
+  box-shadow: 0 20px 50px rgba(0,0,0,.55);
   gap:10px;
   justify-content:center;
   flex-wrap:wrap;
@@ -192,138 +258,124 @@ body.sbs-mode .controlsStack.desktop-only{
   display:flex;
 }
 
-/* Scale row onderaan */
+/* Scale row */
 .controlsBottom .scaleRow{
   margin-top:10px;
   justify-content:center;
 }
 
 /* ===========================
-   INPUT STYLES
+   INPUTS: premium chips
    =========================== */
-
-/* SELECTS */
-select{
-  height:32px;
-  padding:0 11px;
-  background:#111;
-  color:var(--ig-text);
-  border:1px solid #333;
+select,
+.control-button{
+  height:34px;
   border-radius:999px;
-  font-size:13px;
-  letter-spacing:.02em;
-  text-transform:uppercase;
-  cursor:pointer;
-  box-sizing:border-box;
+  padding:0 12px;
 
-  display:inline-block;
-  line-height:normal;
-  vertical-align:middle;
-}
+  background: var(--chip-bg);
+  border:1px solid var(--chip-stroke);
+  color: var(--text);
 
-/* BUTTONS (basis) */
-.control-button,
-#toggleButton,#fullscreenButton,#downloadPdfButton,
-#calibrateToggle{
-  height:32px;
-  padding:0 11px;
-  background:#111;
-  color:var(--ig-text);
-  border:1px solid #333;
-  border-radius:999px;
-  font-size:13px;
-  letter-spacing:.02em;
+  font-size:12px;
+  letter-spacing:.08em;
   text-transform:uppercase;
-  cursor:pointer;
-  box-sizing:border-box;
 
   display:inline-flex;
   align-items:center;
   justify-content:center;
   gap:8px;
 
-  line-height:1;
-  white-space:nowrap;
-  vertical-align:middle;
-  font-variant-emoji:text;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  transition:
+    transform .12s ease,
+    background .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease,
+    color .18s ease,
+    filter .18s ease;
+}
 
+/* selects: keep native arrow but nicer spacing */
+select{
+  cursor:pointer;
+  line-height:normal;
   -webkit-appearance:none;
   appearance:none;
+
+  /* subtle chevron */
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,.65) 50%),
+    linear-gradient(135deg, rgba(255,255,255,.65) 50%, transparent 50%),
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.00));
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%,
+    0 0;
+  background-size:
+    5px 5px,
+    5px 5px,
+    100% 100%;
+  background-repeat:no-repeat;
+  padding-right:30px;
 }
 
 select:hover,
-.control-button:hover,
-#toggleButton:hover,#fullscreenButton:hover,#downloadPdfButton:hover,
-#calibrateToggle:hover{
-  background:var(--ig-accent);
-  border-color:var(--ig-accent);
-  color:#000;
-  box-shadow:0 0 12px rgba(255,124,0,0.45);
+.control-button:hover{
+  border-color: var(--chip-stroke-hover);
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 0 1px rgba(255,124,0,.10);
+  filter: brightness(1.06);
 }
 
-.control-button:active,
-#toggleButton:active,#fullscreenButton:active,#downloadPdfButton:active,
-#calibrateToggle:active,
-select:active{
-  transform:translateY(.5px) scale(.99);
-  box-shadow:none;
+select:active,
+.control-button:active{
+  transform: translateY(.5px) scale(.99);
+  box-shadow: 0 8px 18px rgba(0,0,0,.35);
 }
 
-.control-button:focus,
-#toggleButton:focus,#fullscreenButton:focus,#downloadPdfButton:focus,
-#calibrateToggle:focus,
-select:focus{
+select:focus,
+.control-button:focus{
   outline:none;
-  box-shadow:0 0 0 1px var(--ig-accent-soft), 0 0 0 3px rgba(0,0,0,.9);
-  border-color:var(--ig-accent);
+  box-shadow: var(--focus);
+  border-color: rgba(255,124,0,.55);
 }
 
+/* Disabled */
 .control-button:disabled,
-#toggleButton:disabled,#fullscreenButton:disabled,#downloadPdfButton:disabled,
-#calibrateToggle:disabled{
-  opacity:.4;
+select:disabled{
+  opacity:.45;
   cursor:not-allowed;
   box-shadow:none;
+  filter:none;
 }
 
 /* widths */
-#cameraSelect,#sensorFormatSelect,#focalLength{ min-width:130px; }
-#leftLens,#rightLens{ min-width:200px; }
-#tStopLeftSelect,#tStopRightSelect{ min-width:90px; }
+#cameraSelect,#sensorFormatSelect{ min-width:220px; }
+#focalLength{ min-width:140px; }
 
-/* TOP panel: camera/sensor iets smaller */
-.controlsTop #cameraSelect,
-.controlsTop #sensorFormatSelect{
-  min-width:110px;
-}
+#leftLens,#rightLens{ min-width:320px; }
+#tStopLeftSelect,#tStopRightSelect{ min-width:110px; }
 
-/* Bottom row: compacter text */
-.controlsBottom .control-button,
-.controlsBottom select,
-.controlsBottom #scaleCtrl{
-  font-size:12px;
-  padding:0 9px;
-}
-
-#flareToggle{
-  min-width:95px;
-  padding:0 8px;
+/* Smaller on narrow screens */
+@media (max-width:1000px){
+  #leftLens,#rightLens{ min-width:260px; }
+  #cameraSelect,#sensorFormatSelect{ min-width:190px; }
 }
 
 /* ===========================
-   TOGGLES / ACTIVE STATE
+   ACTIVE STATES (toggles)
    =========================== */
 button.active,
-.toggle.active,
 .controls button.active{
-  border-color:var(--tvl-accent) !important;
-  box-shadow:0 0 0 1px var(--tvl-accent), 0 0 18px rgba(255,138,0,.25);
-  color:#fff !important;
+  border-color: rgba(255,124,0,.75) !important;
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.45),
+    0 0 0 1px rgba(255,124,0,.25),
+    0 0 18px rgba(255,124,0,.18);
 }
 
-#bokehToggle.active{
-  outline:1px solid rgba(255,255,255,.35);
-}
+/* Flare off label, keep your text */
+#flareToggle[data-mode="noflare"]{ opacity:.95; }
 
 /* ===========================
    SCALE CHIP
@@ -331,43 +383,42 @@ button.active,
 #scaleCtrl.chip{
   display:inline-flex;
   align-items:center;
-  gap:.5rem;
-  height:32px;
-  padding:0 10px;
-  white-space:nowrap;
-  background:#111;
-  border:1px solid #333;
+  gap:10px;
+  height:34px;
+  padding:0 12px;
   border-radius:999px;
-  box-sizing:border-box;
+
+  background: rgba(15,15,15,.62);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow: 0 10px 28px rgba(0,0,0,.38);
 }
 
 #scaleCtrl #scaleVal{
-  min-width:44px;
+  min-width:52px;
   text-align:right;
-  color:var(--ig-text-muted);
+  color: var(--muted);
+  letter-spacing:.06em;
 }
 
 #scaleCtrl input[type="range"]{
   -webkit-appearance:none;
   appearance:none;
-  width:120px;
+  width:180px;
   height:18px;
+  background:transparent;
   margin:0;
   padding:0;
-  background:transparent;
 }
 
 #scaleCtrl input[type="range"]::-webkit-slider-runnable-track{
   height:4px;
-  background:#222;
   border-radius:999px;
-  border-bottom:1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.14);
 }
 #scaleCtrl input[type="range"]::-moz-range-track{
   height:4px;
-  background:#222;
   border-radius:999px;
-  border-bottom:1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.14);
 }
 
 #scaleCtrl input[type="range"]::-webkit-slider-thumb{
@@ -376,35 +427,39 @@ button.active,
   width:14px;
   height:14px;
   border-radius:50%;
-  background:var(--ig-accent);
-  border:2px solid #000;
+  background: var(--accent);
+  border:2px solid rgba(0,0,0,.9);
   margin-top:-5px;
-  cursor:pointer;
+  box-shadow: 0 10px 18px rgba(0,0,0,.55), 0 0 16px rgba(255,124,0,.22);
 }
 #scaleCtrl input[type="range"]::-moz-range-thumb{
   width:14px;
   height:14px;
   border-radius:50%;
-  background:var(--ig-accent);
-  border:2px solid #000;
-  cursor:pointer;
+  background: var(--accent);
+  border:2px solid rgba(0,0,0,.9);
+  box-shadow: 0 10px 18px rgba(0,0,0,.55), 0 0 16px rgba(255,124,0,.22);
 }
 
 /* ===========================
-   MF MATCH WRAPS
+   MF MATCH WRAP (premium)
    =========================== */
 .mfAltWrap{
   display:inline-flex;
   align-items:center;
   gap:8px;
-  margin-left:10px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background: rgba(10,10,10,.45);
 }
 
 .mfAltLabel{
-  opacity:.85;
-  font-size:12px;
-  letter-spacing:.06em;
+  font-size:11px;
+  opacity:.70;
+  letter-spacing:.12em;
   text-transform:uppercase;
+  white-space:nowrap;
 }
 
 /* ===========================
@@ -414,7 +469,6 @@ button.active,
   position:relative;
   width:100%;
   min-height:clamp(360px,56vw,900px);
-  margin:0;
   background:#000;
   overflow:hidden;
 
@@ -423,47 +477,16 @@ button.active,
   --lb-left:0px;
   --lb-right:0px;
 
-  box-sizing:border-box;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,124,0,.22);
+  box-shadow: var(--shadow);
 }
 
-/* buitenrand */
-#comparisonWrapper::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border:1px solid rgba(226,107,0,0.38);
-  box-shadow:0 0 16px rgba(226,107,0,0.22);
-  pointer-events:none;
-}
+/* Remove older double-outline systems */
+#comparisonWrapper::after{ display:none; }
 
-/* layers */
+/* Layers */
 #beforeImage{ position:absolute; inset:0; }
-
-#beforeImgTag,
-#afterImgTag{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-
-  /* defaults voor calibrate */
-  --cal-tx: 0px;
-  --cal-ty: 0px;
-  --cal-scale: 1;
-
-  /* ✅ FIX: crop/zoom (sensor*viewer) is effectief "laatste"
-     (CSS transforms worden rechts→links toegepast) */
-  transform:
-    scale(calc(var(--sensor-scale) * var(--viewer-scale)))
-    translate(var(--cal-tx), var(--cal-ty))
-    scale(var(--cal-scale));
-
-  transform-origin:center;
-  will-change:transform;
-}
-
 #afterWrapper{
   position:absolute;
   inset:0;
@@ -474,7 +497,30 @@ button.active,
   will-change:clip-path;
 }
 
-/* slider lijn */
+/* Images (keep your transform logic intact) */
+#beforeImgTag,
+#afterImgTag{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+
+  --cal-tx: 0px;
+  --cal-ty: 0px;
+  --cal-scale: 1;
+
+  transform:
+    scale(calc(var(--sensor-scale) * var(--viewer-scale)))
+    translate(var(--cal-tx), var(--cal-ty))
+    scale(var(--cal-scale));
+
+  transform-origin:center;
+  will-change:transform;
+}
+
+/* Slider: more premium (thin + knob on hover) */
 #slider{
   position:absolute;
   top:0;
@@ -482,21 +528,35 @@ button.active,
   left:50%;
   transform:translateX(-50%);
   width:2px;
-  background:var(--ig-accent);
-  box-shadow:0 0 14px rgba(255,124,0,.6);
-  cursor:ew-resize;
+  background: rgba(255,124,0,.90);
+  box-shadow: 0 0 22px rgba(255,124,0,.35);
+  cursor: ew-resize;
   z-index:10;
   touch-action:none;
 }
 
-/* per-helft outline */
-#beforeImage,
-#afterWrapper{
-  box-sizing:border-box;
-  border:1px solid rgba(226,107,0,0.38);
+#slider::after{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  transform: translate(-50%,-50%);
+  background: rgba(10,10,10,.60);
+  border:1px solid rgba(255,124,0,.55);
+  box-shadow: 0 12px 26px rgba(0,0,0,.55), 0 0 18px rgba(255,124,0,.20);
+  opacity:0;
+  transition: opacity .15s ease, transform .15s ease;
 }
-#beforeImage{ border-left:none; }
-#afterWrapper{ border-right:none; }
+#comparisonWrapper:hover #slider::after{
+  opacity:1;
+}
+body.dragging #slider::after{
+  opacity:1;
+  transform: translate(-50%,-50%) scale(1.04);
+}
 
 /* ===========================
    FULLSCREEN
@@ -506,21 +566,15 @@ button.active,
   width:100vw;
   height:100vh;
   margin:0;
+  border-radius:0;
+  border:none;
+  box-shadow:none;
   background:#000;
   padding:var(--lb-top,0) var(--lb-right,0) var(--lb-bottom,0) var(--lb-left,0);
   overflow:hidden;
 }
 
-/* Let op: JS zet object-fit: contain in fullscreen; CSS forceert niks extra */
-#comparisonWrapper:fullscreen #beforeImgTag,
-#comparisonWrapper:-webkit-full-screen #beforeImgTag,
-#comparisonWrapper:fullscreen #afterImgTag,
-#comparisonWrapper:-webkit-full-screen #afterImgTag{
-  width:100%;
-  height:100%;
-  object-position:center;
-}
-
+/* Keep bars system */
 #fsBars{
   position:absolute;
   inset:0;
@@ -533,7 +587,7 @@ button.active,
 #fsBars .left{ top:var(--lb-top,0); bottom:var(--lb-bottom,0); left:0; width:var(--lb-left,0); }
 #fsBars .right{ top:var(--lb-top,0); bottom:var(--lb-bottom,0); right:0; width:var(--lb-right,0); }
 
-/* oranje outline binnen letter/pillarbox */
+/* subtle inner outline for fullscreen safe area */
 #comparisonWrapper:fullscreen #fsBars::after,
 #comparisonWrapper:-webkit-full-screen #fsBars::after{
   content:"";
@@ -542,34 +596,27 @@ button.active,
   bottom:var(--lb-bottom,0);
   left:var(--lb-left,0);
   right:var(--lb-right,0);
-  border:1px solid rgba(226,107,0,0.38);
-  box-shadow:0 0 16px rgba(226,107,0,0.22);
-  pointer-events:none;
-  z-index:10;
+  border: 1px solid rgba(255,124,0,.22);
+  box-shadow: 0 0 20px rgba(255,124,0,.18);
 }
 
 /* ===========================
-   SIDE-BY-SIDE (SxS)
+   SIDE-BY-SIDE
    =========================== */
 #sbsWrapper{
   position:absolute;
   inset:0;
   z-index:3;
   display:none;
-  padding:0;
-  box-sizing:border-box;
 }
 
-/* In SxS: verberg slider-mode layers */
+/* Hide slider mode layers in sbs */
 body.sbs-mode #beforeImage,
 body.sbs-mode #afterWrapper,
 body.sbs-mode #slider,
 body.sbs-mode #fsBars{
   display:none !important;
 }
-
-body.sbs-mode #comparisonWrapper::after{ display:none; }
-
 body.sbs-mode #sbsWrapper{
   display:flex !important;
 }
@@ -578,10 +625,13 @@ body.sbs-mode #sbsWrapper .pane{
   position:relative;
   flex:1 1 50%;
   overflow:hidden;
-  border:1px solid rgba(226,107,0,0.38);
 }
-body.sbs-mode #sbsWrapper .pane:first-child{ border-right:0; }
-body.sbs-mode #sbsWrapper .pane:last-child{ border-left:0; }
+body.sbs-mode #sbsWrapper .pane:first-child{
+  border-right:1px solid rgba(255,124,0,.22);
+}
+body.sbs-mode #sbsWrapper .pane:last-child{
+  border-left:1px solid rgba(255,124,0,.22);
+}
 
 body.sbs-mode #sbsWrapper .pane img{
   position:absolute;
@@ -595,27 +645,10 @@ body.sbs-mode #sbsWrapper .pane img{
   --cal-ty: 0px;
   --cal-scale: 1;
 
-  /* ✅ dezelfde fix in SxS */
   transform:
     scale(calc(var(--sensor-scale) * var(--viewer-scale)))
     translate(var(--cal-tx), var(--cal-ty))
     scale(var(--cal-scale));
-
-  transform-origin:center;
-  will-change:transform;
-}
-
-/* middenlijn oranje */
-body.sbs-mode #sbsWrapper::before{
-  content:"";
-  position:absolute;
-  top:0;
-  bottom:0;
-  left:50%;
-  width:1px;
-  background:var(--ig-accent);
-  box-shadow:0 0 14px rgba(255,124,0,.55);
-  z-index:4;
 }
 
 /* ===========================
@@ -623,15 +656,13 @@ body.sbs-mode #sbsWrapper::before{
    =========================== */
 #infoContainer{
   width:100%;
-  margin:12px 0 10px;
-  padding:0 40px;
-  box-sizing:border-box;
-
+  margin:14px 0 10px;
+  padding:0 10px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  gap:48px;
-  color:var(--ig-text-muted);
+  align-items:flex-start;
+  gap:24px;
+  color: var(--muted);
 }
 
 .infoCol{
@@ -646,47 +677,47 @@ body.sbs-mode #sbsWrapper::before{
 
 #leftLabel,#rightLabel{
   white-space:nowrap;
-  font-size:13px;
+  font-size:12px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
 }
 
 #infoContainer a{
-  color:var(--ig-text);
+  color: var(--text);
   text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,.18);
 }
 #infoContainer a:hover{
-  color:var(--ig-accent);
-  text-decoration:underline;
+  border-bottom-color: rgba(255,124,0,.55);
 }
 
 /* ===========================
-   LENS INFO + EXPLANATION
+   LENS INFO + NOTE
    =========================== */
 #lensInfo{
   width:100%;
-  margin:16px 0 0;
-  padding:0 40px;
-  box-sizing:border-box;
-  text-align:left;
+  margin:14px 0 0;
+  padding:0 10px;
+  color: rgba(245,245,245,.78);
 }
 
 #lensInfo b,
 #lensInfo strong{
-  color:var(--ig-accent);
+  color: rgba(255,124,0,.95);
   font-weight:700;
 }
 
 #explanationBox{
   width:100%;
-  margin:12px 0 40px;
-  padding:12px 16px;
-  box-sizing:border-box;
+  margin:12px 0 0;
+  padding:12px 14px;
 
-  font-size:13px;
-  color:#aaa;
-  background:#1a1a1a;
-  border-left:4px solid orange;
-  border-radius:6px;
-  line-height:1.5;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(12,12,12,.55);
+
+  color: rgba(245,245,245,.65);
+  font-size:12.5px;
 }
 
 /* ===========================
@@ -708,7 +739,6 @@ body.dragging *{
   z-index:9999;
   display:none;
 }
-
 #detailOverlay.active{ display:block; }
 
 .detail-view-square{
@@ -716,17 +746,11 @@ body.dragging *{
   width:260px;
   height:260px;
   overflow:hidden;
+  border-radius: 14px;
 
-  background:rgba(5,5,5,0.92);
-  border:2px solid rgba(255,124,0,0.75);
-  border-radius:4px;
-  box-shadow:
-    0 0 18px rgba(255,124,0,0.35),
-    0 0 4px rgba(255,124,0,0.25) inset;
-
-  will-change:transform;
-  -webkit-backface-visibility:hidden;
-  backface-visibility:hidden;
+  background: rgba(0,0,0,.88);
+  border:1px solid rgba(255,124,0,.42);
+  box-shadow: 0 22px 60px rgba(0,0,0,.65), 0 0 24px rgba(255,124,0,.14);
 }
 
 .detail-view-square img{
@@ -737,28 +761,14 @@ body.dragging *{
   transform-origin:top left;
 }
 
-#leftDetail, #rightDetail{
-  position: fixed;
-  width: 260px;
-  height: 260px;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-}
-#leftDetail img, #rightDetail img{
-  position: absolute;
-  left: 0; top: 0;
-}
-
-/* === HARD OVERRIDE: WP/theme img constraints uitzetten in detail viewer === */
+/* Hard overrides for WP/theme */
 #detailOverlay .detail-view-square,
 #detailOverlay #leftDetail,
 #detailOverlay #rightDetail{
   width:260px !important;
   height:260px !important;
   aspect-ratio:1 / 1 !important;
-  box-sizing:border-box !important;
 }
-
 #detailOverlay .detail-view-square img,
 #detailOverlay #leftDetail img,
 #detailOverlay #rightDetail img{
@@ -767,21 +777,16 @@ body.dragging *{
   display:block !important;
 }
 
-/* === DETAIL: naad weg in SBS === */
+/* Seam fix in SBS */
 body.sbs-mode #leftDetail{
-  border-right: 0 !important;
-  border-top-right-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
+  border-right:0 !important;
+  border-top-right-radius:0 !important;
+  border-bottom-right-radius:0 !important;
 }
-
 body.sbs-mode #rightDetail{
-  border-left: 0 !important;
-  border-top-left-radius: 0 !important;
-  border-bottom-left-radius: 0 !important;
-}
-
-#detailOverlay .detail-view-square{
-  background:#000 !important;
+  border-left:0 !important;
+  border-top-left-radius:0 !important;
+  border-bottom-left-radius:0 !important;
 }
 
 /* ===========================
@@ -796,38 +801,25 @@ body.sbs-mode #rightDetail{
    RESPONSIVE
    =========================== */
 @media (max-width:1000px){
-  #cameraSelect,#sensorFormatSelect,#focalLength{ min-width:120px; }
-  #scaleCtrl input[type="range"]{ width:100px; }
-
-  /* LensRow mag wrap op smallere schermen zodat het niet breekt */
+  #scaleCtrl input[type="range"]{ width:140px; }
   .controlsTop .lensRow{ flex-wrap:wrap; }
 }
 
-/* default: mobile-only controls uit */
 .controls.mobile-only{ display:none !important; }
 
 @media (max-width:767px){
   #fullscreenButton,#detailViewToggle{ display:none !important; }
 
-  #infoContainer{
-    padding:0 16px;
-    gap:16px;
-    font-size:13px;
-  }
-
-  #lensInfo{
-    font-size:12px;
-    line-height:1.4;
-    padding:10px 12px;
-  }
-
-  /* desktop controls weg, mobile iframe aan */
+  /* desktop controls off, iframe on */
   .controlsStack.desktop-only{ display:none !important; }
   .controls.mobile-only{ display:block !important; }
   .lens-frame-outer{ display:block !important; }
+
+  #infoContainer{ padding:0 12px; }
+  #lensInfo{ padding:0 12px; }
 }
 
-/* duplicaat-vangnet */
+/* duplicate catch */
 .controlsStack.desktop-only:not(:first-of-type),
 .controls.mobile-only:not(:first-of-type){
   display:none !important;
@@ -839,13 +831,13 @@ body.sbs-mode #rightDetail{
 @media print{
   body{ background:#fff !important; color:#000 !important; }
   .controlsStack,#explanationBox{ display:none !important; }
-  #comparisonWrapper{ width:100% !important; height:auto !important; aspect-ratio:auto !important; }
-  #infoContainer{ color:#000 !important; }
+  #comparisonWrapper{ width:100% !important; height:auto !important; }
   #comparisonWrapper img{ object-fit:contain !important; }
 }
 
+/* Calibrate focus exception */
 #calibrateToggle:focus:not(.active),
 #calibrateToggle:focus-visible:not(.active){
-  box-shadow: none !important;
-  outline: none !important;
+  box-shadow:none !important;
+  outline:none !important;
 }
