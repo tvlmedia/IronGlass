@@ -485,6 +485,59 @@ function updateMfAltUI(){
   }
 }
 
+// ===== UI FOALS (wat jij aanbiedt) =====
+const UI_FOCALS = ["20mm","28mm","35mm","50mm","85mm","120mm"];
+
+function closestUIFocal(options, preferred){
+  if(!options || !options.length) return preferred || "50mm";
+  if(options.includes(preferred)) return preferred;
+
+  const p = baseFocalMm(preferred);
+  if(!Number.isFinite(p)) return options[0];
+
+  let best = options[0];
+  let bestDiff = Infinity;
+
+  for(const f of options){
+    const mm = baseFocalMm(f);
+    const d  = Math.abs(mm - p);
+    if(d < bestDiff){
+      best = f;
+      bestDiff = d;
+    }
+  }
+  return best;
+}
+
+// Bouw focal dropdown op basis van de *huidige* lens links+rechts.
+// Alleen focals die beide lenzen echt hebben blijven zichtbaar.
+function updateFocalOptionsForCurrentLenses(){
+  if(!focalLengthSelect) return { changed:false, valids:UI_FOCALS.slice() };
+
+  const prev = focalLengthSelect.value || UI_FOCALS[0];
+
+  const leftSlug  = lensSlugFromLabel(leftSelect?.value || "");
+  const rightSlug = lensSlugFromLabel(rightSelect?.value || "");
+
+  let valids = UI_FOCALS.filter(f =>
+    lensSupportsUIFocal(leftSlug,  f, "left") &&
+    lensSupportsUIFocal(rightSlug, f, "right")
+  );
+
+  // safety fallback (zou in praktijk niet moeten gebeuren)
+  if(!valids.length) valids = UI_FOCALS.slice();
+
+  // rebuild dropdown
+  focalLengthSelect.innerHTML = "";
+  valids.forEach(f => focalLengthSelect.add(new Option(f, f)));
+
+  // behoud huidige als het kan, anders kies dichtstbijzijnde
+  const next = valids.includes(prev) ? prev : closestUIFocal(valids, prev);
+  focalLengthSelect.value = next;
+
+  return { changed: next !== prev, valids, prev, next };
+}
+
 // listeners (nog zonder invloed op images!)
 mfAltLeftSel?.addEventListener("change", () => {
   mfAltState.left = mfAltLeftSel.value;
@@ -1345,6 +1398,7 @@ tStopLeftSelect.value   = "2.8";
 tStopRightSelect.value  = "2.8";
 
 updateLensInfo();
+updateFocalOptionsForCurrentLenses();
 updateLensOptionsForCurrentFocal(); // ✅ bouwt lens dropdowns op basis van focal + updateMfAltUI + T-stops + images
 
 /* === Resizes + fullscreen === */
@@ -1421,7 +1475,14 @@ toggleBtn?.addEventListener("click",()=>{
   const l=leftSelect.value; leftSelect.value=rightSelect.value; rightSelect.value=l; 
   const t=tStopLeftSelect.value; tStopLeftSelect.value=tStopRightSelect.value; tStopRightSelect.value=t; 
 
-  updateMfAltUI();   // ✅ voeg toe
+  updateMfAltUI();
+
+  // ✅ HIER TOEVOEGEN:
+  const { changed } = updateFocalOptionsForCurrentLenses();
+  if(changed){
+    updateLensOptionsForCurrentFocal();
+    return;
+  }
 
   updateLensInfo(); 
   updateImages(); 
@@ -1527,14 +1588,25 @@ function onGlobalKeydown(e){
 }
 window.addEventListener("keydown",onGlobalKeydown,{capture:true});
 
-[leftSelect,rightSelect].forEach(el =>
-  el.addEventListener("change",()=>{ 
-    updateMfAltUI();              // ✅ HIER
+[leftSelect, rightSelect].forEach(el =>
+  el.addEventListener("change", () => {
+
+    // ✅ 1) eerst focal dropdown corrigeren op basis van de gekozen lens-pair
+    const { changed } = updateFocalOptionsForCurrentLenses();
+
     calibrateUserTouchedScale = false;
     resetUserScale();
-    syncTStopsOnContextChange(); 
-    updateLensInfo(); 
-    updateImages(); 
+
+    // ✅ 2) als focal hierdoor veranderd is → laat je bestaande focal-flow alles rebuilden
+    if(changed){
+      updateLensOptionsForCurrentFocal();
+      return;
+    }
+
+    // ✅ 3) anders normale flow
+    syncTStopsOnContextChange();
+    updateLensInfo();
+    updateImages();
   })
 );
 
