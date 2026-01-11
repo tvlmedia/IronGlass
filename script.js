@@ -1538,15 +1538,16 @@ window.addEventListener("keydown",onGlobalKeydown,{capture:true});
   })
 );
 
-[focalLengthSelect,tStopLeftSelect,tStopRightSelect].forEach(el =>
-  el.addEventListener("change",()=>{
-    if(el === focalLengthSelect){
-  calibrateUserTouchedScale = false;
-  updateLensOptionsForCurrentFocal(); // ✅ dit doet alles al
-  return;
-}
-updateImages();
-);
+[focalLengthSelect, tStopLeftSelect, tStopRightSelect].forEach(el => {
+  el.addEventListener("change", () => {
+    if (el === focalLengthSelect) {
+      calibrateUserTouchedScale = false;
+      updateLensOptionsForCurrentFocal(); // ✅ dit doet alles al
+      return;
+    }
+    updateImages();
+  });
+});
 // ===== DETAIL (zoom) viewer =====
 let detailActive = false;
 
@@ -2012,9 +2013,18 @@ const rightFocal = getEffectiveFocal(rightSlug, uiFocal, "right");
 const yFracL = getAutoReframeYFracForPdf(leftFocal);
 const yFracR = getAutoReframeYFracForPdf(rightFocal);
 
-const li = afterImgTag.currentSrc || afterImgTag.src;  // after = links
+const li = afterImgTag.currentSrc || afterImgTag.src;   // after = links
 const ri = beforeImgTag.currentSrc || beforeImgTag.src; // before = rechts
-    const splitData=await buildSplitFromSensor(leftSensor.dataURL,rightSensor.dataURL,leftSensor.W,leftSensor.H);
+
+const leftSensor  = await renderToSensorAR(li, targetAR, exportH, zoom, yFracL);
+const rightSensor = await renderToSensorAR(ri, targetAR, exportH, zoom, yFracR);
+
+const splitData = await buildSplitFromSensor(
+  leftSensor.dataURL,
+  rightSensor.dataURL,
+  leftSensor.W,
+  leftSensor.H
+);
 
     // p1 split
     pdf.setFillColor(0,0,0); pdf.rect(0,0,pageW,pageH,"F"); bars.top(`${leftText} vs ${rightText}`); await placeContain(pdf,splitData,contentBox); bars.bottomP1(logo,sensorText);
