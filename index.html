@@ -1,70 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lens Comparison</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+  <!-- Header / Brand -->
+  <header id="igHeader" role="banner">
+    <img src="IRONGLASS LOGO.png" alt="IronGlass Logo" />
+  </header>
 
-  <!-- IronGlass Header Logo -->
-  <div id="igHeader">
-    <img src="IRONGLASS LOGO.png" alt="IronGlass Logo">
-  </div>
-
-  <div id="toolRoot">
+  <main id="toolRoot">
     <div class="frame-1200">
 
       <!-- =========================
-           NEW: CONTROLS STACK (2 panels)
+           CONTROLS: 2 STACKED PANELS
            ========================= -->
-      <div class="controlsStack desktop-only">
+      <section class="controlsStack desktop-only" aria-label="Lens comparison controls">
 
-        <!-- ===== TOP PANEL (Lens setup) ===== -->
-        <div class="panel controlsTop">
+        <!-- ===== TOP PANEL (Camera + Lens setup) ===== -->
+        <div class="panel controlsTop" role="group" aria-label="Setup">
 
-          <!-- Row A: Camera + Sensor -->
+          <!-- Camera + Sensor -->
           <div class="row camRow">
-            <select id="cameraSelect"></select>
-            <select id="sensorFormatSelect" disabled></select>
+            <div class="field">
+              <label class="sr-only" for="cameraSelect">Camera</label>
+              <select id="cameraSelect"></select>
+            </div>
+
+            <div class="field">
+              <label class="sr-only" for="sensorFormatSelect">Sensor mode</label>
+              <select id="sensorFormatSelect" disabled></select>
+            </div>
           </div>
 
-          <!-- Row B: Left / Focal / Right (+ T-stops) -->
+          <!-- Lens setup (Left / Focal / Right) -->
           <div class="row lensRow">
 
             <!-- LEFT -->
-            <div class="lensSide">
-              <select id="leftLens"></select>
-              <select id="tStopLeftSelect"></select>
+            <div class="lensSide lensLeft">
+              <div class="field">
+                <label class="sr-only" for="leftLens">Left lens set</label>
+                <select id="leftLens"></select>
+              </div>
 
-              <!-- Sovjet MF extra match selector (LEFT) -->
+              <div class="field">
+                <label class="sr-only" for="tStopLeftSelect">Left T-stop</label>
+                <select id="tStopLeftSelect"></select>
+              </div>
+
+              <!-- Sovjet MF match LEFT -->
               <div id="mfAltLeftWrap" class="mfAltWrap" style="display:none;">
-                <label class="mfAltLabel">Sovjet Medium Format Match</label>
+                <label class="mfAltLabel" for="mfAltLeft">MF match</label>
                 <select id="mfAltLeft"></select>
               </div>
             </div>
 
-            <!-- CENTER -->
+            <!-- CENTER (Focal length) -->
             <div class="lensCenter">
-              <select id="focalLength" title="Focal length">
-                <option value="20mm">20mm</option>
-                <option value="28mm">28mm</option>
-                <option value="35mm">35mm</option>
-                <option value="50mm">50mm</option>
-                <option value="85mm">85mm</option>
-                <option value="120mm">120mm</option>
-              </select>
+              <div class="field">
+                <label class="sr-only" for="focalLength">Focal length</label>
+                <select id="focalLength" title="Focal length">
+                  <option value="20mm">20mm</option>
+                  <option value="28mm">28mm</option>
+                  <option value="35mm">35mm</option>
+                  <option value="50mm">50mm</option>
+                  <option value="85mm">85mm</option>
+                  <option value="120mm">120mm</option>
+                </select>
+              </div>
             </div>
 
             <!-- RIGHT -->
-            <div class="lensSide">
-              <select id="rightLens"></select>
-              <select id="tStopRightSelect"></select>
+            <div class="lensSide lensRight">
+              <div class="field">
+                <label class="sr-only" for="rightLens">Right lens set</label>
+                <select id="rightLens"></select>
+              </div>
 
-              <!-- Sovjet MF extra match selector (RIGHT) -->
+              <div class="field">
+                <label class="sr-only" for="tStopRightSelect">Right T-stop</label>
+                <select id="tStopRightSelect"></select>
+              </div>
+
+              <!-- Sovjet MF match RIGHT -->
               <div id="mfAltRightWrap" class="mfAltWrap" style="display:none;">
-                <label class="mfAltLabel">MF match</label>
+                <label class="mfAltLabel" for="mfAltRight">MF match</label>
                 <select id="mfAltRight"></select>
               </div>
             </div>
@@ -72,64 +97,82 @@
           </div>
         </div>
 
-        <!-- ===== BOTTOM PANEL (Viewer actions) ===== -->
-        <div class="panel controlsBottom">
+        <!-- ===== BOTTOM PANEL (Viewer actions + Advanced + Scale) ===== -->
+        <div class="panel controlsBottom" role="group" aria-label="Viewer controls">
 
           <div class="row actionRow">
             <div class="actionLeft">
-              <button id="toggleButton" class="control-button">↔ Flip</button>
-              <button id="sbsToggle" type="button" class="control-button">Side-by-Side</button>
-              <button id="fullscreenButton" class="control-button">⛶ Fullscreen</button>
-              <button id="detailViewToggle" class="control-button">🔍 Detail View</button>
+              <button id="toggleButton" class="control-button" type="button">↔ Flip</button>
+              <button id="sbsToggle" class="control-button" type="button">Side-by-Side</button>
+              <button id="fullscreenButton" class="control-button" type="button">⛶ Fullscreen</button>
+              <button id="detailViewToggle" class="control-button" type="button">🔍 Detail View</button>
               <button id="bokehToggle" class="control-button" type="button">Bokeh</button>
-              <button id="flareToggle" class="control-button" data-mode="noflare">Flare: OFF</button>
+              <button id="flareToggle" class="control-button" type="button" data-mode="noflare">Flare: OFF</button>
             </div>
 
             <div class="actionRight">
-              <!-- NEW: Advanced dropdown toggle -->
-              <button id="advancedToggle" class="control-button" type="button">Advanced ▾</button>
+              <button
+                id="advancedToggle"
+                class="control-button"
+                type="button"
+                aria-expanded="false"
+                aria-controls="advancedPanel"
+              >
+                Advanced ▾
+              </button>
             </div>
           </div>
 
-          <!-- NEW: Advanced panel (hidden by default; JS toggles .open) -->
+          <!-- Advanced (drop) -->
           <div id="advancedPanel" class="advancedPanel" aria-hidden="true">
-            <button id="calibrateToggle" class="control-button">Calibrate</button>
-            <button id="exposureToggle" class="control-button active" aria-pressed="true">
+            <button id="calibrateToggle" class="control-button" type="button">Calibrate</button>
+            <button
+              id="exposureToggle"
+              class="control-button active"
+              type="button"
+              aria-pressed="true"
+            >
               Exposure Correction
             </button>
           </div>
 
-          <!-- Slider row -->
+          <!-- Scale -->
           <div class="row scaleRow">
             <label id="scaleCtrl" class="chip">
               <span id="scaleVal">100%</span>
-              <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1">
+              <input id="scaleSlider" type="range" min="100" max="130" value="100" step="1" />
             </label>
           </div>
 
         </div>
-      </div>
+      </section>
 
       <!-- =========================
            VIEWER
            ========================= -->
-      <div id="comparisonWrapper" class="desktop-only" tabindex="0">
+      <section id="comparisonWrapper" class="desktop-only" tabindex="0" aria-label="Comparison viewer">
+        <!-- Slider mode -->
         <div id="beforeImage">
-          <img id="beforeImgTag" alt="Right lens preview">
-        </div>
-
-        <!-- === DETAIL VIEW OVERLAY (ZOOM) === -->
-        <div id="detailOverlay">
-          <div id="leftDetail" class="detail-view-square"><img alt="Left zoom"></div>
-          <div id="rightDetail" class="detail-view-square"><img alt="Right zoom"></div>
+          <img id="beforeImgTag" alt="Right lens preview" />
         </div>
 
         <div id="afterWrapper">
           <div id="afterImage">
-            <img id="afterImgTag" alt="Left lens preview">
+            <img id="afterImgTag" alt="Left lens preview" />
           </div>
         </div>
 
+        <!-- Side-by-side mode wrapper (CSS/JS can toggle display) -->
+        <div id="sbsWrapper" aria-hidden="true">
+          <div class="pane pane-left">
+            <img id="sbsLeftImg" alt="Left lens (side-by-side)" />
+          </div>
+          <div class="pane pane-right">
+            <img id="sbsRightImg" alt="Right lens (side-by-side)" />
+          </div>
+        </div>
+
+        <!-- Fullscreen bars -->
         <div id="fsBars" aria-hidden="true">
           <div class="bar top"></div>
           <div class="bar bottom"></div>
@@ -137,45 +180,95 @@
           <div class="bar right"></div>
         </div>
 
+        <!-- Slider line -->
         <div id="slider"></div>
-      </div>
 
-      <div id="infoContainer" class="desktop-only">
+        <!-- Detail overlay (zoom) -->
+        <div id="detailOverlay" aria-hidden="true">
+          <div id="leftDetail" class="detail-view-square"><img alt="Left zoom" /></div>
+          <div id="rightDetail" class="detail-view-square"><img alt="Right zoom" /></div>
+        </div>
+      </section>
+
+      <!-- =========================
+           INFO / LABELS
+           ========================= -->
+      <section id="infoContainer" class="desktop-only" aria-label="Selected lens info">
         <div class="infoCol">
           <div id="leftLabel"></div>
-          <button id="downloadLeftRawButton" class="control-button" disabled>⬇ Download Left RAW</button>
+          <button id="downloadLeftRawButton" class="control-button" type="button" disabled>
+            ⬇ Download Left RAW
+          </button>
         </div>
 
         <div class="infoCol">
           <div id="rightLabel"></div>
-          <button id="downloadRightRawButton" class="control-button" disabled>⬇ Download Right RAW</button>
+          <button id="downloadRightRawButton" class="control-button" type="button" disabled>
+            ⬇ Download Right RAW
+          </button>
         </div>
-      </div>
+      </section>
 
-      <div id="lensInfo" class="desktop-only"></div>
+      <section id="lensInfo" class="desktop-only" aria-label="Lens description"></section>
 
-      <div id="explanationBox" class="desktop-only">
-        <p>⚠️ Note: Some lenses are visually matched. For example, if you select 35mm, you may see a 32mm or 37mm lens that matches the 35mm field of view. This ensures a fair and accurate comparison.</p>
-      </div>
+      <aside id="explanationBox" class="desktop-only" role="note">
+        <p>
+          ⚠️ Note: Some lenses are visually matched. For example, if you select 35mm, you may see a 32mm or 37mm lens that matches the 35mm field of view. This ensures a fair and accurate comparison.
+        </p>
+      </aside>
 
     </div>
-  </div>
+  </main>
 
-  <!-- mobile iframe blijft zoals je 'm had -->
+  <!-- Mobile: keep your iframe setup -->
   <div class="lens-frame-outer mobile-only">
     <div class="lens-frame-wrapper">
       <iframe
         src="https://tvlmedia.github.io/lens-compare/"
         allowfullscreen
-        loading="lazy">
-      </iframe>
+        loading="lazy"
+        title="Lens compare mobile"
+      ></iframe>
     </div>
   </div>
 
-  <!-- === Scripts === -->
+  <!-- Libs -->
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script defer src="script.js"></script>
 
+  <!-- Tiny UI-only toggle for Advanced dropdown -->
+  <script>
+    (function () {
+      const btn = document.getElementById("advancedToggle");
+      const panel = document.getElementById("advancedPanel");
+      if (!btn || !panel) return;
+
+      function setOpen(open) {
+        btn.setAttribute("aria-expanded", String(open));
+        panel.setAttribute("aria-hidden", String(!open));
+        panel.classList.toggle("open", open);
+      }
+
+      setOpen(false);
+
+      btn.addEventListener("click", () => {
+        const open = btn.getAttribute("aria-expanded") !== "true";
+        setOpen(open);
+      });
+
+      // click outside closes
+      document.addEventListener("click", (e) => {
+        if (!panel.classList.contains("open")) return;
+        if (panel.contains(e.target) || btn.contains(e.target)) return;
+        setOpen(false);
+      });
+
+      // ESC closes
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") setOpen(false);
+      });
+    })();
+  </script>
 </body>
 </html>
