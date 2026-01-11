@@ -433,23 +433,34 @@ function requestBrowserFullscreen(){
 
   const closeGate = () => {
     gate.setAttribute("aria-hidden", "true");
+    gate.dataset.mode = ""; // reset mode
   };
 
-  // Als user al in fullscreen zit: geen gate tonen
   if(isBrowserFullscreen()){
     closeGate();
     return;
   }
 
   btn.addEventListener("click", async () => {
+    // Als return-gate actief is, niet de “browser fullscreen” actie doen
+    if(gate.dataset.mode === "return") return;
+
     try{
       requestBrowserFullscreen();
       closeGate();
     } catch(e){
-      // als browser weigert: laat gate staan
       console.warn("Fullscreen request blocked:", e);
     }
   });
+
+  // Als user zelf fullscreen toggelt (F11 / menu): gate weg
+  document.addEventListener("fullscreenchange", () => {
+    if(isBrowserFullscreen()) closeGate();
+  });
+  document.addEventListener("webkitfullscreenchange", () => {
+    if(isBrowserFullscreen()) closeGate();
+  });
+})();
 
   // Als user zelf fullscreen toggelt (F11 / menu): gate weg
   document.addEventListener("fullscreenchange", () => {
@@ -1536,12 +1547,14 @@ const AUTO_RETURN_FULLSCREEN_ON_ESC = true;
 
 let fsExitWasEsc = false;
 let prevWrapperFullscreen = false;
+let exitRequestedByButton = false;
 
 function showFsReturnGate(){
   const gate  = document.getElementById("fsGate");
   const btn   = document.getElementById("fsGateBtn");
   if(!gate || !btn) return;
 
+  gate.dataset.mode = "return"; // ✅ belangrijk
   // (optioneel) copy aanpassen als je die elementen hebt
   const title = gate.querySelector(".fsGateTitle");
   const text  = gate.querySelector(".fsGateText");
@@ -1604,9 +1617,11 @@ function onFsChange(){
   }
 
   // ✅ Alleen als je écht net fullscreen verliet: check of dat door ESC was
-  if(exitedFullscreen){
-    armReturnToFullscreenIfNeeded();
+ if(exitedFullscreen){
+  if(!exitRequestedByButton){
+    showFsReturnGate(); // toon gate bij ESC / browser UI / etc.
   }
+}
 
   scheduleLayoutStabilize();
 }
@@ -1630,7 +1645,13 @@ window.addEventListener("resize",()=>{
 });
 async function toggleFullscreen(){
   if(isWrapperFullscreen()){
+    exitRequestedByButton = true;
+
     await exitAnyFullscreen();
+
+    // reset ASAP (na event-loop), zodat “echte” exits daarna weer gate triggeren
+    setTimeout(() => { exitRequestedByButton = false; }, 0);
+
     endFsEnterMask(); // safety
 
     const {w,h}=getCurrentWH();
@@ -1641,14 +1662,12 @@ async function toggleFullscreen(){
     return;
   }
 
-  // ✅ ENTER: mask vóórdat fullscreen ingaat (dus geen flash-frame)
   beginFsEnterMask();
 
   try{
     clearInlineHeights();
     await enterWrapperFullscreen();
   } catch(e){
-    // als fullscreen geblokkeerd is → mask weer weg
     endFsEnterMask();
     return;
   }
