@@ -406,7 +406,25 @@ if (advancedToggle && advancedPanel) {
     advancedToggle.blur();
   });
 }
+// ✅ HARD FIX: forceer dat ALLE viewer-images altijd de calibratie-vars gebruiken
+(function forceCalibratedTransform(){
+  const id = "tvl-cal-transform-fix";
+  if (document.getElementById(id)) return;
 
+  const st = document.createElement("style");
+  st.id = id;
+  st.textContent = `
+    #beforeImgTag, #afterImgTag, #sbsLeftImg, #sbsRightImg {
+      transform:
+        translate(var(--cal-tx, 0px), var(--cal-ty, 0px))
+        scale(var(--cal-scale, 1))
+        scale(var(--viewer-scale, 1)) !important;
+      transform-origin: center center !important;
+      will-change: transform;
+    }
+  `;
+  document.head.appendChild(st);
+})();
 // ✅ Guard: als pulseFsBars niet bestaat → no-op
 const pulseFsBarsSafe = (opts) => {
   if (typeof window.pulseFsBars === "function") window.pulseFsBars(opts);
