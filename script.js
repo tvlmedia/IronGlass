@@ -2148,25 +2148,24 @@ const size = cfg.size;
 const zoom = cfg.zoom;
 
 const pad = 8;
-const gap = 0; // zelfde “afstand” gevoel als je oude logic
+const gap = 0; // ✅ geen ruimte tussen de twee boxes
 
 // ✅ 1x clamp voor het hele duo
 const groupW = (size * 2) + gap;
-let groupX = e.clientX - size - gap;     // left box op “oude” plek
+
+// Als gap=0 wil je meestal dat je cursor ongeveer op de “naad” zit:
+let groupX = e.clientX - size;
 let groupY = e.clientY - (size / 2);
 
 groupX = clamp(groupX, pad, window.innerWidth  - groupW - pad);
 groupY = clamp(groupY, pad, window.innerHeight - size  - pad);
 
-// subpixel seams fix (optioneel maar nice)
 groupX = Math.round(groupX);
 groupY = Math.round(groupY);
 
-// ✅ eerst uncalibrate
 const pL = uncalibrateRxRy(afterImgTag,  rectL, rxL, ryL);
 const pR = uncalibrateRxRy(beforeImgTag, rectR, rxR, ryR);
 
-// ✅ vaste posities meegeven -> GEEN individuele clamp meer
 const showL = showDetailBoxAt(
   e, leftDetail, leftDetailImg, afterImgTag,
   rectL, pL.rx, pL.ry, "left", zoom, size, 0,
@@ -2176,7 +2175,7 @@ const showL = showDetailBoxAt(
 const showR = showDetailBoxAt(
   e, rightDetail, rightDetailImg, beforeImgTag,
   rectR, pR.rx, pR.ry, "right", zoom, size, 0,
-  { x: groupX + size + gap, y: groupY }
+  { x: groupX + size, y: groupY } // ✅ direct naast elkaar
 );
 
 if(!showL) leftDetail.style.display  = "none";
