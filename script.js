@@ -414,15 +414,17 @@ if (advancedToggle && advancedPanel) {
   const st = document.createElement("style");
   st.id = id;
   st.textContent = `
-    #beforeImgTag, #afterImgTag, #sbsLeftImg, #sbsRightImg {
-      transform:
-        translate(var(--cal-tx, 0px), var(--cal-ty, 0px))
-        scale(var(--cal-scale, 1))
-        scale(var(--viewer-scale, 1)) !important;
-      transform-origin: center center !important;
-      will-change: transform;
-    }
-  `;
+  #beforeImgTag, #afterImgTag, #sbsLeftImg, #sbsRightImg {
+    transform:
+      scale(var(--sensor-scale, 1))
+      scale(var(--viewer-scale, 1))
+      translate3d(var(--cal-tx, 0px), var(--cal-ty, 0px), 0)
+      scale(var(--cal-scale, 1)) !important;
+
+    transform-origin: center center !important;
+    will-change: transform;
+  }
+`;
   document.head.appendChild(st);
 })();
 // ✅ Guard: als pulseFsBars niet bestaat → no-op
